@@ -23,11 +23,16 @@ const r4 = (x) => Math.round(x * 10000) / 10000;
 const r2 = (x) => Math.round(x * 100) / 100;
 
 function sha(seed) {
-  // Deterministic 64-hex string (not a real digest; fixtures only).
+  // Deterministic 64-hex string (not a real digest; fixtures only). Folds the whole seed in
+  // first, so seeds that share a prefix (e.g. ".../v1" and ".../v2") give different strings.
   let h = 2166136261 >>> 0;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
   let out = '';
   for (let i = 0; out.length < 64; i++) {
-    h ^= seed.charCodeAt(i % seed.length) + i;
+    h ^= (i + 0x9e3779b9) >>> 0;
     h = Math.imul(h, 16777619) >>> 0;
     out += h.toString(16).padStart(8, '0');
   }

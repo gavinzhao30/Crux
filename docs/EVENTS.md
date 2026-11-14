@@ -38,7 +38,7 @@ Every run writes one JSON object per line to `runs/<run_id>/events.jsonl`. The o
 | `search.done` | `{"experiment_id": str, "query": str, "urls": [str], "blocked": [str], "bin_id": str \| null}` | `blocked` lists URLs the leakage policy removed |
 | `memory.written` | `{"evidence_id": str, "author_role": str, "backend": str}` | |
 | `memory.recalled` | `{"reader_role": str, "query": str, "evidence_ids": [str], "authors": [str], "backend": str, "latency_ms": float}` | `authors[i]` wrote `evidence_ids[i]`; this is how the UI shows one agent using another's record |
-| `artifact.written` | `{"artifact": Artifact}` | |
+| `artifact.written` | `{"artifact": Artifact}` | Emitted when an artifact is written, and again after each critic round with the same `sha256` and the verdict set (`contract_ok`, `findings`). A repeat with the same `sha256` is the same version, not a new one |
 | `critic.finding` | `{"finding": CriticFinding}` | |
 | `lesson.written` | `{"lesson": Evidence}` | |
 | `budget.tick` | `{"cost_usd": float, "llm_calls": int, "tokens_in": int, "tokens_out": int, "seconds": float}` | After every model call or experiment; drives the header's cost and time |
