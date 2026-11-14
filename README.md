@@ -24,6 +24,10 @@ DU-17 adds a role-local baseline and a frozen-history decision replay. See
 [docs/MEMORY_COMPARISON.md](docs/MEMORY_COMPARISON.md) for the backend switch,
 common instrumentation and comparison command. The local arm works without API keys.
 
+DU-30 adds reviewed development-only lessons, content-addressed corpus freezing and a
+paired lessons-on/off runner. See [docs/LESSONS.md](docs/LESSONS.md) for the review contract,
+start-of-run recall and the distinction between synthetic checks and scientific results.
+
 Set `PAST_API_KEY` in the server environment. `.env.example` documents the variable;
 the application does not automatically load `.env` files. A live synthetic integration
 check (uses provider credits) is available with:
