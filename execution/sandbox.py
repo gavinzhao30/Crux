@@ -17,6 +17,7 @@ from execution.image import task9_image
 from execution.staging import MANIFEST, VOLUME_NAME, Task9Inputs
 
 _COMMANDS = {"python": ("python", "-u"), "r": ("Rscript", "--vanilla"), "bash": ("bash",)}
+_REFERENCE_PROBE = "https://storage.googleapis.com/bixbench3-ground-truth/"
 _VERIFY_INPUTS = """
 import hashlib, json, pathlib, sys
 root = pathlib.Path('/data')
@@ -271,6 +272,33 @@ class ModalExecutor:
             if run.closing:
                 raise RuntimeError("Cannot export from a closing sandbox")
             return await self._copy_outputs(run)
+
+    async def verify_isolation(self, sandbox_id: str) -> dict:
+        code = f"""
+import errno, json, pathlib, urllib.error, urllib.request
+read_only = False
+try:
+    pathlib.Path('/data/.write-probe').touch(exist_ok=False)
+except OSError as exc:
+    read_only = exc.errno in (errno.EROFS, errno.EACCES, errno.EPERM)
+print('Probe outbound connectivity for ' + {_REFERENCE_PROBE!r}, flush=True)
+blocked = False
+try:
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({{}}))
+    with opener.open({_REFERENCE_PROBE!r}, timeout=3):
+        pass
+except urllib.error.HTTPError:
+    pass  # An HTTP response proves the request escaped.
+except (urllib.error.URLError, TimeoutError):
+    blocked = True
+print('RESULT: ' + json.dumps({{'read_only': read_only, 'network_blocked': blocked}}))
+"""
+        result = await self.exec(sandbox_id, "python", code, timeout_s=10)
+        data = result["result"] or {}
+        self._event(self._runs[sandbox_id], "egress.probe", {"url": _REFERENCE_PROBE, **data})
+        if not (data.get("read_only") and data.get("network_blocked")):
+            raise RuntimeError("Task 9 sandbox isolation probe failed")
+        return data
 
     async def close(self, sandbox_id: str) -> None:
         run = self._runs.get(sandbox_id)
