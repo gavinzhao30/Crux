@@ -157,21 +157,25 @@ async def propose(
             raise ValueError("Merge references unknown question")
         if len({sources[source][1].kind for source in group.source_ids}) != 1:
             raise ValueError("Cannot merge categorical and model questions")
+        compatible = []
         for cluster in group.options:
             if any(
                 source not in options or options[source][0] not in group.source_ids
                 for source in cluster.source_ids
             ):
                 raise ValueError("Merge option belongs to another question")
-            members = [options[source][2] for source in cluster.source_ids]
-            if len({o.answer_key for o in members}) > 1:
-                raise ValueError("Merged options have conflicting answer keys")
-            if (
-                sources[group.source_ids[0]][1].kind == "model"
-                and len({o.model_code for o in members}) != 1
-            ):
-                raise ValueError("Executable models can merge only with identical code")
+            # Preserve distinct deliverables or implementations if the merge
+            # model groups them together. Never discard an original option.
+            partitions = {}
+            for source in cluster.source_ids:
+                option = options[source][2]
+                key = (option.answer_key, option.model_code)
+                partitions.setdefault(key, []).append(source)
+            compatible.extend(
+                OptionGroup(source_ids=ids) for ids in partitions.values()
+            )
             used_options.extend(cluster.source_ids)
+        group.options = compatible
         used_questions.extend(group.source_ids)
     if sorted(used_questions) != sorted(sources) or sorted(used_options) != sorted(
         options

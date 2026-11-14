@@ -1,0 +1,313 @@
+{
+  "brief": {
+    "lab": "bixbench3",
+    "goal": "Reproduce Task 9 downstream differential expression and shared/D4-specific gene lists from published counts.",
+    "method_guidance": "Use biological replicates and DESeq2 treatment versus Ctrl within each cell line. Examine data and metadata quality before analysis. Limit each persona to at most three materially important questions.",
+    "contract": {
+      "t98g_c10_vs_control_degs": {
+        "path": "t98g_c10_vs_control_degs.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "de",
+        "required_columns": [
+          "gene_id",
+          "gene_symbol",
+          "base_mean",
+          "log2_fold_change",
+          "lfc_se",
+          "stat",
+          "p_value",
+          "padj"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows",
+            "scope": {
+              "row_filter": "padj < 0.05"
+            }
+          },
+          {
+            "metric": "ccc",
+            "axis": "columns",
+            "scope": {
+              "columns": "value_columns",
+              "row_filter": "padj < 0.05"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": [
+          "log2_fold_change"
+        ]
+      },
+      "t98g_f7_vs_control_degs": {
+        "path": "t98g_f7_vs_control_degs.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "de",
+        "required_columns": [
+          "gene_id",
+          "gene_symbol",
+          "base_mean",
+          "log2_fold_change",
+          "lfc_se",
+          "stat",
+          "p_value",
+          "padj"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows",
+            "scope": {
+              "row_filter": "padj < 0.05"
+            }
+          },
+          {
+            "metric": "ccc",
+            "axis": "columns",
+            "scope": {
+              "columns": "value_columns",
+              "row_filter": "padj < 0.05"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": [
+          "log2_fold_change"
+        ]
+      },
+      "t98g_g2_vs_control_degs": {
+        "path": "t98g_g2_vs_control_degs.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "de",
+        "required_columns": [
+          "gene_id",
+          "gene_symbol",
+          "base_mean",
+          "log2_fold_change",
+          "lfc_se",
+          "stat",
+          "p_value",
+          "padj"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows",
+            "scope": {
+              "row_filter": "padj < 0.05"
+            }
+          },
+          {
+            "metric": "ccc",
+            "axis": "columns",
+            "scope": {
+              "columns": "value_columns",
+              "row_filter": "padj < 0.05"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": [
+          "log2_fold_change"
+        ]
+      },
+      "t98g_slow_shared_degs": {
+        "path": "t98g_slow_shared_degs.csv",
+        "format": "csv",
+        "row_key": "gene_symbol",
+        "kind": "gene_list",
+        "required_columns": [
+          "gene_symbol",
+          "regulation"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows"
+          },
+          {
+            "metric": "label_f1",
+            "scope": {
+              "label_column": "regulation",
+              "average": "macro"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": []
+      },
+      "hek293_d10_vs_control_degs": {
+        "path": "hek293_d10_vs_control_degs.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "de",
+        "required_columns": [
+          "gene_id",
+          "gene_symbol",
+          "base_mean",
+          "log2_fold_change",
+          "lfc_se",
+          "stat",
+          "p_value",
+          "padj"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows",
+            "scope": {
+              "row_filter": "padj < 0.05"
+            }
+          },
+          {
+            "metric": "ccc",
+            "axis": "columns",
+            "scope": {
+              "columns": "value_columns",
+              "row_filter": "padj < 0.05"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": [
+          "log2_fold_change"
+        ]
+      },
+      "hek293_e6_vs_control_degs": {
+        "path": "hek293_e6_vs_control_degs.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "de",
+        "required_columns": [
+          "gene_id",
+          "gene_symbol",
+          "base_mean",
+          "log2_fold_change",
+          "lfc_se",
+          "stat",
+          "p_value",
+          "padj"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows",
+            "scope": {
+              "row_filter": "padj < 0.05"
+            }
+          },
+          {
+            "metric": "ccc",
+            "axis": "columns",
+            "scope": {
+              "columns": "value_columns",
+              "row_filter": "padj < 0.05"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": [
+          "log2_fold_change"
+        ]
+      },
+      "hek293_shared_degs": {
+        "path": "hek293_shared_degs.csv",
+        "format": "csv",
+        "row_key": "gene_symbol",
+        "kind": "gene_list",
+        "required_columns": [
+          "gene_symbol",
+          "regulation"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows"
+          },
+          {
+            "metric": "label_f1",
+            "scope": {
+              "label_column": "regulation",
+              "average": "macro"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": []
+      },
+      "t98g_d4_vs_control_degs": {
+        "path": "t98g_d4_vs_control_degs.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "de",
+        "required_columns": [
+          "gene_id",
+          "gene_symbol",
+          "base_mean",
+          "log2_fold_change",
+          "lfc_se",
+          "stat",
+          "p_value",
+          "padj"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows",
+            "scope": {
+              "row_filter": "padj < 0.05"
+            }
+          },
+          {
+            "metric": "ccc",
+            "axis": "columns",
+            "scope": {
+              "columns": "value_columns",
+              "row_filter": "padj < 0.05"
+            }
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": [
+          "log2_fold_change"
+        ]
+      },
+      "t98g_d4_specific_upregulated_genes": {
+        "path": "t98g_d4_specific_upregulated_genes.csv",
+        "format": "csv",
+        "row_key": "gene_id",
+        "kind": "gene_list",
+        "required_columns": [
+          "gene_id"
+        ],
+        "checks": [
+          {
+            "metric": "f1",
+            "axis": "rows"
+          }
+        ],
+        "score_combination": "product",
+        "value_columns": []
+      }
+    },
+    "protocol": "BixBench3 task 9, downstream pilot (published counts as input)"
+  },
+  "profile": [
+    {
+      "id": "profile-case-b",
+      "kind": "profile",
+      "claim": "{\"shape\": [60708, 16], \"example_gene_ids\": [\"ENSG00000000003.15\", \"ENSG00000000005.6\", \"ENSG00000000419.14\"], \"versioned_gene_ids\": 60664, \"samples\": [{\"sample_id\": \"S01\", \"cell_line\": \"T98G\", \"condition\": \"G2\"}, {\"sample_id\": \"S02\", \"cell_line\": \"T98G\", \"condition\": \"C10\"}, {\"sample_id\": \"S03\", \"cell_line\": \"HEK293\", \"condition\": \"E6\"}, {\"sample_id\": \"S04\", \"cell_line\": \"HEK293\", \"condition\": \"E6\"}, {\"sample_id\": \"S05\", \"cell_line\": \"HEK293\", \"condition\": \"Ctrl\"}, {\"sample_id\": \"S06\", \"cell_line\": \"HEK293\", \"condition\": \"Ctrl\"}, {\"sample_id\": \"S07\", \"cell_line\": \"T98G\", \"condition\": \"D4\"}, {\"sample_id\": \"S08\", \"cell_line\": \"HEK293\", \"condition\": \"D10\"}, {\"sample_id\": \"S09\", \"cell_line\": \"T98G\", \"condition\": \"Ctrl\"}, {\"sample_id\": \"S10\", \"cell_line\": \"T98G\", \"condition\": \"F7\"}, {\"sample_id\": \"S11\", \"cell_line\": \"HEK293\", \"condition\": \"D10\"}, {\"sample_id\": \"S12\", \"cell_line\": \"T98G\", \"condition\": \"D4\"}, {\"sample_id\": \"S13\", \"cell_line\": \"T98G\", \"condition\": \"F7\"}, {\"sample_id\": \"S14\", \"cell_line\": \"T98G\", \"condition\": \"G2\"}, {\"sample_id\": \"S15\", \"cell_line\": \"T98G\", \"condition\": \"Ctrl\"}, {\"sample_id\": \"S16\", \"cell_line\": \"T98G\", \"condition\": \"C10\"}], \"library_sizes\": {\"S01\": 6246310, \"S02\": 2760487, \"S03\": 2098027, \"S04\": 2032928, \"S05\": 4578610, \"S06\": 4606376, \"S07\": 4100361, \"S08\": 5092791, \"S09\": 3711939, \"S10\": 4586059, \"S11\": 3083279, \"S12\": 3721873, \"S13\": 4586059, \"S14\": 6013006, \"S15\": 2737095, \"S16\": 3968618}, \"zero_fraction\": {\"S01\": 0.6371, \"S02\": 0.7003, \"S03\": 0.6457, \"S04\": 0.6318, \"S05\": 0.6596, \"S06\": 0.5865, \"S07\": 0.6611, \"S08\": 0.6361, \"S09\": 0.6875, \"S10\": 0.6467, \"S11\": 0.5891, \"S12\": 0.6802, \"S13\": 0.6467, \"S14\": 0.6503, \"S15\": 0.6918, \"S16\": 0.6868}, \"log1p_count_correlations\": {\"S01\": {\"S01\": 1.0, \"S02\": 0.97203, \"S03\": 0.89541, \"S04\": 0.89017, \"S05\": 0.90446, \"S06\": 0.89705, \"S07\": 0.97397, \"S08\": 0.89987, \"S09\": 0.97032, \"S10\": 0.97207, \"S11\": 0.89041, \"S12\": 0.97395, \"S13\": 0.97207, \"S14\": 0.98877, \"S15\": 0.96751, \"S16\": 0.97323}, \"S02\": {\"S01\": 0.97203, \"S02\": 1.0, \"S03\": 0.8988, \"S04\": 0.89147, \"S05\": 0.90877, \"S06\": 0.8923, \"S07\": 0.97637, \"S08\": 0.89639, \"S09\": 0.97916, \"S10\": 0.97564, \"S11\": 0.88366, \"S12\": 0.9782, \"S13\": 0.97564, \"S14\": 0.97375, \"S15\": 0.97817, \"S16\": 0.98447}, \"S03\": {\"S01\": 0.89541, \"S02\": 0.8988, \"S03\": 1.0, \"S04\": 0.98099, \"S05\": 0.96749, \"S06\": 0.97207, \"S07\": 0.9061, \"S08\": 0.96271, \"S09\": 0.90281, \"S10\": 0.91002, \"S11\": 0.97063, \"S12\": 0.90393, \"S13\": 0.91002, \"S14\": 0.89403, \"S15\": 0.90383, \"S16\": 0.89595}, \"S04\": {\"S01\": 0.89017, \"S02\": 0.89147, \"S03\": 0.98099, \"S04\": 1.0, \"S05\": 0.95938, \"S06\": 0.97297, \"S07\": 0.9012, \"S08\": 0.95562, \"S09\": 0.89558, \"S10\": 0.90572, \"S11\": 0.97272, \"S12\": 0.89752, \"S13\": 0.90572, \"S14\": 0.8876, \"S15\": 0.89704, \"S16\": 0.88858}, \"S05\": {\"S01\": 0.90446, \"S02\": 0.90877, \"S03\": 0.96749, \"S04\": 0.95938, \"S05\": 1.0, \"S06\": 0.96852, \"S07\": 0.91157, \"S08\": 0.97553, \"S09\": 0.91487, \"S10\": 0.91298, \"S11\": 0.95449, \"S12\": 0.91175, \"S13\": 0.91298, \"S14\": 0.90488, \"S15\": 0.91245, \"S16\": 0.9083}, \"S06\": {\"S01\": 0.89705, \"S02\": 0.8923, \"S03\": 0.97207, \"S04\": 0.97297, \"S05\": 0.96852, \"S06\": 1.0, \"S07\": 0.90346, \"S08\": 0.96337, \"S09\": 0.89959, \"S10\": 0.9076, \"S11\": 0.97694, \"S12\": 0.89893, \"S13\": 0.9076, \"S14\": 0.89443, \"S15\": 0.89867, \"S16\": 0.89193}, \"S07\": {\"S01\": 0.97397, \"S02\": 0.97637, \"S03\": 0.9061, \"S04\": 0.9012, \"S05\": 0.91157, \"S06\": 0.90346, \"S07\": 1.0, \"S08\": 0.90511, \"S09\": 0.97548, \"S10\": 0.97773, \"S11\": 0.89717, \"S12\": 0.98733, \"S13\": 0.97773, \"S14\": 0.97483, \"S15\": 0.97144, \"S16\": 0.97509}, \"S08\": {\"S01\": 0.89987, \"S02\": 0.89639, \"S03\": 0.96271, \"S04\": 0.95562, \"S05\": 0.97553, \"S06\": 0.96337, \"S07\": 0.90511, \"S08\": 1.0, \"S09\": 0.90217, \"S10\": 0.90454, \"S11\": 0.96489, \"S12\": 0.90438, \"S13\": 0.90454, \"S14\": 0.9001, \"S15\": 0.89927, \"S16\": 0.89633}, \"S09\": {\"S01\": 0.97032, \"S02\": 0.97916, \"S03\": 0.90281, \"S04\": 0.89558, \"S05\": 0.91487, \"S06\": 0.89959, \"S07\": 0.97548, \"S08\": 0.90217, \"S09\": 1.0, \"S10\": 0.976, \"S11\": 0.88905, \"S12\": 0.97694, \"S13\": 0.976, \"S14\": 0.97207, \"S15\": 0.98536, \"S16\": 0.98027}, \"S10\": {\"S01\": 0.97207, \"S02\": 0.97564, \"S03\": 0.91002, \"S04\": 0.90572, \"S05\": 0.91298, \"S06\": 0.9076, \"S07\": 0.97773, \"S08\": 0.90454, \"S09\": 0.976, \"S10\": 1.0, \"S11\": 0.90136, \"S12\": 0.97747, \"S13\": 1.0, \"S14\": 0.97203, \"S15\": 0.97263, \"S16\": 0.97868}, \"S11\": {\"S01\": 0.89041, \"S02\": 0.88366, \"S03\": 0.97063, \"S04\": 0.97272, \"S05\": 0.95449, \"S06\": 0.97694, \"S07\": 0.89717, \"S08\": 0.96489, \"S09\": 0.88905, \"S10\": 0.90136, \"S11\": 1.0, \"S12\": 0.89226, \"S13\": 0.90136, \"S14\": 0.88766, \"S15\": 0.88925, \"S16\": 0.88289}, \"S12\": {\"S01\": 0.97395, \"S02\": 0.9782, \"S03\": 0.90393, \"S04\": 0.89752, \"S05\": 0.91175, \"S06\": 0.89893, \"S07\": 0.98733, \"S08\": 0.90438, \"S09\": 0.97694, \"S10\": 0.97747, \"S11\": 0.89226, \"S12\": 1.0, \"S13\": 0.97747, \"S14\": 0.97524, \"S15\": 0.97276, \"S16\": 0.9768}, \"S13\": {\"S01\": 0.97207, \"S02\": 0.97564, \"S03\": 0.91002, \"S04\": 0.90572, \"S05\": 0.91298, \"S06\": 0.9076, \"S07\": 0.97773, \"S08\": 0.90454, \"S09\": 0.976, \"S10\": 1.0, \"S11\": 0.90136, \"S12\": 0.97747, \"S13\": 1.0, \"S14\": 0.97203, \"S15\": 0.97263, \"S16\": 0.97868}, \"S14\": {\"S01\": 0.98877, \"S02\": 0.97375, \"S03\": 0.89403, \"S04\": 0.8876, \"S05\": 0.90488, \"S06\": 0.89443, \"S07\": 0.97483, \"S08\": 0.9001, \"S09\": 0.97207, \"S10\": 0.97203, \"S11\": 0.88766, \"S12\": 0.97524, \"S13\": 0.97203, \"S14\": 1.0, \"S15\": 0.96906, \"S16\": 0.9749}, \"S15\": {\"S01\": 0.96751, \"S02\": 0.97817, \"S03\": 0.90383, \"S04\": 0.89704, \"S05\": 0.91245, \"S06\": 0.89867, \"S07\": 0.97144, \"S08\": 0.89927, \"S09\": 0.98536, \"S10\": 0.97263, \"S11\": 0.88925, \"S12\": 0.97276, \"S13\": 0.97263, \"S14\": 0.96906, \"S15\": 1.0, \"S16\": 0.97633}, \"S16\": {\"S01\": 0.97323, \"S02\": 0.98447, \"S03\": 0.89595, \"S04\": 0.88858, \"S05\": 0.9083, \"S06\": 0.89193, \"S07\": 0.97509, \"S08\": 0.89633, \"S09\": 0.98027, \"S10\": 0.97868, \"S11\": 0.88289, \"S12\": 0.9768, \"S13\": 0.97868, \"S14\": 0.9749, \"S15\": 0.97633, \"S16\": 1.0}}, \"identical_columns\": [[\"S10\", \"S13\"]]}",
+      "author_role": "experimenter",
+      "source_ref": null,
+      "url": null,
+      "conditions": {
+        "counts_sha256": "feefd1ecb771360ae07fa97c8854d3346883d2c3c1eb934f6d7d50ca3971b65e",
+        "samples_sha256": "4986f0f7326ba2f5a29e1bf3e87f37607a8d1b983efda1aa20baa18f33e4cf8d"
+      }
+    }
+  ]
+}

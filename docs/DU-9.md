@@ -12,6 +12,8 @@ call uses the same configured cheap proposer model after the initial calls finis
 Each initial question has 2–4 substantive options. The engine adds a null option
 when enabled. Merge validation checks complete source coverage, uniqueness, kinds,
 option ownership, answer keys, and identical code for merged executable models.
+Options grouped together with different answer keys or model implementations
+are split deterministically to preserve every distinct alternative.
 It cannot establish semantic equivalence or scientific correctness on its own.
 
 Prior weights use distinct proposer support plus one for smoothing. They receive
@@ -44,6 +46,6 @@ It exercises proposal generation only. The production caller supplies the real
 memory backend. Inspect both outputs for at least two materially different
 questions and verify question.opened, hypothesis.proposed, and hypothesis.merged.
 
-Offline tests use synthetic Task 9 scenarios. Live acceptance on the actual
-clean and dev-fault profiles remains pending until staged profiles and API access
-are available. No scientific or benchmark result is implied by the offline tests.
+Live acceptance passed on the published Task 9 matrix and a fixed-seed
+duplicate-library dev case. See [the acceptance record](acceptance/DU-9.md)
+for evidence, input provenance, and limitations. This verifies proposal generation.
