@@ -16,7 +16,14 @@ import modal
 from execution.image import task9_image
 from execution.staging import MANIFEST, VOLUME_NAME, Task9Inputs
 
-_COMMANDS = {"python": ("python", "-u"), "r": ("Rscript", "--vanilla"), "bash": ("bash",)}
+_CONDA_BIN = "/opt/conda/bin"
+_PYTHON = f"{_CONDA_BIN}/python"
+_EXEC_ENV = {"PATH": f"{_CONDA_BIN}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}
+_COMMANDS = {
+    "python": (_PYTHON, "-u"),
+    "r": (f"{_CONDA_BIN}/Rscript", "--vanilla"),
+    "bash": ("/bin/bash",),
+}
 _REFERENCE_PROBE = "https://storage.googleapis.com/bixbench3-ground-truth/"
 _VERIFY_INPUTS = """
 import hashlib, json, pathlib, sys
@@ -139,10 +146,11 @@ class ModalExecutor:
                 idle_timeout=600,
             )
             check = await sandbox.exec.aio(
-                "python", "-c", _VERIFY_INPUTS, json.dumps(self.inputs.files), timeout=120
+                _PYTHON, "-c", _VERIFY_INPUTS, json.dumps(self.inputs.files), timeout=120
             )
             if await check.wait.aio() != 0:
-                raise RuntimeError("Task 9 staged inputs failed verification")
+                details = (await check.stderr.read.aio()).strip()
+                raise RuntimeError(f"Task 9 staged inputs failed verification: {details}")
             (directory / MANIFEST).write_text(self.inputs.json(), encoding="utf-8")
             run = _Run(sandbox, directory, run_id)
             self._event(run, "sandbox.ready", {"startup_seconds": monotonic() - started})
@@ -200,7 +208,12 @@ class ModalExecutor:
             try:
                 await run.sandbox.filesystem.write_text.aio(code, filename)
                 process = await run.sandbox.exec.aio(
-                    *_COMMANDS[language], filename, timeout=timeout_s, workdir="/work", bufsize=1
+                    *_COMMANDS[language],
+                    filename,
+                    timeout=timeout_s,
+                    workdir="/work",
+                    bufsize=1,
+                    env=_EXEC_ENV,
                 )
                 async with asyncio.TaskGroup() as tasks:
                     tasks.create_task(drain(process.stdout, "stdout", stdout))
@@ -235,7 +248,7 @@ class ModalExecutor:
         }
 
     async def _copy_outputs(self, run: _Run) -> list[dict]:
-        process = await run.sandbox.exec.aio("python", "-c", _LIST_OUTPUTS, timeout=30)
+        process = await run.sandbox.exec.aio(_PYTHON, "-c", _LIST_OUTPUTS, timeout=30)
         raw = await process.stdout.read.aio()
         if await process.wait.aio() != 0:
             raise RuntimeError("Sandbox output listing failed")
