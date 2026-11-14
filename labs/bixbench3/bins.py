@@ -49,7 +49,7 @@ def choose_bin(rules: Iterable[tuple[str, str]], result: dict) -> str:
             raise ValueError("Outcome rule exceeds the length limit")
         applies = _predicate(ast.parse(rule, mode="eval").body, result)
         if not isinstance(applies, bool):
-            raise ValueError(f"Bin {bin_id!r} must evaluate to a boolean")
+            raise TypeError(f"Bin {bin_id!r} must evaluate to a boolean")
         if applies:
             matched.append(bin_id)
     if len(matched) != 1:

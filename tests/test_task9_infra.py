@@ -17,7 +17,8 @@ from search.task9_policy import GuardedSearch, Task9SearchPolicy
 
 def test_stage_snapshots_only_declared_files(tmp_path):
     class Volume:
-        files = {}
+        def __init__(self):
+            self.files = {}
 
         @contextmanager
         def batch_upload(self, *, force):

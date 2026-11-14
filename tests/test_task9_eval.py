@@ -125,8 +125,8 @@ def test_baseline_shares_executor_and_records_usage(tmp_path):
             run_id="run",
             prompt="study",
             prompt_source="test",
-            input_usd_per_million=Decimal("1"),
-            output_usd_per_million=Decimal("1"),
+            input_usd_per_million=Decimal(1),
+            output_usd_per_million=Decimal(1),
             contract=load_contract(),
             max_calls=2,
         )

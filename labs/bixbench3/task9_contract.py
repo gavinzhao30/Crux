@@ -25,10 +25,12 @@ def load_prompt(path: Path | None = None) -> tuple[str, str]:
             raise ValueError("The supplied Task 9 prompt is empty")
         return prompt, "supplied Task 9 prompt"
     return (
-        "Reproduce the downstream Task 9 analysis from the staged counts and sample sheet. "
-        "For each cell line, produce DESeq2 treatment-versus-Ctrl comparisons and the shared "
-        "and D4-specific gene sets requested by the artifact contract. Use biological "
-        "replicates and record analysis decisions, diagnostics and unresolved issues in "
-        "/outputs/METHODS.md. Use the supplied artifact names and column names.",
+        (
+            "Reproduce the downstream Task 9 analysis from the staged counts and sample sheet. "
+            "For each cell line, produce DESeq2 treatment-versus-Ctrl comparisons and the shared "
+            "and D4-specific gene sets requested by the artifact contract. Use biological "
+            "replicates and record analysis decisions, diagnostics and unresolved issues in "
+            "/outputs/METHODS.md. Use the supplied artifact names and column names."
+        ),
         "local fallback from public artifact contracts",
     )
