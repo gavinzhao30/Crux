@@ -1,0 +1,14 @@
+[
+  {
+    "name": "demo_categorical",
+    "title": "BixBench3 task 9 (categorical)"
+  },
+  {
+    "name": "demo_numeric",
+    "title": "Screen-to-camera bench (numeric)"
+  },
+  {
+    "name": "demo_error",
+    "title": "Failed run (sandbox out of memory)"
+  }
+]
