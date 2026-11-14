@@ -19,7 +19,7 @@ The same engine runs three "labs":
 ## 2. Stack
 
 * Python 3.12, `uv`, pydantic v2, `asyncio`, FastAPI + uvicorn, httpx, numpy, pandas, pytest, ruff.
-* LLM calls: the `openai` SDK with structured outputs (pydantic schemas). Model names come from config, never hard-coded.
+* LLM calls: the `openai` SDK with structured outputs (pydantic schemas). Model names come from config, never hard-coded. Implemented in `agents/llm.py`: the defaults are `gpt-4.1-mini` (proposers, predictor; accepts temperature and returns logprobs) and `gpt-5.5` (designer, referee, critic, reporter; rejects temperature and logprobs, which the wrapper handles).
 * Sandboxed execution: Modal (Sandboxes for agent code, Functions for heavy compute).
 * Search: `exa-py`. Memory: past.dev REST via httpx. Tracing: Langfuse's OpenAI wrapper.
 * Front end: Vite + React + TypeScript + Tailwind + Recharts, fed by Server-Sent Events.
@@ -151,7 +151,9 @@ class RunEvent(BaseModel):
 
 ### 4.3 Event types (the UI renders these; `runs/<run_id>/events.jsonl` stores them)
 
-`run.started` · `profile.done` · `question.opened` · `hypothesis.proposed` · `hypothesis.merged` · `experiment.proposed` · `experiment.scored` · `experiment.started` · `experiment.log` · `experiment.finished` · `referee.verdict` · `belief.updated` · `hypothesis.rejected` · `question.settled` · `question.unresolved` · `surprise.raised` · `search.done` · `memory.written` · `memory.recalled` · `artifact.written` · `critic.finding` · `lesson.written` · `run.finished` · `run.error`
+`run.started` · `profile.done` · `question.opened` · `hypothesis.proposed` · `hypothesis.merged` · `experiment.proposed` · `experiment.scored` · `experiment.started` · `experiment.log` · `experiment.finished` · `referee.verdict` · `belief.updated` · `model.curves` · `hypothesis.rejected` · `question.settled` · `question.robust` · `question.unresolved` · `surprise.raised` · `search.done` · `memory.written` · `memory.recalled` · `artifact.written` · `critic.finding` · `lesson.written` · `budget.tick` · `run.finished` · `run.error`
+
+**The payload of every event type is defined in [`docs/EVENTS.md`](EVENTS.md).** The engine, the API server and the UI all build against that file.
 
 ## 5. Interfaces (`core/interfaces.py`)
 
@@ -218,6 +220,8 @@ EIG_total(d)  = E[ log Normal(y; predict_k(d, theta_km), sigma^2) - log p(y) ]
 ```
 
 Update by re-weighting particles with the Gaussian likelihood; resample a family when its effective sample size falls below half; flag a surprise when the observation is more than 4 predictive standard deviations out.
+
+**As built (`core/eig_exec.py`):** `h0` is left out of design scoring by default. It still takes part in updates, the predictive mixture and the surprise rule. Scoring it literally makes a design where every proposal predicts the same value look informative, because `h0` predicts a wide spread there. It is scored only when a single family is proposed; `null_in_eig=True` forces it. Agent-written model code runs through `core/model_sandbox.py` (an AST allow-list plus a fresh isolated interpreter with a timeout; not an OS-level sandbox).
 
 ## 7. Conventions
 
