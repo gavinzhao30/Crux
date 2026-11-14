@@ -41,7 +41,7 @@ class MemoryStore:
             );
         """)
 
-    def append(self, record: MemoryRecord, source_id: str, body: dict) -> None:
+    def append(self, record: MemoryRecord, source_id: str, body: dict | None = None) -> None:
         encoded = record.model_dump_json()
         with self.db:
             existing = self.db.execute(
@@ -55,10 +55,11 @@ class MemoryStore:
                 "INSERT INTO records(evidence_id,event_id,source_id,record) VALUES(?,?,?,?)",
                 (record.evidence.id, record.event_id, source_id, encoded),
             )
-            self.db.execute(
-                "INSERT INTO outbox(source_id,body) VALUES(?,?)",
-                (source_id, json.dumps(body, sort_keys=True)),
-            )
+            if body is not None:
+                self.db.execute(
+                    "INSERT INTO outbox(source_id,body) VALUES(?,?)",
+                    (source_id, json.dumps(body, sort_keys=True)),
+                )
             for evidence_id in record.supersedes:
                 self.db.execute(
                     "UPDATE records SET superseded=1 WHERE evidence_id=?", (evidence_id,)
@@ -72,8 +73,8 @@ class MemoryStore:
 
     def eligible(self) -> list[sqlite3.Row]:
         return self.db.execute("""
-            SELECT records.*, outbox.status FROM records
-            JOIN outbox USING(source_id) WHERE superseded=0 ORDER BY seq
+            SELECT records.*, COALESCE(outbox.status, 'local') AS status FROM records
+            LEFT JOIN outbox USING(source_id) WHERE superseded=0 ORDER BY seq
         """).fetchall()
 
     def pending(self) -> list[sqlite3.Row]:

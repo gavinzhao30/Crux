@@ -11,3 +11,4 @@ runs/*
 !runs/demo/
 truth.json
 **/ground-truth/
+eval/results/

@@ -25,6 +25,7 @@ from memory.base import (
     RecallUnavailable,
     RunContext,
 )
+from memory.instrumentation import MemoryTelemetry
 from memory.store import MemoryStore
 
 API_BASE = "https://api.past.dev/api/v1"
@@ -72,6 +73,7 @@ class PastMemory:
         poll_interval_s: float = 0.2,
         max_tokens: int = 1500,
         background: bool = True,
+        telemetry: MemoryTelemetry | None = None,
     ):
         if timeout_s <= 0 or poll_interval_s < 0 or max_tokens < 1:
             raise ValueError("Invalid memory timeout, poll interval or evidence budget")
@@ -79,6 +81,7 @@ class PastMemory:
         if not key:
             raise ValueError("Set PAST_API_KEY in the server environment")
         self.context = context
+        self.telemetry = telemetry or MemoryTelemetry("pastdev")
         self.store = MemoryStore(root, context)
         self._headers = {"Authorization": f"Bearer {key}"}
         self._owns_client = client is None
@@ -107,7 +110,7 @@ class PastMemory:
             raise ValueError("Memory adapter is bound to another run")
 
     async def _request(self, method: str, path: str, body: dict | None = None) -> dict:
-        started = time.monotonic()
+        started = time.perf_counter()
         try:
             response = await self._client.request(
                 method, API_BASE + path, json=body, headers=self._headers
@@ -124,7 +127,7 @@ class PastMemory:
                     "path": path,
                     "request": body,
                     "error": type(exc).__name__,
-                    "seconds": time.monotonic() - started,
+                    "seconds": time.perf_counter() - started,
                 },
             )
             raise
@@ -135,7 +138,7 @@ class PastMemory:
                 "path": path,
                 "request": body,
                 "response": result,
-                "seconds": time.monotonic() - started,
+                "seconds": time.perf_counter() - started,
             },
         )
         return result
@@ -155,6 +158,7 @@ class PastMemory:
                 self._scope_ready = True
 
     async def write(self, ev: Evidence, run_id: str, author_role: str) -> None:
+        started = time.perf_counter()
         self._check_run(run_id)
         self.context.identity(author_role)
         if ev.author_role != author_role:
@@ -164,6 +168,9 @@ class PastMemory:
             if previous.evidence != ev:
                 raise ValueError("Evidence IDs are immutable; use a new ID with supersedes")
             self._start_worker()
+            await self.telemetry.written(
+                self.store, ev, time.perf_counter() - started, idempotent=True
+            )
             return
         await self.write_record(
             MemoryRecord(
@@ -181,7 +188,7 @@ class PastMemory:
         )
 
     async def write_record(self, record: MemoryRecord) -> None:
-        started = time.monotonic()
+        started = time.perf_counter()
         self._check_run(record.run_id)
         if record.task_id != self.context.task_id:
             raise ValueError("Memory record belongs to another task")
@@ -223,16 +230,7 @@ class PastMemory:
             json.dumps(body, sort_keys=True).encode()
         ).hexdigest()
         self.store.append(record, source_id, body)
-        self.store.audit(
-            "memory.written",
-            {
-                "run_id": record.run_id,
-                "evidence_id": record.evidence.id,
-                "author_role": record.evidence.author_role,
-                "durability": "local",
-                "seconds": time.monotonic() - started,
-            },
-        )
+        await self.telemetry.written(self.store, record.evidence, time.perf_counter() - started)
         self._start_worker()
 
     def _start_worker(self) -> None:
@@ -308,7 +306,7 @@ class PastMemory:
         if not query.strip() or not 1 <= k <= 200:
             raise ValueError("Recall needs a query and k between 1 and 200")
         self._start_worker()
-        started = time.monotonic()
+        started = time.perf_counter()
         remote_ids: list[str] = []
         failed = False
         try:
@@ -353,18 +351,15 @@ class PastMemory:
             if len(selected) >= max(k, len(mandatory)):
                 break
             selected.setdefault(ev.id, ev)
-        self.store.audit(
-            "memory.recalled",
-            {
-                "run_id": run_id,
-                "reader_role": reader_role,
-                "query": query,
-                "evidence_ids": list(selected),
-                "source_ids": remote_ids,
-                "fallback": "pending_and_mandatory" if failed else None,
-                "remote_status": "failed" if failed else "ok",
-                "seconds": time.monotonic() - started,
-            },
+        await self.telemetry.recalled(
+            self.store,
+            reader_role,
+            query,
+            list(selected.values()),
+            time.perf_counter() - started,
+            source_ids=remote_ids,
+            fallback="pending_and_mandatory" if failed else None,
+            remote_status="failed" if failed else "ok",
         )
         if failed and not selected:
             raise RecallUnavailable("Remote recall failed; no pending or mandatory local evidence")
