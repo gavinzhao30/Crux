@@ -14,6 +14,13 @@ uv run ruff check .
 
 For live integrations, set the environment variables listed in `.env.example`. To load values from a local `.env` file, use `uv run --env-file .env` before your command. Run settings and ablation options are defined in `core/config.py`.
 
+## Offline demo
+
+Run `uv run python -m scripts.make_demo_fixture` to regenerate the UI replays.
+`web/fixtures/demo.jsonl` records a successful synthetic run, including an invalid diagnostic
+and a critic review. `web/fixtures/demo-error.jsonl` records a failed run. Each file has one
+terminal event. Together they exercise the full [event contract](docs/EVENTS.md).
+
 ## Leakage controls
 
 Agent-visible inputs exclude benchmark ground truth and planted-fault truth tables. The ERD reserves grading for a separate process in `eval/`. Ordinary run logs and artifacts are ignored by Git. Review files in `runs/demo/` before staging them.
