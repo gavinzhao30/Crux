@@ -1,0 +1,24 @@
+[project]
+name = "crux"
+version = "0.1.0"
+description = "Experimental design and scientific artifact reproduction"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "exa-py",
+    "fastapi",
+    "httpx",
+    "langfuse",
+    "modal",
+    "numpy",
+    "openai>=1.60",
+    "pandas",
+    "pydantic>=2,<3",
+    "uvicorn",
+]
+
+[dependency-groups]
+dev = ["pytest", "ruff"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

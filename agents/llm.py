@@ -558,7 +558,7 @@ def _make_default_client(timeout_s: float) -> tuple[Any, bool]:
     return openai.AsyncOpenAI(max_retries=0, timeout=timeout_s), False
 
 
-def _coerce(parsed: Any, schema: type[T]) -> T:
+def _coerce[T: BaseModel](parsed: Any, schema: type[T]) -> T:
     if isinstance(parsed, schema):
         return parsed
     if isinstance(parsed, BaseModel):
@@ -630,7 +630,7 @@ def _backoff_delay(attempt: int, retry_after: float | None = None) -> float:
     return delay
 
 
-def _cache_read(path: Path, schema: type[T]) -> T | None:
+def _cache_read[T: BaseModel](path: Path, schema: type[T]) -> T | None:
     try:
         raw = path.read_text(encoding="utf-8")
     except FileNotFoundError:
