@@ -140,6 +140,18 @@ describe('folding demo_categorical', () => {
     expect(de.artifact.versions).toBe(2);
   });
 
+  it('a re-emit with the same sha256 is the same version', () => {
+    const art = { name: 'x.csv', path: 'x.csv', sha256: 'abc', contract_ok: false, findings: [] };
+    const ev = (seq: number, artifact: object): RunEvent =>
+      ({ run_id: 'r', seq, ts: seq, type: 'artifact.written', payload: { artifact } }) as RunEvent;
+    let st = foldEvent(initialState(), ev(0, art));
+    st = foldEvent(st, ev(1, { ...art, contract_ok: true }));
+    expect(st.artifacts['x.csv']!.versions).toBe(1);
+    expect(st.artifacts['x.csv']!.contract_ok).toBe(true);
+    st = foldEvent(st, ev(2, { ...art, sha256: 'def' }));
+    expect(st.artifacts['x.csv']!.versions).toBe(2);
+  });
+
   it('critic status was "block" before the repair', () => {
     const idx = categorical.findIndex(
       (e) => e.type === 'artifact.written' && (e.payload as { artifact: { name: string; contract_ok: boolean } }).artifact.contract_ok && (e.payload as { artifact: { name: string } }).artifact.name === 'de_results_T98G.csv',
@@ -296,5 +308,29 @@ describe('local replay timing', () => {
   it('skips a torn last line', () => {
     const text = `${JSON.stringify(categorical[0])}\n${JSON.stringify(categorical[1])}\n{"run_id": "r", "seq": 2, "ty`;
     expect(parseJsonl(text)).toHaveLength(2);
+  });
+});
+
+describe('engine event files (runs/demo, written by core/orchestrator.py)', () => {
+  const ENGINE = fileURLToPath(new URL('../../../../runs/demo/', import.meta.url));
+  const engine = parseJsonl(readFileSync(`${ENGINE}fake_categorical.jsonl`, 'utf8'));
+
+  it('marks the repaired artifact as passing once the critic re-emits its verdict', () => {
+    const s = foldAll(engine);
+    expect(criticSummary(s)).toEqual({ 'de_table.csv': 'pass', 'qc_summary.csv': 'pass' });
+    expect(s.artifacts['de_table.csv']!.versions).toBe(2);
+  });
+
+  it('shows the block between the first verdict and the repair', () => {
+    const repaired = engine.findIndex(
+      (e, i) =>
+        i > 0 &&
+        e.type === 'artifact.written' &&
+        (e.payload as { artifact: { name: string; contract_ok: boolean } }).artifact.name ===
+          'de_table.csv' &&
+        (e.payload as { artifact: { contract_ok: boolean } }).artifact.contract_ok,
+    );
+    const before = foldAll(engine.slice(0, repaired));
+    expect(criticSummary(before)['de_table.csv']).toBe('block');
   });
 });

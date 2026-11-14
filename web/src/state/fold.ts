@@ -983,6 +983,9 @@ const handlers: Record<string, Handler> = {
     const a = readArtifact(p.artifact);
     if (!a) return s;
     const prev = s.artifacts[a.name];
+    // The engine re-emits an artifact with the critic's verdict (same sha256); that is the
+    // same version with an updated contract_ok, not a new version.
+    const sameVersion = Boolean(prev && a.sha256 && prev.sha256 === a.sha256);
     return {
       ...s,
       artifacts: {
@@ -991,7 +994,7 @@ const handlers: Record<string, Handler> = {
           ...a,
           firstSeq: prev?.firstSeq ?? ev.seq,
           writtenSeq: ev.seq,
-          versions: (prev?.versions ?? 0) + 1,
+          versions: sameVersion && prev ? prev.versions : (prev?.versions ?? 0) + 1,
         },
       },
       artifactOrder: prev ? s.artifactOrder : [...s.artifactOrder, a.name],

@@ -148,8 +148,14 @@ def test_no_critic_emits_no_finding_and_delivers_once(tmp_path: Path) -> None:
 
 def test_critic_repair_runs_exactly_two_delivery_rounds(tmp_path: Path) -> None:
     report, events, _ = run_fake(tmp_path)
-    written = [p["artifact"]["name"] for p in of_type(events, "artifact.written")]
-    assert written == ["de_table.csv", "qc_summary.csv"] * 2
+    written = [p["artifact"] for p in of_type(events, "artifact.written")]
+    # each round writes both artifacts, then re-emits the same versions with the verdict
+    assert [a["name"] for a in written] == ["de_table.csv", "qc_summary.csv"] * 4
+    r1_write, r1_verdict, r2_write, r2_verdict = (written[i : i + 2] for i in range(0, 8, 2))
+    assert [a["sha256"] for a in r1_verdict] == [a["sha256"] for a in r1_write]
+    assert [a["contract_ok"] for a in r1_verdict] == [False, True]  # de_table blocked
+    assert r2_write[0]["sha256"] != r1_write[0]["sha256"]  # the repaired table is a new version
+    assert [a["contract_ok"] for a in r2_verdict] == [True, True]  # both pass after repair
     (finding,) = of_type(events, "critic.finding")
     assert finding["finding"]["severity"] == "block"
     assert finding["finding"]["artifact"] == "de_table.csv"
@@ -336,7 +342,8 @@ def test_block_finding_can_reopen_a_question(tmp_path: Path) -> None:
     _, events, path = run_fake(tmp_path, lab, deps=deps)
     opened = [p["question"]["id"] for p in of_type(events, "question.opened")]
     assert opened == ["q1", "q2", "q2"]
-    assert len(of_type(events, "artifact.written")) == 4
+    # two delivery rounds, each writing both artifacts and then re-emitting them with the verdict
+    assert len(of_type(events, "artifact.written")) == 8
     assert of_type(events, "question.unresolved")[-1]["question_id"] == "q2"
     assert replay_check(path).ok
 

@@ -1461,6 +1461,9 @@ class _Run:
                 mine = [f for f in findings if f.artifact == a.name]
                 a.findings = [f.message for f in mine]
                 a.contract_ok = not any(f.severity == "block" for f in mine)
+                # Re-emit the same version (same sha256) with the critic's verdict, so the
+                # event file records which artifacts passed their contract in this round.
+                await self._emit(E.ARTIFACT_WRITTEN, artifact=a)
             blocking = [f for f in findings if f.severity == "block"]
             if not blocking or round_no == rounds:
                 return
