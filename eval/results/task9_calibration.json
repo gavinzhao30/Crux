@@ -10,7 +10,7 @@
   "status": {
     "stated": "Library-authored approximate probability tables",
     "sampled": "gpt-4.1-mini, eight draws per option, 0 fresh calls, $0.000 estimated",
-    "jev": "Pending after TypeSafe HTTP 401"
+    "jev": "jev-latest, one batched Choice request per experiment"
   },
   "splits": {
     "dev": {
@@ -107,6 +107,47 @@
           "ranking_groups": 8,
           "changed_vs_stated": 4,
           "no_choice": 0
+        },
+        "jev": {
+          "n": 20,
+          "log_loss": 0.659626232517394,
+          "brier": 0.4187055666666666,
+          "accuracy": 0.75,
+          "ece": 0.24333333333333335,
+          "impossible": 0,
+          "reliability": [
+            {
+              "low": 0.6,
+              "high": 0.7,
+              "n": 5,
+              "mean_confidence": 0.6723333333333333,
+              "observed_accuracy": 1.0
+            },
+            {
+              "low": 0.7,
+              "high": 0.8,
+              "n": 4,
+              "mean_confidence": 0.7578333333333334,
+              "observed_accuracy": 0.5
+            },
+            {
+              "low": 0.8,
+              "high": 0.9,
+              "n": 7,
+              "mean_confidence": 0.8369047619047619,
+              "observed_accuracy": 0.5714285714285714
+            },
+            {
+              "low": 0.9,
+              "high": 1.0,
+              "n": 4,
+              "mean_confidence": 0.9153333333333333,
+              "observed_accuracy": 1.0
+            }
+          ],
+          "ranking_groups": 8,
+          "changed_vs_stated": 0,
+          "no_choice": 0
         }
       }
     },
@@ -190,10 +231,51 @@
           "ranking_groups": 18,
           "changed_vs_stated": 9,
           "no_choice": 0
+        },
+        "jev": {
+          "n": 45,
+          "log_loss": 0.710612631709444,
+          "brier": 0.43995666666666666,
+          "accuracy": 0.7333333333333333,
+          "ece": 0.2247925925925926,
+          "impossible": 0,
+          "reliability": [
+            {
+              "low": 0.6,
+              "high": 0.7,
+              "n": 11,
+              "mean_confidence": 0.6731515151515152,
+              "observed_accuracy": 1.0
+            },
+            {
+              "low": 0.7,
+              "high": 0.8,
+              "n": 9,
+              "mean_confidence": 0.7443333333333334,
+              "observed_accuracy": 0.4444444444444444
+            },
+            {
+              "low": 0.8,
+              "high": 0.9,
+              "n": 14,
+              "mean_confidence": 0.8388333333333333,
+              "observed_accuracy": 0.6428571428571429
+            },
+            {
+              "low": 0.9,
+              "high": 1.0,
+              "n": 11,
+              "mean_confidence": 0.9161515151515153,
+              "observed_accuracy": 0.8181818181818182
+            }
+          ],
+          "ranking_groups": 18,
+          "changed_vs_stated": 0,
+          "no_choice": 0
         }
       }
     }
   },
-  "heldout_log_loss_winner": null,
-  "jev_beats_both": null
+  "heldout_log_loss_winner": "stated",
+  "jev_beats_both": false
 }

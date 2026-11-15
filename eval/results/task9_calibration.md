@@ -14,7 +14,7 @@ Offline rankings replay the first choice within each eligible case and fork, wit
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Stated | 20 | 0.5084 | 0.2886 | 0.3079 | 0/8 |
 | Sampled | 20 | 0.7937 | 0.4685 | 0.2268 | 4/8 |
-| Jev | 0 | — | — | — | — |
+| Jev | 20 | 0.6596 | 0.4187 | 0.2433 | 0/8 |
 
 | Predictor | Confidence bucket | n | Mean confidence | Accuracy |
 | --- | --- | ---: | ---: | ---: |
@@ -27,6 +27,10 @@ Offline rankings replay the first choice within each eligible case and fork, wit
 | Sampled | 0.6–0.7 | 3 | 0.649 | 1.000 |
 | Sampled | 0.7–0.8 | 2 | 0.744 | 0.000 |
 | Sampled | 0.8–0.9 | 13 | 0.839 | 0.769 |
+| Jev | 0.6–0.7 | 5 | 0.672 | 1.000 |
+| Jev | 0.7–0.8 | 4 | 0.758 | 0.500 |
+| Jev | 0.8–0.9 | 7 | 0.837 | 0.571 |
+| Jev | 0.9–1.0 | 4 | 0.915 | 1.000 |
 
 ## Test
 
@@ -36,7 +40,7 @@ Offline rankings replay the first choice within each eligible case and fork, wit
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Stated | 45 | 0.5948 | 0.3352 | 0.2877 | 0/18 |
 | Sampled | 45 | 0.8414 | 0.4901 | 0.1549 | 9/18 |
-| Jev | 0 | — | — | — | — |
+| Jev | 45 | 0.7106 | 0.4400 | 0.2248 | 0/18 |
 
 | Predictor | Confidence bucket | n | Mean confidence | Accuracy |
 | --- | --- | ---: | ---: | ---: |
@@ -47,9 +51,13 @@ Offline rankings replay the first choice within each eligible case and fork, wit
 | Sampled | 0.6–0.7 | 9 | 0.649 | 0.778 |
 | Sampled | 0.7–0.8 | 4 | 0.744 | 0.250 |
 | Sampled | 0.8–0.9 | 32 | 0.839 | 0.719 |
+| Jev | 0.6–0.7 | 11 | 0.673 | 1.000 |
+| Jev | 0.7–0.8 | 9 | 0.744 | 0.444 |
+| Jev | 0.8–0.9 | 14 | 0.839 | 0.643 |
+| Jev | 0.9–1.0 | 11 | 0.916 | 0.818 |
 
 - Stated — Library-authored approximate probability tables
 - Sampled — gpt-4.1-mini, eight draws per option, 0 fresh calls, $0.000 estimated
-- Jev — Pending after TypeSafe HTTP 401
+- Jev — jev-latest, one batched Choice request per experiment
 
-The three-way decision requires full matched held-out coverage.
+Lowest held-out log loss belongs to **Stated**.
