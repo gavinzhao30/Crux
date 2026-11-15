@@ -1,5 +1,9 @@
 # Bench: screen grey level -> Jetson camera
 
+**No Jetson display available?** Use the separate [headless USB-webcam exposure experiment
+(DU-51)](HEADLESS.md). It varies camera exposure against a stationary target, with no HDMI
+screen or GUI, and reuses the EIG loop via `--mode exposure`.
+
 A screen shows a grey level chosen by the EIG engine, a camera on the Jetson measures it, and four rival response laws (linear, power, log, saturating) are discriminated live. Files:
 
 * `node.py`: the thin node that runs on the Jetson (Python 3.6, standard library + optional OpenCV/numpy). The commands for locking the camera are in its docstring.

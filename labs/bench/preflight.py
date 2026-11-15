@@ -27,7 +27,11 @@ def _measurement(client: BenchClient) -> dict:
         raise ValueError("camera standard deviation must be finite and nonnegative")
     if isinstance(n, bool) or not isinstance(n, int) or n < 1:
         raise ValueError("camera frame count must be a positive integer")
-    return {"mean": mean, "std": sd, "n": n}
+    result = {"mean": mean, "std": sd, "n": n}
+    for key in ("exposure_units", "exposure_ms", "controls_verified"):
+        if key in raw:
+            result[key] = raw[key]
+    return result
 
 
 def _stability(measurements: list[dict]) -> dict:
@@ -62,18 +66,25 @@ def run_preflight(
     max_drift: float = 1.5,
     max_black: float = 15.0,
     max_white: float = 245.0,
-    min_range: float = 100.0,
+    min_range: float | None = None,
     sigma: float = DEFAULT_SIGMA,
     max_n: int = 10,
     seconds_limit: float = 60.0,
     timeout: float = 5.0,
+    mode: str = "screen",
 ) -> dict:
     """Collect evidence; do not infer exposure lock from OpenCV property numbers.
 
     Twenty *measurement batches* are sampled, each using the node's configured frame
-    averaging. Only an operator can confirm that the camera controls were locked.
+    averaging. Screen mode needs operator confirmation of locked camera controls;
+    exposure mode uses the node's V4L2 readback checks instead.
     Rehearsals are skipped if any preflight check fails.
     """
+    if mode not in ("screen", "exposure"):
+        raise ValueError("mode must be screen or exposure")
+    min_range = (
+        (30.0 if mode == "exposure" else 100.0) if min_range is None else min_range
+    )
     positive = (
         max_spread,
         max_drift,
@@ -96,6 +107,7 @@ def run_preflight(
         "schema_version": 1,
         "created_at": datetime.now(UTC).isoformat(),
         "node": node,
+        "mode": mode,
         "health": None,
         "fake": None,
         "jetson_detected": False,
@@ -133,14 +145,31 @@ def run_preflight(
                 "node health must report ok=true and an explicit fake boolean"
             )
         fake = report["fake"] = health["fake"]
+        settings = health.get("camera_settings", {})
+        node_mode = settings.get("experiment", "screen")
+        if node_mode != mode:
+            raise ValueError(
+                f"requested {mode} experiment but node reports {node_mode}"
+            )
         report["jetson_detected"] = bool(health.get("board"))
-        ready = fake or health.get("display") in ("cv2", "tk")
+        ready = fake or (
+            health.get("display") == "headless-exposure"
+            if mode == "exposure"
+            else health.get("display") in ("cv2", "tk")
+        )
         check("display_ready", ready, health.get("display"))
         check(
             "camera_lock_confirmed",
-            fake or camera_locked,
+            fake
+            or (
+                settings.get("controls_verified") is True
+                if mode == "exposure"
+                else camera_locked
+            ),
             "not applicable to simulation"
             if fake
+            else "V4L2 manual controls verified by node"
+            if mode == "exposure"
             else "operator confirmation; not auto-detected",
         )
         if not ready:
@@ -171,8 +200,16 @@ def run_preflight(
         black = report["black"] = _measurement(client)
         client.patch(255)
         white = report["white"] = _measurement(client)
-        check("black_level", black["mean"] <= max_black, black["mean"])
-        check("white_not_clipped", white["mean"] < max_white, white["mean"])
+        if mode == "exposure":
+            # End-point saturation is a rival response law, not automatically a bad sensor.
+            check(
+                "mid_exposure_not_clipped",
+                5.0 < stability["mean"] < 245.0,
+                stability["mean"],
+            )
+        else:
+            check("black_level", black["mean"] <= max_black, black["mean"])
+            check("white_not_clipped", white["mean"] < max_white, white["mean"])
         dynamic_range = white["mean"] - black["mean"]
         check("dynamic_range", dynamic_range >= min_range, dynamic_range)
     except Exception as exc:  # noqa: BLE001 - persist failed camera/HTTP qualification
@@ -205,6 +242,7 @@ def run_preflight(
                     sigma=sigma,
                     verbose=False,
                     timeout=timeout,
+                    mode=mode,
                 )
                 elapsed = time.perf_counter() - run_started
                 passed = (
@@ -255,6 +293,7 @@ def run_preflight(
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--node", default="http://127.0.0.1:8765")
+    parser.add_argument("--mode", choices=["screen", "exposure"], default="screen")
     parser.add_argument("--output", default="runs/bench-preflight/report.json")
     parser.add_argument(
         "--camera-locked",
