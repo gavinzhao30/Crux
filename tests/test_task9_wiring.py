@@ -303,7 +303,7 @@ def test_predictor_uses_exact_rows_and_samples_the_rest():
     assert exact_row(exp, exact) == {"none": 0.0, "pair": 1.0}
     llm = FakeLLM(["pair", "pair", "none", "bogus"])
     table = asyncio.run(SampledPredictor(llm, n=4).predict(exp, [exact, other], "ctx"))
-    assert table["h1"] == {"none": 0.0, "pair": 1.0}
+    assert table["h1"] == pytest.approx({"none": 0.01, "pair": 0.99})  # floored exact row
     assert (
         set(table["h2"]) == {"none", "pair"}
         and table["h2"]["pair"] > table["h2"]["none"]
