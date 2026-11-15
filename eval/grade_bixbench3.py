@@ -8,9 +8,13 @@ import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from labs.bixbench3.task9_contract import PROTOCOL, TASK9_PAPER_ID, load_contract
+from labs.bixbench3.task9_contract import (
+    GRADER_COMMIT,
+    PROTOCOL,
+    TASK9_PAPER_ID,
+    load_contract,
+)
 
-GRADER_COMMIT = "d0e0bbb41222335b1b8878f533a58466a3a782dc"
 PASS_SCORE = 0.80
 _WORKER = """
 import json, sys

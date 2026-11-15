@@ -5,6 +5,9 @@ from pathlib import Path
 
 TASK9_PAPER_ID = "10_1186_s12915_024_01879_0_v1"
 PROTOCOL = "BixBench3 task 9, downstream pilot (published counts as input)"
+# Pinned Edison grader commit. Lives here, not in eval/, so run provenance in core/ can
+# record it without importing the grader (agent packages must never import eval/).
+GRADER_COMMIT = "d0e0bbb41222335b1b8878f533a58466a3a782dc"
 
 
 def load_contract(*, include_go: bool = False) -> dict:

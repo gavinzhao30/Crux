@@ -111,7 +111,7 @@ class RunManifest:
             "tracing": {},
         }
         if self.data["lab"] == "bixbench3":
-            from eval.grade_bixbench3 import GRADER_COMMIT
+            from labs.bixbench3.task9_contract import GRADER_COMMIT
 
             self.data["grader_integration_commit"] = self.data["grader_commit"]
             self.data["grader_commit"] = GRADER_COMMIT
