@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 
 from core.eig_exec import NULL_NAME, ParticleBelief
-from labs.bench.lab import DEFAULT_SIGMA, BenchClient, BenchLab
+from labs.bench.lab import DEFAULT_SIGMA, BenchClient, BenchLab, exposure_families
 
 THRESHOLD = 0.95
 QUESTION_ID = "q1"
@@ -64,18 +64,25 @@ class EventWriter:
             self.fh = None
 
 
-def _hypothesis(name, belief, families, prior) -> dict:
+def _hypothesis(name, belief, families, prior, mode="screen") -> dict:
     is_null = name == NULL_NAME
     if is_null:
-        statement = "None of these: the camera value does not depend on the grey level"
+        statement = (
+            "None of these: the proposed response laws do not explain the measurements"
+        )
     else:
-        statement = f"The screen-to-camera response follows a {name} law"
+        response = (
+            "exposure-to-brightness" if mode == "exposure" else "screen-to-camera"
+        )
+        statement = f"The {response} response follows a {name} law"
     return {
         "id": hyp_id(name),
         "question_id": QUESTION_ID,
         "statement": statement,
         "author": "bench",
-        "rationale": "built-in null" if is_null else f"{name} family from labs/bench/lab.py",
+        "rationale": "built-in null"
+        if is_null
+        else f"{name} family from labs/bench/lab.py",
         "answer_key": None,
         "model_code": None,
         "is_null": is_null,
@@ -139,19 +146,28 @@ def run_loop(
     run_id=None,
     verbose: bool = True,
     n_particles: int = 500,
+    timeout: float = 30.0,
+    mode: str = "screen",
 ) -> dict:
     """Run one experiment-selection loop against ``node``. Returns a summary dict."""
     if strategy not in ("eig", "random"):
         raise ValueError("strategy must be 'eig' or 'random'")
+    if mode not in ("screen", "exposure"):
+        raise ValueError("mode must be screen or exposure")
     started = time.time()
-    run_id = run_id or "r-" + time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:4]
-    client = BenchClient(node)
+    run_id = (
+        run_id or "r-" + time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:4]
+    )
+    client = BenchClient(node, timeout=timeout)
     lab = BenchLab(client, max_measurements=max_n)
     health = client.health()
+    node_mode = health.get("camera_settings", {}).get("experiment", "screen")
+    if node_mode != mode:
+        raise ValueError(f"requested {mode} experiment but node reports {node_mode}")
     if health.get("fake"):
         client.seed(seed)
         client.tint(1.0)
-    families = lab.families()
+    families = exposure_families() if mode == "exposure" else lab.families()
     belief = ParticleBelief(families, sigma=sigma, n_particles=n_particles, seed=seed)
     ev = EventWriter(run_id, events_path)
     rng = random.Random(seed)
@@ -162,9 +178,15 @@ def run_loop(
         "run.started",
         {
             "lab": "bench",
-            "goal": "Which law maps screen grey level to camera value?",
+            "goal": (
+                "Which law maps normalized manual exposure (0-255) to camera brightness?"
+                if mode == "exposure"
+                else "Which law maps screen grey level to camera value?"
+            ),
             "config": {
                 "strategy": strategy,
+                "mode": mode,
+                "camera_settings": health.get("camera_settings", {}),
                 "max": max_n,
                 "seed": seed,
                 "sigma": sigma,
@@ -181,7 +203,11 @@ def run_loop(
         {
             "question": {
                 "id": QUESTION_ID,
-                "text": "What is the screen-to-camera response law?",
+                "text": (
+                    "How does camera brightness respond to normalized exposure (0-255)?"
+                    if mode == "exposure"
+                    else "What is the screen-to-camera response law?"
+                ),
                 "kind": "model",
                 "impact": 1.0,
                 "status": "open",
@@ -192,7 +218,7 @@ def run_loop(
     for name in belief.family_names:
         ev.emit(
             "hypothesis.proposed",
-            {"hypothesis": _hypothesis(name, belief, families, prior[name])},
+            {"hypothesis": _hypothesis(name, belief, families, prior[name], mode)},
         )
     kept = _best_proposed(prior, null_name)[0]
     ev.emit(
@@ -211,6 +237,7 @@ def run_loop(
     n_to_threshold = None
     n_surprises = 0
     last_post = prior
+    measurements = []
     for step in range(max_n):
         if tint_after is not None and step == tint_after and health.get("fake"):
             client.tint(tint)
@@ -253,7 +280,15 @@ def run_loop(
         )
         t0 = time.time()
         client.patch(chosen)
-        value = float(client.measure()["mean"])
+        measurement = client.measure()
+        value = float(measurement["mean"])
+        if (
+            mode == "exposure"
+            and not health.get("fake")
+            and measurement.get("controls_verified") is not True
+        ):
+            raise ValueError("real exposure measurement lacks verified camera controls")
+        measurements.append({"setting": chosen, **measurement})
         seconds = time.time() - t0
         measured.add(chosen)
         points.append((chosen, value))
@@ -269,7 +304,12 @@ def run_loop(
                     "value": value,
                     "bin_id": None,
                     "surprise": float(res.neg_log_pred),
-                    "referee_note": "",
+                    "referee_note": (
+                        f"Exposure {measurement.get('exposure_ms')} ms; controls verified: "
+                        f"{measurement.get('controls_verified')}"
+                        if mode == "exposure"
+                        else ""
+                    ),
                     "log_ref": "",
                     "seconds": seconds,
                     "cost_usd": 0.0,
@@ -309,7 +349,8 @@ def run_loop(
             post_s = " ".join(f"{k}={v:.2f}" for k, v in res.family_posterior.items())
             flag = " SURPRISE" if res.surprise else ""
             print(
-                f"[{step + 1:2d}] level={int(chosen):3d} value={value:6.1f} "
+                f"[{step + 1:2d}] {'exposure_setting' if mode == 'exposure' else 'level'}="
+                f"{int(chosen):3d} value={value:6.1f} "
                 f"| {post_s} | z={res.z_score:+.1f}{flag}"
             )
         if top_p >= THRESHOLD and settled_at is None:
@@ -317,7 +358,11 @@ def run_loop(
             n_to_threshold = step + 1
             ev.emit(
                 "question.settled",
-                {"question_id": QUESTION_ID, "hypothesis_id": hyp_id(top), "posterior": top_p},
+                {
+                    "question_id": QUESTION_ID,
+                    "hypothesis_id": hyp_id(top),
+                    "posterior": top_p,
+                },
             )
             if tint_after is None:
                 break
@@ -362,10 +407,15 @@ def run_loop(
         "top_posterior": top_p,
         "surprises": n_surprises,
         "posterior": last_post,
+        "mode": mode,
+        "measurements": measurements,
+        "fake": bool(health.get("fake")),
     }
 
 
-def compare(node: str, seeds=range(10), max=12, quiet: bool = False) -> dict:
+def compare(
+    node: str, seeds=range(10), max=12, quiet: bool = False, mode: str = "screen"
+) -> dict:
     """Mean measurements to reach 0.95 for EIG and random (runs that never get there count as max).
 
     Every seed runs both strategies on a freshly seeded node, so the noise stream is the same
@@ -373,35 +423,67 @@ def compare(node: str, seeds=range(10), max=12, quiet: bool = False) -> dict:
     """
     seeds = list(seeds)
     runs = {}
+    reached = {}
+    details = {}
     for strategy in ("eig", "random"):
         counts = []
+        converged = []
+        trials = []
         for s in seeds:
-            r = run_loop(node, strategy=strategy, max_n=max, seed=s, verbose=False)
+            r = run_loop(
+                node, strategy=strategy, max_n=max, seed=s, verbose=False, mode=mode
+            )
             counts.append(r["n_to_threshold"] if r["reached"] else max)
+            converged.append(r["reached"])
+            trials.append(r)
         runs[strategy] = counts
+        reached[strategy] = converged
+        details[strategy] = trials
     means = {k: sum(v) / len(v) for k, v in runs.items()}
     if not quiet:
-        print(f"measurements to reach {THRESHOLD} posterior (max {max}, {len(seeds)} seeds)")
+        print(
+            f"measurements to reach {THRESHOLD} posterior (max {max}, {len(seeds)} seeds)"
+        )
         print(f"{'strategy':<10}{'mean':>8}{'never reached':>16}")
         for k in ("eig", "random"):
-            missed = sum(1 for c in runs[k] if c >= max)
+            missed = sum(not value for value in reached[k])
             print(f"{k:<10}{means[k]:>8.2f}{missed:>16d}")
-    return {"eig": means["eig"], "random": means["random"], "runs": runs}
+    return {
+        "eig": means["eig"],
+        "random": means["random"],
+        "runs": runs,
+        "reached": reached,
+        "mode": mode,
+        "details": details,
+    }
 
 
 def main(argv=None) -> None:
     p = argparse.ArgumentParser(description="Crux bench loop")
     p.add_argument("--node", default="http://127.0.0.1:8765")
+    p.add_argument("--mode", choices=["screen", "exposure"], default="screen")
     p.add_argument("--strategy", choices=["eig", "random"], default="eig")
     p.add_argument("--max", type=int, default=10)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--events", default=None, help="path of the events.jsonl to write")
+    p.add_argument(
+        "--summary",
+        type=Path,
+        help="save JSON run/comparison details and simulation flags",
+    )
     p.add_argument("--tint-after", type=int, default=None)
     p.add_argument("--tint", type=float, default=0.5)
-    p.add_argument("--compare", action="store_true", help="EIG vs random over seeds 0-9")
+    p.add_argument(
+        "--compare", action="store_true", help="EIG vs random over seeds 0-9"
+    )
     args = p.parse_args(argv)
     if args.compare:
-        compare(args.node, seeds=range(10), max=args.max)
+        summary = compare(args.node, seeds=range(10), max=args.max, mode=args.mode)
+        if args.summary:
+            args.summary.parent.mkdir(parents=True, exist_ok=True)
+            args.summary.write_text(
+                json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+            )
         return
     r = run_loop(
         args.node,
@@ -411,8 +493,12 @@ def main(argv=None) -> None:
         events_path=args.events,
         tint_after=args.tint_after,
         tint=args.tint,
+        mode=args.mode,
     )
     verdict = "reached" if r["reached"] else "did not reach"
+    if args.summary:
+        args.summary.parent.mkdir(parents=True, exist_ok=True)
+        args.summary.write_text(json.dumps(r, indent=2) + "\n", encoding="utf-8")
     print(
         f"{r['top']} {r['top_posterior']:.3f}: {verdict} {THRESHOLD} "
         f"after {r['n_measured']} measurements"

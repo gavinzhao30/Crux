@@ -1,12 +1,17 @@
-"""Run a lab end to end: the offline fakes, or one BixBench3 Task 9 case with the swarm.
+"""Run a lab end to end: the offline fakes, the claims audit, or a Task 9 case with the swarm.
 
     python -m core.cli --lab fake|fake-surprise|fake-numeric --config default --seed 0 --runs-dir runs
     python -m core.cli --lab bixbench3 --manifest case-manifest.json   # Modal sandbox
     python -m core.cli --lab bixbench3 --case path/to/case             # this machine, dev only
+    python -m core.cli --lab bixbench3 --manifest m.json --lessons corpus.json --lessons-case-id case-01
+    python -m core.cli --lab claims --run-id claims-demo                # 4 curated DESeq2 claims
 
 Prints the run id, the number of events, which questions settled (or ended robust or
 unresolved) and the path of the events file. The fakes need no network access and no API
-key; ``bixbench3`` calls the models (OPENAI_API_KEY) and, with ``--manifest``, Modal.
+key, and neither does ``claims`` (its symbolic and simulation diagnostics run on this
+machine; see docs/CLAIMS.md). ``bixbench3`` calls the models (OPENAI_API_KEY), with
+``--manifest`` Modal, and with PAST_API_KEY set past.dev for the agents' shared memory
+(``--config`` picks the arm).
 """
 
 from __future__ import annotations
@@ -33,7 +38,7 @@ FAKE_LABS: dict[str, type[FakeLab | FakeNumericLab]] = {
     "fake-surprise": FakeSurpriseLab,
     "fake-numeric": FakeNumericLab,
 }
-LABS = (*FAKE_LABS, "bixbench3")
+LABS = (*FAKE_LABS, "bixbench3", "claims")
 
 
 def make_lab(name: str, seed: int = 0, latency_s: float = 0.0) -> FakeLab | FakeNumericLab:
@@ -79,15 +84,37 @@ def main(argv: list[str] | None = None) -> int:
     where.add_argument(
         "--case", type=Path, help="bixbench3: case folder run on this machine (dev only)"
     )
+    parser.add_argument(
+        "--lessons",
+        type=Path,
+        metavar="CORPUS",
+        help="bixbench3: frozen lesson corpus (FrozenLessons.save) recalled at the run's start",
+    )
+    parser.add_argument(
+        "--lessons-case-id",
+        metavar="CASE",
+        help="bixbench3 with --lessons: the held-out case id this run declares",
+    )
     args = parser.parse_args(argv)
 
-    cfg = load_config(args.config, seed=args.seed, runs_dir=args.runs_dir)
+    lessons: dict[str, str] = {}
+    if args.lessons is not None or args.lessons_case_id is not None:
+        if args.lab != "bixbench3":
+            parser.error("--lessons is for --lab bixbench3")
+        if args.lessons is None or not args.lessons_case_id:
+            parser.error("--lessons and --lessons-case-id go together")
+        lessons = {"lessons_corpus": str(args.lessons), "lessons_case_id": args.lessons_case_id}
+    cfg = load_config(args.config, seed=args.seed, runs_dir=args.runs_dir, **lessons)
     if args.lab == "bixbench3":
         if args.manifest is None and args.case is None:
             parser.error("--lab bixbench3 needs --manifest or --case")
         from labs.bixbench3.swarm_lab import build_task9_run
 
         lab, deps = build_task9_run(cfg, case_dir=args.case, manifest=args.manifest)
+    elif args.lab == "claims":
+        from labs.claims.lab import build_claims_run
+
+        lab, deps = build_claims_run(cfg, clock=FakeClock() if args.fake_clock else time.time)
     else:
         lab = make_lab(args.lab, seed=args.seed)
         deps = fake_deps(lab, seed=args.seed, clock=FakeClock() if args.fake_clock else time.time)

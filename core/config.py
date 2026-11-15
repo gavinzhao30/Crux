@@ -2,7 +2,13 @@
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+)
 
 from agents.llm import LLMConfig
 
@@ -66,6 +72,22 @@ class EngineConfig(RunConfig):
     numeric_simulations: int = Field(64, ge=1)
     numeric_move_steps: int = Field(0, ge=0, le=20)
     runs_dir: str = "runs"
+
+    # Start-of-run recall from a frozen, reviewed lesson corpus (``memory.lessons``): the
+    # saved corpus file and the held-out case this run declares. Both unset means no recall;
+    # ``lessons`` above only controls writing candidate lessons and is independent of these.
+    lessons_corpus: str | None = None
+    lessons_case_id: str | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_lessons(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        # Unset corpus keys stay out of dumps, so ``run.started`` and ``manifest.json`` of a
+        # run without lessons are byte-identical to runs recorded before these fields existed.
+        data = handler(self)
+        for key in ("lessons_corpus", "lessons_case_id"):
+            if data.get(key) is None:
+                data.pop(key, None)
+        return data
 
 
 Config = EngineConfig

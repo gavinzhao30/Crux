@@ -235,6 +235,97 @@ export interface PayloadMap {
 
 export type EventType = keyof PayloadMap;
 
+/* One Letter (labs/oneletter): the dna.* events, per tools/ONE_LETTER_CONTRACT.md.
+   Optional fields are the engine's additions (strip numbers for watch runs). */
+
+export interface DnaPayloadMap {
+  'dna.request': {
+    window: number;
+    reason: string;
+    eig_bits: number;
+    replicate: boolean;
+    experiment_id?: string;
+    strip?: number;
+  };
+  'dna.read': {
+    experiment_id: string;
+    window: number;
+    bases: string;
+    expected: Record<string, string>;
+    /** 0-8 within the window. */
+    mismatch_positions: number[];
+    confidence: number[];
+    /** The hypothesis whose expected string mismatch_positions were measured against. */
+    closest?: string;
+    bin_id?: string;
+    replicate?: boolean;
+    strip?: number;
+  };
+  'dna.variant': {
+    hypothesis_id: string;
+    name: string;
+    hgvs: string;
+    legacy: string;
+    rsid: string;
+    codon: string;
+    amino_acid: string;
+    source?: string;
+  };
+  'dna.verdict': {
+    hypothesis_id: string;
+    name: string;
+    posterior: number;
+    reads: number;
+    text: string;
+    author: string;
+    latency_ms: number | null;
+    pdb_id: string;
+    residue: number;
+    legacy?: string;
+    strip?: number;
+  };
+  'dna.lesson': { added: string[]; lessons_total: number };
+}
+
+export type DnaEventType = keyof DnaPayloadMap;
+
+export const DNA_EVENT_TYPES: readonly DnaEventType[] = [
+  'dna.request',
+  'dna.read',
+  'dna.variant',
+  'dna.verdict',
+  'dna.lesson',
+] as const;
+
+/* Paper & claims (lab "claims"): the paper and its claims, sent once after
+   run.started. Each claim is one engine question; its verdict comes from the
+   standard question events. */
+
+export interface ClaimSpec {
+  question_id: string;
+  claim: string;
+  /** Substring of the excerpt to highlight, or empty. */
+  quote: string;
+  kind: 'symbolic' | 'statistical';
+  /** A deliberately false claim planted to test the engine. */
+  planted: boolean;
+}
+
+export interface ClaimsPayloadMap {
+  'claims.source': {
+    title: string;
+    citation: string;
+    url: string;
+    license: string;
+    excerpt: string;
+    claims: ClaimSpec[];
+  };
+}
+
+export type ClaimsEventType = keyof ClaimsPayloadMap;
+
+export const CLAIMS_EVENT_TYPES: readonly ClaimsEventType[] = ['claims.source'] as const;
+
 export const EVENT_TYPES: readonly EventType[] = [
   'run.started',
   'profile.done',

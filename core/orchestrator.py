@@ -2,7 +2,9 @@
 
 ``await run(lab, cfg, deps)`` drives one run end to end and returns its ``Report``:
 
-1. ``run.started``, ``lab.profile()`` (``profile.done``), ``agents.propose`` and the option set
+1. ``run.started``, the lab's opening events (``lab.opening_events()``, lab event types
+   only, such as ``claims.source``), ``lab.profile()`` (``profile.done``), the reviewed lessons when
+   ``Deps.lessons`` is set (``memory.recalled`` per reader), ``agents.propose`` and the option set
    of every question: exact duplicates merged (weights summed), priors normalised, and a
    "none of these" option ``<question>.h0`` with prior ``cfg.null_prior`` added.
 2. Numeric labs (``lab.candidate_designs()`` returns a grid): a ``ParticleBelief`` over the
@@ -16,6 +18,12 @@
    or give up as unresolved.
 4. ``lab.deliver``, the critic and up to ``cfg.max_critic_rounds`` delivery rounds, lessons, and
    ``agents.report``. ``run.finished`` is always the last event of a run that did not crash.
+
+Memory (``Deps.memory``): the lab's profile, valid observations and rejections (as the
+referee's objections), the critic's findings and lessons are written; the designer recalls
+before each design and the critic before each review (``contract["recalled_evidence"]``).
+Recalled records only reach prompts. They never update a belief, and a record the run
+already holds is never counted twice.
 
 Events go through ``core.events.EventBus`` (its async ``emit``), one line each in
 ``<cfg.runs_dir>/<run_id>/events.jsonl``; payloads are made JSON-safe with ``jsonable`` and the
@@ -96,6 +104,10 @@ class Deps:
     is called as ``bus_factory(run_id, Path(cfg.runs_dir), clock=clock)`` and returns a
     ``core.events.EventBus`` (the default is the class itself). ``clock`` returns Unix seconds
     for event timestamps, budgets and latencies; tests pass a fake.
+
+    ``lessons`` (``memory.lessons.RunLessons``, default ``None``) is a frozen, reviewed lesson
+    corpus. When set, it is loaded after the profile and before any proposal, with one
+    ``memory.recalled`` event per reader; the agents that share it read their lessons from it.
     """
 
     agents: AgentRoles
@@ -106,6 +118,7 @@ class Deps:
     llm: Any = None
     bus_factory: Callable[..., EventBus] = EventBus
     clock: Callable[[], float] = time.time
+    lessons: Any = None
 
 
 async def run(lab: Lab, cfg: EngineConfig, deps: Deps, *, run_id: str | None = None) -> Report:
@@ -298,6 +311,13 @@ class _Run:
 
     async def _main(self) -> None:
         lab = self.lab
+        opening = getattr(lab, "opening_events", None)
+        if callable(opening):
+            self._where = "opening"
+            for type_, payload in opening():
+                if type_ not in E.LAB_EVENT_TYPES:
+                    raise ValueError(f"{type_!r} is not a lab event type")
+                await self._emit(type_, **payload)
         bind = getattr(lab, "bind", None)
         if callable(bind):
             self._where = "bind"
@@ -307,6 +327,10 @@ class _Run:
         profile = [self._register_evidence(e) for e in await lab.profile()]
         await self._emit(E.PROFILE_DONE, evidence=profile)
         await self._memory_write(profile)
+
+        if self.deps.lessons is not None:
+            self._where = "lessons"
+            await self._load_lessons()
 
         self._where = "propose"
         questions, hypotheses = await self.deps.agents.propose(self.state.brief, list(profile))
@@ -335,7 +359,7 @@ class _Run:
 
     async def _emit(self, type_: str, **payload: Any) -> None:
         """Write one event (after any queued ticks, so the file keeps call order)."""
-        if type_ not in E.EVENT_TYPES:
+        if type_ not in E.EVENT_TYPES and type_ not in E.LAB_EVENT_TYPES:
             raise ValueError(f"unknown event type {type_!r}")
         async with self._emit_lock:
             await self._drain_ticks()
@@ -483,6 +507,28 @@ class _Run:
             latency_ms=round(latency_ms, 3),
         )
         return recalled
+
+    async def _load_lessons(self) -> None:
+        """Recall the frozen lesson corpus for every reader before independent proposals.
+
+        A failure to load or prepare it raises: the run fails rather than going on with no
+        lessons. Lessons only reach prompts; they never touch beliefs or the run's memory.
+        """
+        audits = await self.deps.lessons.load(
+            str(self.state.brief.get("goal", "")), self.run_dir / "lessons"
+        )
+        for audit in audits:
+            await self._emit(
+                E.MEMORY_RECALLED,
+                reader_role=audit["reader_role"],
+                query=audit["query"],
+                evidence_ids=audit["evidence_ids"],
+                authors=audit["authors"],
+                backend=audit["backend"],
+                latency_ms=round(audit["latency_ms"], 3),
+                corpus_sha256=audit["corpus_sha256"],
+                case_id=audit["case_id"],
+            )
 
     def _context_evidence(self, recalled: list[Evidence]) -> list[Evidence]:
         """The run's evidence plus recalled records not already in it (never counted twice)."""
@@ -1179,7 +1225,26 @@ class _Run:
         search = self.deps.search
         assert search is not None and exp.query
         t0 = self.clock()
-        results = list(await search.find(exp.query, k=5))
+        try:
+            results = list(await search.find(exp.query, k=5))
+        except Exception as exc:  # a refused query or a provider outage, not a crashed run
+            logger.exception("search experiment %s failed", exp.id)
+            note = _SECRET.sub("[redacted]", f"search failed: {type(exc).__name__}: {exc}")
+            await self._emit(
+                E.SEARCH_DONE,
+                experiment_id=exp.id,
+                query=exp.query,
+                urls=[],
+                blocked=[],
+                bin_id=None,
+            )
+            return Observation(
+                experiment_id=exp.id,
+                valid=False,
+                seconds=round(max(self.clock() - t0, 0.0), 6),
+                cost_usd=float(getattr(exc, "cost_reservation_usd", 0.0) or 0.0),
+                referee_note=note[:500],
+            )
         blocked = [str(u) for u in (getattr(search, "last_blocked", None) or [])]
         found = [self._register_evidence(e) for e in results]
         urls = [e.url for e in found if e.url]
@@ -1209,7 +1274,8 @@ class _Run:
         return Observation(
             experiment_id=exp.id,
             valid=bin_id is not None,
-            value={"n_results": len(found), "urls": urls},
+            # what the bins were computed on, so the referee can check the rules' inputs
+            value=value,
             bin_id=bin_id,
             seconds=round(max(self.clock() - t0, 0.0), 6),
             cost_usd=exp.est_cost_usd,
@@ -1559,6 +1625,7 @@ class _Run:
             for f in findings:
                 self.state.findings.append(f)
                 await self._emit(E.CRITIC_FINDING, finding=f)
+            await self._memory_write(self._critic_records(findings, round_no))
             for a in artifacts:
                 mine = [f for f in findings if f.artifact == a.name]
                 a.findings = [f.message for f in mine]
@@ -1582,6 +1649,28 @@ class _Run:
                     reopened = True
             if reopened:
                 await self._categorical_loop()
+
+    def _critic_records(self, findings: list[CriticFinding], round_no: int) -> list[Evidence]:
+        """The critic's findings as its own memory records (only when memory is on).
+
+        A ``block`` is an objection, which memory keeps in every later recall; a ``warn`` is
+        an ordinary observation. Like every record they inform prompts, never beliefs.
+        """
+        if not self._memory_on():
+            return []
+        return [
+            self._register_evidence(
+                Evidence(
+                    id=self._new_evidence_id(),
+                    kind="objection" if f.severity == "block" else "observation",
+                    claim=f"Critic {f.severity} on {f.artifact} ({f.rule}): {f.message}"[:2000],
+                    author_role="critic",
+                    source_ref=f.id,
+                    conditions={"severity": f.severity, "delivery_round": round_no},
+                )
+            )
+            for f in findings
+        ]
 
     def _register_finding(self, f: CriticFinding) -> CriticFinding:
         f = f.model_copy(deep=True)

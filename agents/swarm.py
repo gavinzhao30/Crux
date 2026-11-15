@@ -3,10 +3,16 @@
 * ``propose``: Gavin's independent proposers plus the DU-42 fork library
   (``agents.proposer.propose``). The orchestrator owns events and the null option, so the
   proposer runs with a silent bus and ``null_hypothesis`` off; question ids it assigns are
-  kept by the orchestrator.
+  kept by the orchestrator. Each proposer recalls from the run's shared memory under the
+  real run id (``run_id``) and its own role; records it already has in ``evidence`` (the
+  profile) are dropped from that recall, so nothing reaches its prompt twice. With
+  ``lessons`` (``memory.lessons.RunLessons``, loaded by the orchestrator before this call)
+  each persona also gets the reviewed lessons it recalled, as a delimited prompt block.
 * ``design``: stand-in until DU-10's designer lands. It returns the library diagnostics
-  the proposer attached to the question. A question with no library diagnostic gets none
-  and ends unresolved.
+  the proposer attached to the question, plus the pre-registered search diagnostics
+  (``search.task9.search_diagnostics``) for questions that documentation can decide, such
+  as DESeq2 defaults. The orchestrator drops the search ones when search is off. A
+  question with no diagnostic gets none and ends unresolved.
 * ``referee``/``critic``/``report``: DU-11 (``agents.referee``, ``agents.critic``,
   ``agents.reporter``), imported when first used so this module loads before they exist.
 * ``regenerate``: stand-in, no new options (a surprise is still logged and the question is
@@ -57,6 +63,23 @@ class NullMemory:
         return []
 
 
+class _Unseen:
+    """A memory view that hides records the caller already holds (by evidence id)."""
+
+    def __init__(self, memory: Any, seen: set[str]) -> None:
+        self.memory = memory
+        self.seen = seen
+
+    async def write(self, ev: Evidence, run_id: str, author_role: str) -> None:
+        await self.memory.write(ev, run_id, author_role)
+
+    async def recall(
+        self, query: str, run_id: str, reader_role: str, k: int = 8
+    ) -> list[Evidence]:
+        found = await self.memory.recall(query, run_id, reader_role, k)
+        return [e for e in found if e.id not in self.seen]
+
+
 class SwarmRoles:
     def __init__(
         self,
@@ -64,6 +87,7 @@ class SwarmRoles:
         config: Any,
         *,
         memory: Any = None,
+        run_id: Callable[[], str | None] | None = None,
         library: Callable[[dict], list] | None = None,
         propose_fn: Callable | None = None,
         referee_fn: Callable | None = None,
@@ -71,11 +95,17 @@ class SwarmRoles:
         report_fn: Callable | None = None,
         counts_path: Path | None = None,
         run_dir: Callable[[], Path | None] | None = None,
+        search_library: Callable[[list[Question]], dict[str, list[Experiment]]]
+        | None = None,
+        lessons: Any = None,
     ) -> None:
         self.llm = llm
         self.config = config
         self.memory = memory or NullMemory()
+        self.lessons = lessons
+        self.run_id = run_id
         self.library = library
+        self.search_library = search_library
         self.propose_fn = propose_fn
         self.referee_fn = referee_fn
         self.critic_fn = critic_fn
@@ -106,6 +136,17 @@ class SwarmRoles:
         entries = library(brief) if library is not None else []
         self.rounds += 1
         cfg = self.config.model_copy(update={"null_hypothesis": False})
+        # The proposer recalls under ``bus.run_id``; run-scoped memory needs the real one.
+        run_id = (self.run_id() if self.run_id is not None else None) or f"round{self.rounds}"
+        # Reviewed lessons, recalled per persona when the run started; passed only when the
+        # run has a corpus, so a run without one calls the proposer exactly as before.
+        extra: dict[str, Any] = {}
+        if self.lessons is not None:
+            extra["lessons"] = {
+                role: self.lessons.for_role(role)
+                for role in self.lessons.readers
+                if role != "designer"
+            }
         # The library's forks are pre-registered: fixed options, answer keys and
         # diagnostics. On the first real Task 9 run the merge model folded five of them and
         # unrelated questions into one 20-option question, so they skip the merge and are
@@ -114,10 +155,11 @@ class SwarmRoles:
             brief,
             list(evidence),
             llm=self.llm,
-            memory=self.memory,
-            bus=SilentBus(f"round{self.rounds}"),
+            memory=_Unseen(self.memory, {e.id for e in evidence}),
+            bus=SilentBus(run_id),
             config=cfg,
             library=[],
+            **extra,
         )
         questions = list(result.questions)
         hypotheses = [h for h in result.hypotheses if not h.is_null]
@@ -154,7 +196,19 @@ class SwarmRoles:
                         update={"id": f"{qid}-d{i}", "question_ids": [qid]}, deep=True
                     )
                 )
+        self._attach_search(questions)
         return questions, hypotheses
+
+    def _attach_search(self, questions: list[Question]) -> None:
+        """Pre-registered search diagnostics for the questions documentation can decide."""
+        search_library = self.search_library
+        if search_library is None:
+            from search.task9 import search_diagnostics as search_library
+        for qid, experiments in search_library(list(questions)).items():
+            known = {e.id for e in self.diagnostics.get(qid, [])}
+            for exp in experiments:
+                if exp.id not in known:
+                    self.diagnostics.setdefault(qid, []).append(exp)
 
     async def regenerate(
         self, question: Question, hypotheses: list[Hypothesis], history: list[Trial]

@@ -10,5 +10,13 @@
   {
     "name": "demo_error",
     "title": "Failed run (sandbox out of memory)"
+  },
+  {
+    "name": "demo_oneletter",
+    "title": "One Letter: HBB codon 6 (fake reader)"
+  },
+  {
+    "name": "demo_claims",
+    "title": "Paper & claims: DESeq2 (UI fixture)"
   }
 ]

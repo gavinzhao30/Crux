@@ -7,9 +7,12 @@ Wraps ``Task9Lab`` (DU-13) without changing it:
 * ``ModalExecutor`` logs commands to ``execution.jsonl``; ``Observation.log_ref`` comes back
   as ``execution.jsonl#<command>``. That command's lines are copied to
   ``logs/<command>.txt`` so the orchestrator can stream them as ``experiment.log``.
-* ``deliver`` asks the delivery planner for code, runs it, and on an execution error asks
-  again with the error, up to ``max_attempts`` times per delivery round. Every attempt's
-  code is kept under ``delivery/`` in the run folder.
+* ``deliver`` asks the delivery planner for code, runs it, and retries invalid plans
+  or failed executions up to ``max_attempts`` times per delivery round. Generated code
+  is kept under ``delivery/`` in the run folder.
+* ``memory``, when set, is the run's memory; ``close`` closes it after the sandbox.
+* ``lessons``, when set, is the run's reviewed lesson corpus (see ``build_task9_run``):
+  ``deliver`` gives the planner the designer's lessons and ``close`` closes their ledger.
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ if TYPE_CHECKING:
     from core.schemas import Artifact, EngineState, Evidence, Experiment, Observation
 
 Planner = Callable[..., Awaitable[list[tuple[str, str]]]]
+TASK_ID = "bixbench3-task9"
 TASK9_PRICES: dict[str, tuple[float, float]] = {
     "gpt-4.1-mini": (0.40, 1.60),
     "gpt-5.5": (5.00, 30.00),
@@ -52,6 +56,7 @@ class SwarmTask9Lab:
         summarize_search: Any = None,
         max_attempts: int = 3,
         delivery_timeout_s: int = 600,
+        owns_search: bool = False,
     ) -> None:
         if planner is None:
             from agents.deliverer import plan_delivery
@@ -80,6 +85,13 @@ class SwarmTask9Lab:
         self.run_dir: Path | None = None
         self.sandbox_id: str | None = None
         self.profile_facts: list[dict] = []
+        # ``build_task9_run`` hands over the search it built; ``close`` releases it.
+        self.owns_search = owns_search
+        # Likewise the run's memory, when build_task9_run built it.
+        self.memory: Any = None
+        # The run's reviewed lessons (``memory.lessons.RunLessons``) when it has a corpus:
+        # the delivery planner reads the designer's, and ``close`` closes their ledger.
+        self.lessons: Any = None
 
     # --- Lab -------------------------------------------------------------------------
 
@@ -106,14 +118,28 @@ class SwarmTask9Lab:
         return obs
 
     async def deliver(self, state: EngineState) -> list[Artifact]:
+        from agents.llm import LLMOutputError
         from core.schemas import Artifact
 
         await self._open()
+        # Only a run with a lesson corpus passes lessons, so other runs plan exactly as before.
+        extra = {}
+        if self.lessons is not None:
+            extra["lessons"] = self.lessons.for_role("designer")
         error: str | None = None
         for attempt in range(1, self.max_attempts + 1):
-            steps = await self.planner(
-                self.llm, state, last_error=error, profile=self.profile_facts
-            )
+            try:
+                steps = await self.planner(
+                    self.llm, state, last_error=error, profile=self.profile_facts, **extra
+                )
+            except LLMOutputError:
+                if attempt == self.max_attempts:
+                    raise
+                error = (
+                    "The previous plan was incomplete or invalid. Return concise code, "
+                    "reuse existing scratch files, and return a complete plan."
+                )
+                continue
             error = None
             for i, (language, code) in enumerate(steps, start=1):
                 self._keep_code(state.delivery_round, attempt, i, language, code)
@@ -150,9 +176,24 @@ class SwarmTask9Lab:
             self.executor = self.inner.executor = executor
 
     async def close(self) -> None:
-        if self.sandbox_id is not None and self.executor is not None:
-            sandbox, self.sandbox_id = self.sandbox_id, None
-            await self.executor.close(sandbox)
+        try:
+            if self.sandbox_id is not None and self.executor is not None:
+                sandbox, self.sandbox_id = self.sandbox_id, None
+                await self.executor.close(sandbox)
+        finally:
+            try:
+                search = self.inner.search
+                if self.owns_search and search is not None and hasattr(search, "aclose"):
+                    self.owns_search = False
+                    await search.aclose()
+            finally:
+                try:
+                    memory, self.memory = self.memory, None
+                    if memory is not None and hasattr(memory, "aclose"):
+                        await memory.aclose()
+                finally:
+                    if self.lessons is not None:
+                        await self.lessons.aclose()
 
     # --- helpers ---------------------------------------------------------------------
 
@@ -208,6 +249,7 @@ def build_task9_lab(
     case_dir: Path | None = None,
     manifest: Path | None = None,
     search: Any = None,
+    owns_search: bool = False,
 ) -> SwarmTask9Lab:
     """A Task 9 lab on Modal (``manifest`` from ``execution.staging``) or, for development,
     on this machine (``case_dir`` holding the counts and sample sheet)."""
@@ -222,7 +264,7 @@ def build_task9_lab(
         from execution.local import LocalExecutor
 
         executor = LocalExecutor(Path(case_dir), Path(runs_dir))
-    return SwarmTask9Lab(executor, llm=llm, search=search)
+    return SwarmTask9Lab(executor, llm=llm, search=search, owns_search=owns_search)
 
 
 def build_task9_run(
@@ -240,12 +282,52 @@ def build_task9_run(
     sampler path in env ``CRUX_TINKER_PREDICTOR``, reading the lab's parsed profile; the
     sampled predictor stays as its fallback. Library rows win as in the sampled predictor;
     ``CRUX_TINKER_OVERRIDE_STATED=1`` lets the model replace the stated rows too.
+
+    Search: with ``cfg.search`` on and ``EXA_API_KEY`` set, and no ``search`` passed, the
+    run gets the guarded Exa search (``search.task9.build_task9_search``) as ``Deps.search``
+    and in the lab, which closes it at the end of the run. With ``cfg.search`` off neither
+    gets a search, even one passed in.
+
+    Memory: ``memory`` if given (the caller closes it), else one built from ``cfg.memory``
+    by ``memory.run.memory_from_config``: past.dev when ``PAST_API_KEY`` is set, the
+    role-only local ledger for ``local_role_only``, otherwise none. A built memory is scoped
+    to the run id on first use and closed with the lab. The proposers, the designer and the
+    critic read it; the experimenter (profile and search results), the referee, the critic
+    and, with ``cfg.lessons``, the reporter write it (candidate lessons, never reused here).
+
+    Reviewed lessons: with ``cfg.lessons_corpus`` (a corpus saved by ``FrozenLessons.save``)
+    and ``cfg.lessons_case_id`` (the held-out case this run declares), the run recalls that
+    frozen corpus at its start: ``task9_lessons`` builds a ``memory.lessons.RunLessons`` on
+    the local lesson ledger (no key, no network, every applicable lesson in corpus order) and
+    it goes to ``Deps.lessons``, the swarm roles and the lab. The orchestrator loads it after
+    the profile and before the proposals, emitting one ``memory.recalled`` per reader; the
+    ledger under ``<run>/lessons/`` keeps the ``lesson.written`` and ``memory.recalled``
+    audit rows. Each proposer persona's prompt and the delivery planner's prompt (it reads
+    the designer's lessons, since the designer step is a code stand-in with no prompt) get
+    their lessons as a delimited block. The public context for the ``requires``/``excludes``
+    gates is ``{"task": TASK_ID, "analysis": "de_from_counts", "reader": <role>}``. A corpus
+    that does not load or verify, a synthetic or empty corpus, or a case outside its held-out
+    cohort raises here, before anything runs. Without a corpus nothing changes: no ledger,
+    no recall and the same prompts.
     """
     from agents.llm import LLM, STRONG_MODEL, LLMConfig
     from agents.predictor import SampledPredictor
     from agents.swarm import SwarmRoles
     from core.orchestrator import Deps
     from execution.staging import COUNTS
+    from memory.run import memory_from_config
+
+    # Fail on a bad corpus or case before building anything that opens files or clients.
+    lessons = task9_lessons(cfg)
+
+    owns_search = False
+    if not getattr(cfg, "search", False):
+        search = None
+    elif search is None:
+        from search.task9 import build_task9_search
+
+        search = build_task9_search(cfg)
+        owns_search = search is not None
 
     if llm is None:
         config = LLMConfig()
@@ -262,13 +344,25 @@ def build_task9_run(
         case_dir=case_dir,
         manifest=manifest,
         search=search,
+        owns_search=owns_search,
     )
+    if memory is None:
+        memory = memory_from_config(cfg, task_id=TASK_ID)
+        lab.memory = memory
     counts = Path(case_dir) / COUNTS if case_dir is not None else None
-    # The referee reads log files relative to the run folder, which the lab learns in bind().
+    # The referee reads log files relative to the run folder, and the proposers recall under
+    # the run id; the lab learns both in bind().
     roles = SwarmRoles(
-        llm, cfg, memory=memory, counts_path=counts, run_dir=lambda: lab.run_dir
+        llm,
+        cfg,
+        memory=memory,
+        run_id=lambda: lab.run_id,
+        counts_path=counts,
+        run_dir=lambda: lab.run_dir,
+        lessons=lessons,
     )
-    predictor: Any = SampledPredictor(llm)
+    lab.lessons = lessons
+    predictor: Any = SampledPredictor(llm, n=cfg.n_predictor_samples, eps=cfg.eps)
     if getattr(cfg, "predictor", None) == "tinker":
         from agents.tinker_predictor import TinkerPredictor, load_model_path
 
@@ -292,8 +386,33 @@ def build_task9_run(
         memory=memory,
         search=search,
         llm=llm,
+        lessons=lessons,
     )
     return lab, deps
+
+
+def task9_lessons(cfg: Any) -> Any:
+    """The run's ``RunLessons`` for ``cfg.lessons_corpus``, or ``None`` when no corpus is set.
+
+    Readers are the proposer personas this config runs plus the designer. Raises when the
+    corpus does not load, or the declared case is missing or outside the held-out cohort.
+    """
+    corpus = getattr(cfg, "lessons_corpus", None)
+    case_id = getattr(cfg, "lessons_case_id", None)
+    if not corpus:
+        if case_id:
+            raise ValueError("lessons_case_id is set but lessons_corpus is not")
+        return None
+    from agents.proposer import ROLES
+    from memory.lessons import RunLessons
+
+    personas = ROLES[: getattr(cfg, "proposers", len(ROLES))]
+    return RunLessons(
+        corpus,
+        case_id,
+        readers=(*personas, "designer"),
+        context={"task": TASK_ID, "analysis": "de_from_counts"},
+    )
 
 
 def discover_cases(root: Path | None) -> dict[str, dict]:

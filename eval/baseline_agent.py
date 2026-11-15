@@ -9,7 +9,7 @@ from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING, Literal
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, LengthFinishReasonError
 from pydantic import BaseModel
 
 from execution.sandbox import MAX_DIAGNOSTIC_TIMEOUT_S, ModalExecutor
@@ -84,6 +84,7 @@ async def run_baseline(
     usage_log = []
     execution_log = []
     calls = 0
+    truncated = 0
     final = ""
     status = "call_limit"
 
@@ -115,6 +116,29 @@ async def run_baseline(
             except TimeoutError:
                 status = "execution_limit"
                 break
+            except LengthFinishReasonError as exc:
+                # A reasoning model can spend the whole output cap thinking and return no
+                # action. The call still counts and is charged; say so and keep going instead
+                # of losing the run (three batch-02 baseline runs died here).
+                usage = exc.completion.usage
+                if usage is None:
+                    status = "usage_unavailable"
+                    break
+                spent += cost(usage.prompt_tokens, usage.completion_tokens)
+                usage_log.append(usage.model_dump(mode="json"))
+                truncated += 1
+                if spent > usd_cap:
+                    status = "spend_limit"
+                    break
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": f"Your last reply hit the {max_output_tokens}-token output "
+                        "limit before giving an action. Reply with one shorter action; split "
+                        "long code across several steps.",
+                    }
+                )
+                continue
             if response.usage is None:
                 status = "usage_unavailable"
                 break
@@ -192,6 +216,7 @@ async def run_baseline(
             "summary": final,
             "search_enabled": search is not None,
             "calls": calls,
+            "truncated_replies": truncated,
             "usage": usage_log,
             "usd_unadjusted_for_cache": str(spent),
             "execution_log": execution_log,
@@ -216,6 +241,7 @@ async def run_baseline(
 async def _run(args: argparse.Namespace) -> None:
     executor = ModalExecutor(
         Task9Inputs.load(args.manifest),
+        args.runs_dir,
         minimal_image=args.minimal,
         diagnostic_timeout_s=args.diagnostic_timeout,
     )
@@ -239,6 +265,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--runs-dir", type=Path, default=Path("runs"))
     parser.add_argument("--model", required=True)
     parser.add_argument("--prompt", type=Path)
     parser.add_argument("--input-rate", type=Decimal, required=True, help="USD per million tokens")

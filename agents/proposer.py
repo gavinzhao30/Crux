@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 from pathlib import Path
 from typing import Literal
 
@@ -12,6 +13,9 @@ from core.events import EventBus
 from core.interfaces import LLM, Memory
 from core.model_sandbox import validate_model_source
 from core.schemas import Evidence, Experiment, Hypothesis, Question
+from memory.lessons import format_lessons
+
+logger = logging.getLogger(__name__)
 
 ROLES = ("statistician", "bioinformatician", "sceptic")
 PROMPTS = Path(__file__).parent / "prompts"
@@ -112,6 +116,22 @@ def _complete_plan(plan: MergePlan, sources: dict, options: dict) -> MergePlan:
     )
 
 
+def _plan_problem(plan: MergePlan, sources: dict, options: dict) -> str | None:
+    """Why ``propose`` cannot use this merge plan, or ``None`` if it can."""
+    for group in plan.questions:
+        if any(source not in sources for source in group.source_ids):
+            return "it references an unknown question"
+        if len({sources[source][1].kind for source in group.source_ids}) != 1:
+            return "it merges categorical and model questions"
+        for cluster in group.options:
+            if any(
+                source not in options or options[source][0] not in group.source_ids
+                for source in cluster.source_ids
+            ):
+                return "an option is placed under another question"
+    return None
+
+
 async def propose(
     brief: dict,
     profile: list[Evidence],
@@ -121,12 +141,16 @@ async def propose(
     bus: EventBus,
     config: RunConfig,
     library: list[LibraryQuestion] | None = None,
+    lessons: dict[str, list[Evidence]] | None = None,
 ) -> Proposals:
     """Return merged questions after independent role calls and one merge call.
 
     Local source IDs encode role and position. The merge model can group existing
     IDs, while code owns IDs, content, provenance, and prior normalization.
     Call once per proposal round. Event IDs include the current event sequence.
+    ``lessons`` maps a proposer role to the reviewed lessons it recalled before this round;
+    they are appended to that role's system prompt as a delimited block. Without lessons
+    for a role its prompt is unchanged, and the merge prompt never gets lessons.
     """
     roles = ROLES[: config.proposers]
 
@@ -137,14 +161,15 @@ async def propose(
             "profile": [ev.model_dump() for ev in profile],
             "recalled": [ev.model_dump() for ev in evidence],
         }
+        system = (PROMPTS / f"{role}.md").read_text(encoding="utf-8")
+        block = format_lessons((lessons or {}).get(role, []))
+        if block:
+            system = f"{system}\n\n{block}"
         [batch] = await llm.structured(
             "proposer",
             ProposalBatch,
             [
-                {
-                    "role": "system",
-                    "content": (PROMPTS / f"{role}.md").read_text(encoding="utf-8"),
-                },
+                {"role": "system", "content": system},
                 {"role": "user", "content": json.dumps(context)},
             ],
         )
@@ -191,6 +216,13 @@ async def propose(
         ],
     )
     plan = _complete_plan(MergePlan.model_validate(raw_plan), sources, options)
+    problem = _plan_problem(plan, sources, options)
+    if problem is not None:
+        # A malformed merge must not end the run: keep every proposer's question and
+        # option as proposed, unmerged (in batch-03, three swarm runs crashed here when
+        # the merge model put an option under the wrong question).
+        logger.warning("merge plan rejected (%s); proposals are kept unmerged", problem)
+        plan = _complete_plan(MergePlan.model_construct(questions=[]), sources, options)
     used_questions, used_options = [], []
     for group in plan.questions:
         if any(source not in sources for source in group.source_ids):
