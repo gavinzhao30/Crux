@@ -274,10 +274,6 @@ export default function Home() {
                 </li>
               ))}
             </ol>
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              We made these four fixes; the system did not change its own code. Inputs and the prompt changed along the way,
-              so this is not a learning curve. Now, on 52 fresh cases: +0.146, with 48 of 48 faults caught.
-            </p>
 
             <h3 className="mt-16 font-display text-3xl">Loops that run on their own</h3>
             <ul className="mt-6 grid gap-3 md:grid-cols-3">
