@@ -385,3 +385,29 @@ def test_tasks_endpoint_and_launcher(tmp_path, monkeypatch):
     launcher = DefaultLauncher(tmp_path / "runs")
     with pytest.raises(InvalidRunRequest, match="unknown case"):
         launcher._engine_coroutine("bixbench3", "default", 0, {"case": "nope"}, "r-x")
+
+
+def test_library_forks_skip_the_merge_and_keep_their_keys():
+    from diagnostics.de_from_counts.library import library_questions
+
+    seen = {}
+
+    async def llm_only(brief, evidence, *, llm, memory, bus, config, library):
+        seen["library"] = library
+        return Proposals()
+
+    cfg = load_config("default")
+    roles = SwarmRoles(FakeLLM(["x"]), cfg, propose_fn=llm_only, library=library_questions)
+    questions, hyps = asyncio.run(roles.propose({"goal": "g"}, []))
+    assert seen["library"] == []  # nothing from the library reaches the merge model
+    entries = library_questions()
+    assert [q.id for q in questions] == [f"library-{e.key}" for e in entries]
+    for entry in entries:
+        qid = f"library-{entry.key}"
+        keys = [h.answer_key for h in hyps if h.question_id == qid]
+        assert keys == [o.answer_key for o in entry.proposal.options]
+        q = next(q for q in questions if q.id == qid)
+        designs = asyncio.run(roles.design(q, [], [], []))
+        assert len(designs) == len(entry.diagnostics) and all(
+            d.question_ids == [qid] for d in designs
+        )

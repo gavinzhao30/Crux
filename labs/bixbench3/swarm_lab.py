@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     from core.schemas import Artifact, EngineState, Evidence, Experiment, Observation
 
 Planner = Callable[..., Awaitable[list[tuple[str, str]]]]
+TASK9_PRICES: dict[str, tuple[float, float]] = {
+    "gpt-4.1-mini": (0.40, 1.60),
+    "gpt-5.5": (5.00, 30.00),
+}
 
 
 async def _no_planner(state: object) -> list[tuple[str, str]]:  # pragma: no cover
@@ -240,6 +244,10 @@ def build_task9_run(
         config = LLMConfig()
         # The delivery code is the deliverable, so it gets the strong model.
         config.role_models.setdefault("deliverer", STRONG_MODEL)
+        # $ per 1M tokens (input, output), so the run's $2 cap counts real spend.
+        # Public list prices as of Nov 2026.
+        for model, price in TASK9_PRICES.items():
+            config.prices_per_mtok.setdefault(model, price)
         llm = LLM(config)
     lab = build_task9_lab(
         llm=llm,
