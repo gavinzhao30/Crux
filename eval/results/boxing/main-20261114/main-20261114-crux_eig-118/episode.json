@@ -1,0 +1,55 @@
+{
+  "rows": [
+    {
+      "arm": "crux_eig",
+      "seed": 118,
+      "budget": 5,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ValueError"
+    },
+    {
+      "arm": "crux_eig",
+      "seed": 118,
+      "budget": 10,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ValueError"
+    },
+    {
+      "arm": "crux_eig",
+      "seed": 118,
+      "budget": 20,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ValueError"
+    }
+  ],
+  "seed": 118,
+  "arm": "crux_eig",
+  "history": [],
+  "usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "seconds": 1.25,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "3e2b55d3067e09bf8ed6f9bad56d4556bd1a3e4adb931bdf62706f1c9e527b59",
+  "sources_sha256": "3482fcab20471461de3c3b51caea0d8c9f8a06572fb03b096aafc8fb65b609dd",
+  "traces": [],
+  "particles": 256,
+  "simulations": 16,
+  "belief_diagnostics": {},
+  "paired_proposal_usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 772,
+    "cost_usd": 0.0013220000000000037,
+    "unpriced_calls": 0
+  }
+}

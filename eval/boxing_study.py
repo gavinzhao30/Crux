@@ -280,6 +280,11 @@ async def study(args):
                 (output / f"{output.name}-{arm}-{seed:02d}" / "episode.json").write_text(json.dumps(jsonable(result), indent=2))
             records.append(result)
             print(f"seed={seed} arm={arm} statuses={[r['status'] for r in result['rows']]}", flush=True)
+    export_results(records, llm.usage_totals(), output)
+
+
+def export_results(records, usage, output):
+    """Rebuild reports from preserved episodes without making model calls."""
     rows = [row for record in records for row in record["rows"]]
     summary = summarize(rows)
     (output / "summary.json").write_text(json.dumps(summary, indent=2))
@@ -288,16 +293,23 @@ async def study(args):
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
-    (output / "costs.json").write_text(json.dumps({"actual_wrapper_usage": llm.usage_totals(),
+    (output / "costs.json").write_text(json.dumps({"actual_wrapper_usage": usage,
         "episodes": [{k: v for k, v in r.items() if k != "history"} for r in records]}, indent=2))
     with (output / "costs.csv").open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=["arm", "seed", "calls", "input_tokens", "output_tokens", "cost_usd", "seconds", "target_reached_at_checkpoint"])
+        shared_keys = ["calls", "input_tokens", "output_tokens", "cost_usd"]
+        writer = csv.DictWriter(stream, fieldnames=["arm", "seed", *shared_keys,
+            *[f"shared_proposal_{key}" for key in shared_keys], "seconds", "measurements",
+            "failed_checkpoints", "target_reached_at_checkpoint", "target_censored"])
         writer.writeheader()
         for record in records:
             row = record["rows"][0]
             writer.writerow({"arm": row["arm"], "seed": row["seed"],
                 **{k: record.get("usage", {}).get(k, 0) for k in ["calls", "input_tokens", "output_tokens", "cost_usd"]},
-                "seconds": record.get("seconds"), "target_reached_at_checkpoint": record.get("target_reached_at_checkpoint")})
+                **{f"shared_proposal_{key}": (record.get("paired_proposal_usage") or {}).get(key, 0) for key in shared_keys},
+                "seconds": record.get("seconds"), "measurements": len(record.get("history", [])),
+                "failed_checkpoints": sum(r["status"] != "ok" for r in record["rows"]),
+                "target_reached_at_checkpoint": record.get("target_reached_at_checkpoint"),
+                "target_censored": record.get("target_reached_at_checkpoint") is None})
     plot(summary, output)
 
 
@@ -316,9 +328,13 @@ def plot(summary, output):
                             [r[metric]["high"] for r in selected], alpha=.12)
         if metric == "median":
             ax.set_yscale("log")
-        ax.set(xlabel="Measurements", ylabel=metric + " held-out MSE", title="Location Finding: paired seeds, bootstrap 95% CIs")
+        ax.set(xlabel="Measurements", ylabel="Median held-out MSE" if metric == "median" else "Mean log10 held-out MSE",
+               title="Location Finding: paired seeds, bootstrap 95% CIs")
+        ax.set_xticks(sorted({r["budget"] for r in summary}))
         ax.legend()
-        fig.tight_layout()
+        fig.text(.5, .015, "Failed checkpoints retained with MSE penalty 1e12; shaded bands are 95% confidence intervals.",
+                 ha="center", fontsize=8)
+        fig.tight_layout(rect=(0, .04, 1, 1))
         fig.savefig(output / f"{metric}.png", dpi=160)
         plt.close(fig)
 

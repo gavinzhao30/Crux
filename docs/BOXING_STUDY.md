@@ -10,6 +10,7 @@ Run from the repository root:
 ```shell
 uv run python -m eval.boxing_study --arms random,grid,oracle --seeds 20 --output eval/results/boxing/NEW_PILOT
 uv run --env-file .env python -m eval.boxing_study --arms random,grid,oracle,single_agent,crux_random,crux_eig --seed-start 100 --seeds 20 --max-usd 5 --output eval/results/boxing/NEW_STUDY
+uv run python -m scripts.audit_boxing_study eval/results/boxing/main-20261114
 ```
 
 Output directories must be fresh. Episodes checkpoint independently; faults and

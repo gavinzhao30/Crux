@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each of the three sources has independent uniform prior locations within [-2, 2]^2 and equal fixed amplitude 1. The predict function sums the inverse squared distances to the sources, reflecting a scalar field intensity decaying with distance squared. Noise is not modeled in predict. sample_prior samples source locations uniformly in the square.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n, 6) => 3 sources * (x,y) each\n    # designs shape: (m, 2)\n    n = params.shape[0]\n    m = designs.shape[0]\n    sources = params.reshape(n, 3, 2)  # (n,3,2)\n    # Expand dims for broadcasting\n    designs_exp = designs[None, None, :, :]  # (1,1,m,2)\n    sources_exp = sources[:, :, None, :]    # (n,3,1,2)\n    dists = np.linalg.norm(designs_exp - sources_exp, axis=-1)  # (n,3,m)\n    # Avoid division by zero by adding small epsilon\n    intensity = np.sum(1 / (dists**2 + 1e-6), axis=1)  # (n,m)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Uniform locations in [-2,2] for each of the 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    },
+    {
+      "statement": "Model 2: Each source has independent Gaussian priors for location centered at 0 with std 1.5 clipped to [-2,2]. Equal amplitude fixed at 1. The predict function computes scalar intensity as sum of Gaussian kernels (amplitude=1, sigma=0.3) centered at sources, evaluated at designs. sample_prior samples from truncated Gaussian by rejection within bounds.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n = params.shape[0]\n    m = designs.shape[0]\n    sources = params.reshape(n, 3, 2)  # (n,3,2)\n    designs_exp = designs[None, None, :, :]  # (1,1,m,2)\n    sources_exp = sources[:, :, None, :]    # (n,3,1,2)\n    diff = designs_exp - sources_exp  # (n,3,m,2)\n    sq_dist = np.sum(diff**2, axis=-1)  # (n,3,m)\n    sigma = 0.3\n    intensity = np.sum(np.exp(-sq_dist / (2 * sigma**2)), axis=1)  # (n,m)\n    return intensity\n\ndef sample_prior(rng, n):\n    samples = np.zeros((n, 6))\n    count = 0\n    while count < n:\n        candidate = rng.normal(0, 1.5, size=(n - count, 6))\n        mask = np.all((candidate >= -2) & (candidate <= 2), axis=1)\n        accepted = candidate[mask]\n        samples[count:count+len(accepted)] = accepted\n        count += len(accepted)\n    return samples\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 731,
+    "cost_usd": 0.0012564000000000047,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "b0c41f5da5d64d6c9ac4024bd3d91645",
+      "run_id": "main-20261114-proposals-116",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/b0c41f5da5d64d6c9ac4024bd3d91645"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Each of the three sources has independent uniform prior locations within [-2, 2]^2 and equal fixed amplitude 1. The predict function sums the inverse squared distances to the sources, reflecting a scalar field intensity decaying with distance squared. Noise is not modeled in predict. sample_prior samples source locations uniformly in the square.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n, 6) => 3 sources * (x,y) each\n    # designs shape: (m, 2)\n    n = params.shape[0]\n    m = designs.shape[0]\n    sources = params.reshape(n, 3, 2)  # (n,3,2)\n    # Expand dims for broadcasting\n    designs_exp = designs[None, None, :, :]  # (1,1,m,2)\n    sources_exp = sources[:, :, None, :]    # (n,3,1,2)\n    dists = np.linalg.norm(designs_exp - sources_exp, axis=-1)  # (n,3,m)\n    # Avoid division by zero by adding small epsilon\n    intensity = np.sum(1 / (dists**2 + 1e-6), axis=1)  # (n,m)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Uniform locations in [-2,2] for each of the 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      {
+        "statement": "Model 2: Each source has independent Gaussian priors for location centered at 0 with std 1.5 clipped to [-2,2]. Equal amplitude fixed at 1. The predict function computes scalar intensity as sum of Gaussian kernels (amplitude=1, sigma=0.3) centered at sources, evaluated at designs. sample_prior samples from truncated Gaussian by rejection within bounds.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n = params.shape[0]\n    m = designs.shape[0]\n    sources = params.reshape(n, 3, 2)  # (n,3,2)\n    designs_exp = designs[None, None, :, :]  # (1,1,m,2)\n    sources_exp = sources[:, :, None, :]    # (n,3,1,2)\n    diff = designs_exp - sources_exp  # (n,3,m,2)\n    sq_dist = np.sum(diff**2, axis=-1)  # (n,3,m)\n    sigma = 0.3\n    intensity = np.sum(np.exp(-sq_dist / (2 * sigma**2)), axis=1)  # (n,m)\n    return intensity\n\ndef sample_prior(rng, n):\n    samples = np.zeros((n, 6))\n    count = 0\n    while count < n:\n        candidate = rng.normal(0, 1.5, size=(n - count, 6))\n        mask = np.all((candidate >= -2) & (candidate <= 2), axis=1)\n        accepted = candidate[mask]\n        samples[count:count+len(accepted)] = accepted\n        count += len(accepted)\n    return samples\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Gaussian Mixture Model with three equal-strength sources. Parameters are the (x,y) locations of the three sources; each source has equal amplitude 1. The prior samples source locations uniformly in [-2,2]^2. The predict function computes the sum of three Gaussian kernels centered at source locations with fixed bandwidth 0.3, evaluated at design points. Noise is not modeled here as prediction is noise-free signal.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # designs: (n_designs, 2)\n    # params: (n_particles, 6) (three sources x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]  # (n_particles, 1, 6)\n    # Reshape params to (n_particles, 3, 2)\n    sources = params_exp.reshape(n_particles, 1, 3, 2)  # (n_particles,1,3,2)\n    designs_exp2 = designs_exp[:, :, np.newaxis, :]  # (1,n_designs,1,2)\n    diff = designs_exp2 - sources  # (n_particles,n_designs,3,2) broadcasting\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,n_designs,3)\n    bandwidth = 0.3\n    kernel_vals = np.exp(-dist_sq / (2 * bandwidth**2))\n    signal = np.sum(kernel_vals, axis=-1)  # (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform source locations in [-2,2]^2, 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    },
+    {
+      "statement": "Model 2: Sum of three radial basis functions with unknown centers and amplitudes. Parameters: (x,y) locations uniformly in [-2,2]^2 and amplitudes uniformly in [0.5,1.5]. Predict sums weighted Gaussian kernels at designs. Noise-free signal prediction.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 9): 3 sources, each with (x,y,amp)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]  # (n_particles, 1, 9)\n    sources = params_exp.reshape(n_particles, 1, 3, 3)  # (n_particles,1,3,3)\n    centers = sources[:, :, :, :2]  # (n_particles,1,3,2)\n    amps = sources[:, :, :, 2]  # (n_particles,1,3)\n    designs_exp2 = designs_exp[:, :, np.newaxis, :]  # (1,n_designs,1,2)\n    diff = designs_exp2 - centers  # (n_particles,n_designs,3,2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,n_designs,3)\n    bandwidth = 0.25\n    kernel_vals = np.exp(-dist_sq / (2 * bandwidth**2))  # (n_particles,n_designs,3)\n    weighted = kernel_vals * amps  # broadcast amps (n_particles,1,3)\n    signal = np.sum(weighted, axis=-1)  # (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform locations [-2,2]^2 and amplitudes [0.5,1.5]\n    locs = rng.uniform(-2, 2, size=(n, 6))  # 3 sources x,y\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))\n    params = np.empty((n, 9))\n    params[:, 0:6] = locs\n    params[:, 6:] = amps\n    return params\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 969,
+    "cost_usd": 0.0016372000000000001,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "04e3b1c1e1594190a7689f1be05f6a30",
+      "run_id": "main-20261114-proposals-102",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/04e3b1c1e1594190a7689f1be05f6a30"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Gaussian Mixture Model with three equal-strength sources. Parameters are the (x,y) locations of the three sources; each source has equal amplitude 1. The prior samples source locations uniformly in [-2,2]^2. The predict function computes the sum of three Gaussian kernels centered at source locations with fixed bandwidth 0.3, evaluated at design points. Noise is not modeled here as prediction is noise-free signal.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # designs: (n_designs, 2)\n    # params: (n_particles, 6) (three sources x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]  # (n_particles, 1, 6)\n    # Reshape params to (n_particles, 3, 2)\n    sources = params_exp.reshape(n_particles, 1, 3, 2)  # (n_particles,1,3,2)\n    designs_exp2 = designs_exp[:, :, np.newaxis, :]  # (1,n_designs,1,2)\n    diff = designs_exp2 - sources  # (n_particles,n_designs,3,2) broadcasting\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,n_designs,3)\n    bandwidth = 0.3\n    kernel_vals = np.exp(-dist_sq / (2 * bandwidth**2))\n    signal = np.sum(kernel_vals, axis=-1)  # (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform source locations in [-2,2]^2, 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      {
+        "statement": "Model 2: Sum of three radial basis functions with unknown centers and amplitudes. Parameters: (x,y) locations uniformly in [-2,2]^2 and amplitudes uniformly in [0.5,1.5]. Predict sums weighted Gaussian kernels at designs. Noise-free signal prediction.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 9): 3 sources, each with (x,y,amp)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]  # (n_particles, 1, 9)\n    sources = params_exp.reshape(n_particles, 1, 3, 3)  # (n_particles,1,3,3)\n    centers = sources[:, :, :, :2]  # (n_particles,1,3,2)\n    amps = sources[:, :, :, 2]  # (n_particles,1,3)\n    designs_exp2 = designs_exp[:, :, np.newaxis, :]  # (1,n_designs,1,2)\n    diff = designs_exp2 - centers  # (n_particles,n_designs,3,2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,n_designs,3)\n    bandwidth = 0.25\n    kernel_vals = np.exp(-dist_sq / (2 * bandwidth**2))  # (n_particles,n_designs,3)\n    weighted = kernel_vals * amps  # broadcast amps (n_particles,1,3)\n    signal = np.sum(weighted, axis=-1)  # (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform locations [-2,2]^2 and amplitudes [0.5,1.5]\n    locs = rng.uniform(-2, 2, size=(n, 6))  # 3 sources x,y\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))\n    params = np.empty((n, 9))\n    params[:, 0:6] = locs\n    params[:, 6:] = amps\n    return params\n"
+      }
+    ]
+  }
+}

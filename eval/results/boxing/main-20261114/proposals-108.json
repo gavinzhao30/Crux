@@ -1,0 +1,36 @@
+{
+  "families": [],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 1179,
+    "cost_usd": 0.0019732000000000013,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "5a187e9e71524ce9b280f69ea5bf7a58",
+      "run_id": "main-20261114-proposals-108",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/5a187e9e71524ce9b280f69ea5bf7a58"
+    }
+  ],
+  "validation_error": "model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 77, in <module>\r\n  File \"<string>\", line 64, in main\r\n  File \"<model>\", line 11, in predict\r\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)",
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Parametrize three sources as (x,y) locations within [-2,2]^2 and equal amplitude. Prior: Uniform source positions in [-2,2]^2. Predict: sum of three Gaussian sources with fixed amplitude and width, plus Gaussian noise with SD=0.5, rounded to two decimals.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: (n_particles, 6) -> [x1,y1,x2,y2,x3,y3]\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma_source = 0.3\n    amplitude = 1.0\n    # Expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, n_designs, 3, 2)  # (n_particles, n_designs, 3, 2)\n    # Compute squared distances\n    d2 = np.sum((designs_exp[:, :, np.newaxis, :] - params_exp) ** 2, axis=-1)  # (n_particles, n_designs, 3)\n    # Gaussian sources\n    sources = amplitude * np.exp(-d2 / (2 * sigma_source ** 2))  # (n_particles, n_designs, 3)\n    signal = np.sum(sources, axis=-1)  # (n_particles, n_designs)\n    # Add noise\n    noise = np.random.default_rng().normal(0, 0.5, size=(n_particles, n_designs))\n    noisy_signal = signal + noise\n    # Round to two decimals\n    return np.round(noisy_signal, 2)\n\ndef sample_prior(rng, n):\n    # Uniformly sample 3 source positions in [-2,2]^2\n    samples = rng.uniform(-2, 2, size=(n, 6))\n    return samples\n"
+      },
+      {
+        "statement": "Model 2: Parametrize three sources with polar coordinates (radius in [0,2], angle in [0,2pi]) from origin, converted to Cartesian, plus amplitude uniform in [0.5,1.5]. Prior: radius uniform in [0,2], angle uniform in [0,2pi], amplitude uniform in [0.5,1.5]. Predict: sum of three Gaussian sources with individual amplitude and fixed width, plus Gaussian noise with SD=0.5, rounded to two decimals.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: (n_particles, 9) -> [r1,a1,amp1,r2,a2,amp2,r3,a3,amp3]\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma_source = 0.3\n    # Convert polar to Cartesian\n    r = params[:, [0,3,6]]  # (n_particles, 3)\n    a = params[:, [1,4,7]]  # (n_particles, 3)\n    amp = params[:, [2,5,8]]  # (n_particles, 3)\n    x = r * np.cos(a)  # (n_particles, 3)\n    y = r * np.sin(a)  # (n_particles, 3)\n    source_pos = np.stack([x, y], axis=-1)  # (n_particles, 3, 2)\n    # Expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    source_pos_exp = source_pos[:, np.newaxis, :, :]  # (n_particles, 1, 3, 2)\n    d2 = np.sum((designs_exp[:, :, np.newaxis, :] - source_pos_exp) ** 2, axis=-1)  # (n_particles, n_designs, 3)\n    amp_exp = amp[:, np.newaxis, :]  # (n_particles, 1, 3)\n    sources = amp_exp * np.exp(-d2 / (2 * sigma_source ** 2))  # (n_particles, n_designs, 3)\n    signal = np.sum(sources, axis=-1)  # (n_particles, n_designs)\n    noise = np.random.default_rng().normal(0, 0.5, size=(n_particles, n_designs))\n    noisy_signal = signal + noise\n    return np.round(noisy_signal, 2)\n\ndef sample_prior(rng, n):\n    # radius uniform [0,2], angle uniform [0,2pi], amplitude uniform [0.5,1.5]\n    r = rng.uniform(0, 2, size=(n, 3))\n    a = rng.uniform(0, 2 * np.pi, size=(n, 3))\n    amp = rng.uniform(0.5, 1.5, size=(n, 3))\n    samples = np.empty((n, 9))\n    samples[:, 0::3] = r\n    samples[:, 1::3] = a\n    samples[:, 2::3] = amp\n    return samples\n"
+      }
+    ]
+  }
+}

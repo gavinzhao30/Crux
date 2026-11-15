@@ -1,4 +1,5 @@
 import asyncio
+import csv
 
 import numpy as np
 import pytest
@@ -6,7 +7,7 @@ import pytest
 from agents.llm import LLM
 from core.eig_exec import ModelFamily, ParticleBelief
 from eval.boxing_metrics import FAILURE_ERROR, paired_contrasts, summarize
-from eval.boxing_study import FamilyProposal, Point, ask, run_episode
+from eval.boxing_study import FamilyProposal, Point, ask, export_results, run_episode
 from labs.boxing.location_finding import (
     LocationFinding,
     intensity,
@@ -33,6 +34,16 @@ def test_single_family_needs_parameter_eig():
     assert belief.expected_information_gain([[0, 0]], goal="total")[0] > 0
     assert belief.predict_means([[0, 0], [1, 1]]) == pytest.approx(
         [belief.predict_mean([0, 0]), belief.predict_mean([1, 1])])
+
+
+def test_total_eig_matches_analytic_linear_gaussian_reference():
+    family = ModelFamily("linear", lambda designs, params: params * designs[:, 0],
+                         lambda rng, n: rng.normal(size=(n, 1)))
+    belief = ParticleBelief([family], .5, n_particles=4096, n_sim=1024,
+                            seed=41, null_weight=0)
+    gains = belief.expected_information_gain([[0], [1], [2]], goal="total")
+    exact = .5 * np.log2(1 + np.array([0, 1, 4]) / .25)
+    assert gains == pytest.approx(exact, abs=.08)
 
 
 def test_failure_is_included_and_bootstrap_is_reproducible():
@@ -88,3 +99,17 @@ def test_spend_cap_rejects_before_api_call():
     with pytest.raises(RuntimeError, match="StudySpendLimit"):
         asyncio.run(ask(llm, Point, {"task": "choose"}))
     assert llm.usage_totals()["calls"] == 0
+
+
+def test_export_keeps_shared_costs_and_censored_targets(tmp_path, monkeypatch):
+    monkeypatch.setattr("eval.boxing_study.plot", lambda *args: None)
+    record = {"rows": [{"arm": "crux_eig", "seed": 1, "budget": 5,
+                         "status": "failed", "mse": FAILURE_ERROR, "failure": "NoPrediction"}],
+              "usage": {"cost_usd": 0}, "paired_proposal_usage": {"cost_usd": .02},
+              "target_reached_at_checkpoint": None}
+    export_results([record], {"cost_usd": .02}, tmp_path)
+    [row] = list(csv.DictReader((tmp_path / "costs.csv").open()))
+    assert float(row["shared_proposal_cost_usd"]) == .02
+    assert row["target_censored"] == "True"
+    assert row["target_reached_at_checkpoint"] == ""
+    assert row["failed_checkpoints"] == "1"

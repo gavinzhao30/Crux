@@ -1,0 +1,2712 @@
+{
+  "actual_wrapper_usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "episodes": [
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 0,
+          "budget": 5,
+          "status": "ok",
+          "mse": 1284.155233308657,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 0,
+          "budget": 10,
+          "status": "ok",
+          "mse": 182.41334592559758,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 0,
+          "budget": 20,
+          "status": "ok",
+          "mse": 13.391003330943743,
+          "failure": null
+        }
+      ],
+      "seed": 0,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "a5fc467d4c4506313e568cea3f1548c0a51239b464e0631e79b7a8a403298f84",
+      "sources_sha256": "4b782b1fb1e3164db152af2a51ea45253d78db32b8626929acf497f92e23e651",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 0,
+          "budget": 5,
+          "status": "ok",
+          "mse": 22.86558747453003,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 0,
+          "budget": 10,
+          "status": "ok",
+          "mse": 57.03625991831747,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 0,
+          "budget": 20,
+          "status": "ok",
+          "mse": 0.0728747661136511,
+          "failure": null
+        }
+      ],
+      "seed": 0,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": 20,
+      "test_points_sha256": "a5fc467d4c4506313e568cea3f1548c0a51239b464e0631e79b7a8a403298f84",
+      "sources_sha256": "4b782b1fb1e3164db152af2a51ea45253d78db32b8626929acf497f92e23e651",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 0,
+          "budget": 5,
+          "status": "ok",
+          "mse": 58.16475529874077,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 0,
+          "budget": 10,
+          "status": "ok",
+          "mse": 58.16475529874077,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 0,
+          "budget": 20,
+          "status": "ok",
+          "mse": 58.16475529874077,
+          "failure": null
+        }
+      ],
+      "seed": 0,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.20299999974668026,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "a5fc467d4c4506313e568cea3f1548c0a51239b464e0631e79b7a8a403298f84",
+      "sources_sha256": "4b782b1fb1e3164db152af2a51ea45253d78db32b8626929acf497f92e23e651",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 1,
+          "budget": 5,
+          "status": "ok",
+          "mse": 1687.537129489258,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 1,
+          "budget": 10,
+          "status": "ok",
+          "mse": 2358.9332101551145,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 1,
+          "budget": 20,
+          "status": "ok",
+          "mse": 43.08301799025793,
+          "failure": null
+        }
+      ],
+      "seed": 1,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "c805a1f49358da2e129134ed1243a5439792c1e029ecaee213688bc300f3f871",
+      "sources_sha256": "ebce1da197d1b4aa53d4bd3236a9a04bcc6001d38d88e7f893f9a39a69068ae2",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 1,
+          "budget": 5,
+          "status": "ok",
+          "mse": 12.480034748277374,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 1,
+          "budget": 10,
+          "status": "ok",
+          "mse": 347.2505493526199,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 1,
+          "budget": 20,
+          "status": "ok",
+          "mse": 286.6127007303277,
+          "failure": null
+        }
+      ],
+      "seed": 1,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "c805a1f49358da2e129134ed1243a5439792c1e029ecaee213688bc300f3f871",
+      "sources_sha256": "ebce1da197d1b4aa53d4bd3236a9a04bcc6001d38d88e7f893f9a39a69068ae2",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 1,
+          "budget": 5,
+          "status": "ok",
+          "mse": 9.663592027098563,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 1,
+          "budget": 10,
+          "status": "ok",
+          "mse": 9.66359196253185,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 1,
+          "budget": 20,
+          "status": "ok",
+          "mse": 9.663591882781251,
+          "failure": null
+        }
+      ],
+      "seed": 1,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1880000000819564,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "c805a1f49358da2e129134ed1243a5439792c1e029ecaee213688bc300f3f871",
+      "sources_sha256": "ebce1da197d1b4aa53d4bd3236a9a04bcc6001d38d88e7f893f9a39a69068ae2",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 2,
+          "budget": 5,
+          "status": "ok",
+          "mse": 151.54577785095745,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 2,
+          "budget": 10,
+          "status": "ok",
+          "mse": 30.841811429917964,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 2,
+          "budget": 20,
+          "status": "ok",
+          "mse": 39.20895523774232,
+          "failure": null
+        }
+      ],
+      "seed": 2,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "421627c33f19c718f25cbde2a34a4a661ce49424e61c146155b5880248e3af82",
+      "sources_sha256": "6d6fb69edd3b86f49132bf31770bbb7f971bd85f8dccbf00905f157ef710aa7f",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 2,
+          "budget": 5,
+          "status": "ok",
+          "mse": 52.72208748083307,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 2,
+          "budget": 10,
+          "status": "ok",
+          "mse": 21.47539344559264,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 2,
+          "budget": 20,
+          "status": "ok",
+          "mse": 23.122294215956135,
+          "failure": null
+        }
+      ],
+      "seed": 2,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10999999986961484,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "421627c33f19c718f25cbde2a34a4a661ce49424e61c146155b5880248e3af82",
+      "sources_sha256": "6d6fb69edd3b86f49132bf31770bbb7f971bd85f8dccbf00905f157ef710aa7f",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 2,
+          "budget": 5,
+          "status": "ok",
+          "mse": 130.27918291596313,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 2,
+          "budget": 10,
+          "status": "ok",
+          "mse": 657.0352915373672,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 2,
+          "budget": 20,
+          "status": "ok",
+          "mse": 656.9727241503832,
+          "failure": null
+        }
+      ],
+      "seed": 2,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17199999978765845,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "421627c33f19c718f25cbde2a34a4a661ce49424e61c146155b5880248e3af82",
+      "sources_sha256": "6d6fb69edd3b86f49132bf31770bbb7f971bd85f8dccbf00905f157ef710aa7f",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 3,
+          "budget": 5,
+          "status": "ok",
+          "mse": 75.2071068845805,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 3,
+          "budget": 10,
+          "status": "ok",
+          "mse": 3.897179484079511,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 3,
+          "budget": 20,
+          "status": "ok",
+          "mse": 11.854830272047503,
+          "failure": null
+        }
+      ],
+      "seed": 3,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "f761cd41c088f067a0834f94dc98fffba55b9ff15b9f20ba12053c1a62e44202",
+      "sources_sha256": "4a54cc1505d1e80231c3155e378ac9271fc39068372aab3765bd572b2e134c60",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 3,
+          "budget": 5,
+          "status": "ok",
+          "mse": 44.846020584824494,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 3,
+          "budget": 10,
+          "status": "ok",
+          "mse": 7.036699825391996,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 3,
+          "budget": 20,
+          "status": "ok",
+          "mse": 12.681182017043668,
+          "failure": null
+        }
+      ],
+      "seed": 3,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "f761cd41c088f067a0834f94dc98fffba55b9ff15b9f20ba12053c1a62e44202",
+      "sources_sha256": "4a54cc1505d1e80231c3155e378ac9271fc39068372aab3765bd572b2e134c60",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 3,
+          "budget": 5,
+          "status": "ok",
+          "mse": 25.028075753637967,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 3,
+          "budget": 10,
+          "status": "ok",
+          "mse": 25.028075753637967,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 3,
+          "budget": 20,
+          "status": "ok",
+          "mse": 25.028075753637967,
+          "failure": null
+        }
+      ],
+      "seed": 3,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17199999978765845,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "f761cd41c088f067a0834f94dc98fffba55b9ff15b9f20ba12053c1a62e44202",
+      "sources_sha256": "4a54cc1505d1e80231c3155e378ac9271fc39068372aab3765bd572b2e134c60",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 4,
+          "budget": 5,
+          "status": "ok",
+          "mse": 365.1297367779746,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 4,
+          "budget": 10,
+          "status": "ok",
+          "mse": 354.4229766955111,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 4,
+          "budget": 20,
+          "status": "ok",
+          "mse": 343.1824068523672,
+          "failure": null
+        }
+      ],
+      "seed": 4,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "e373f0b1388ba5742aeee63bb0af9eb5b123ad74a607ff0143fe3c39dd00d4c0",
+      "sources_sha256": "562bd776e8511477445e8f118bd2e8e4fb2f6a85023422e0a2642511ce12fcc0",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 4,
+          "budget": 5,
+          "status": "ok",
+          "mse": 176.3422945970627,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 4,
+          "budget": 10,
+          "status": "ok",
+          "mse": 82.1580745825674,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 4,
+          "budget": 20,
+          "status": "ok",
+          "mse": 321.20151555324867,
+          "failure": null
+        }
+      ],
+      "seed": 4,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "e373f0b1388ba5742aeee63bb0af9eb5b123ad74a607ff0143fe3c39dd00d4c0",
+      "sources_sha256": "562bd776e8511477445e8f118bd2e8e4fb2f6a85023422e0a2642511ce12fcc0",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 4,
+          "budget": 5,
+          "status": "ok",
+          "mse": 94.93086711542188,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 4,
+          "budget": 10,
+          "status": "ok",
+          "mse": 96.86493771547195,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 4,
+          "budget": 20,
+          "status": "ok",
+          "mse": 96.86493771547194,
+          "failure": null
+        }
+      ],
+      "seed": 4,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17200000025331974,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "e373f0b1388ba5742aeee63bb0af9eb5b123ad74a607ff0143fe3c39dd00d4c0",
+      "sources_sha256": "562bd776e8511477445e8f118bd2e8e4fb2f6a85023422e0a2642511ce12fcc0",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 5,
+          "budget": 5,
+          "status": "ok",
+          "mse": 38.240545737108995,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 5,
+          "budget": 10,
+          "status": "ok",
+          "mse": 20.324931248232325,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 5,
+          "budget": 20,
+          "status": "ok",
+          "mse": 13.661868618681364,
+          "failure": null
+        }
+      ],
+      "seed": 5,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "5c19547a4446ff5ac14420674165262ba20d19bb89d530a1fd9e80754f864c04",
+      "sources_sha256": "8a33c2057c1c7a370506874b727b50c69382997986d5025a97e38baa79567211",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 5,
+          "budget": 5,
+          "status": "ok",
+          "mse": 93.79408843142055,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 5,
+          "budget": 10,
+          "status": "ok",
+          "mse": 230.79834829574716,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 5,
+          "budget": 20,
+          "status": "ok",
+          "mse": 19.312702246867737,
+          "failure": null
+        }
+      ],
+      "seed": 5,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "5c19547a4446ff5ac14420674165262ba20d19bb89d530a1fd9e80754f864c04",
+      "sources_sha256": "8a33c2057c1c7a370506874b727b50c69382997986d5025a97e38baa79567211",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 5,
+          "budget": 5,
+          "status": "ok",
+          "mse": 32.41598613135322,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 5,
+          "budget": 10,
+          "status": "ok",
+          "mse": 5.068597778243827,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 5,
+          "budget": 20,
+          "status": "ok",
+          "mse": 5.060582478228882,
+          "failure": null
+        }
+      ],
+      "seed": 5,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.2190000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "5c19547a4446ff5ac14420674165262ba20d19bb89d530a1fd9e80754f864c04",
+      "sources_sha256": "8a33c2057c1c7a370506874b727b50c69382997986d5025a97e38baa79567211",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 6,
+          "budget": 5,
+          "status": "ok",
+          "mse": 66.0865120553469,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 6,
+          "budget": 10,
+          "status": "ok",
+          "mse": 2.8770744555775747,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 6,
+          "budget": 20,
+          "status": "ok",
+          "mse": 11.078050843066928,
+          "failure": null
+        }
+      ],
+      "seed": 6,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "d1298a455a6afeddf91215cff2882d1ab23f32f993959c733c3f07eb43833408",
+      "sources_sha256": "add9f75408348256bbf904497caba75d8f2c31b95152e6e36a47e88c5b218e97",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 6,
+          "budget": 5,
+          "status": "ok",
+          "mse": 33.51353052502209,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 6,
+          "budget": 10,
+          "status": "ok",
+          "mse": 33.51353052502209,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 6,
+          "budget": 20,
+          "status": "ok",
+          "mse": 33.51353052502209,
+          "failure": null
+        }
+      ],
+      "seed": 6,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "d1298a455a6afeddf91215cff2882d1ab23f32f993959c733c3f07eb43833408",
+      "sources_sha256": "add9f75408348256bbf904497caba75d8f2c31b95152e6e36a47e88c5b218e97",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 6,
+          "budget": 5,
+          "status": "ok",
+          "mse": 34.35945368203631,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 6,
+          "budget": 10,
+          "status": "ok",
+          "mse": 34.359453682036296,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 6,
+          "budget": 20,
+          "status": "ok",
+          "mse": 34.359453682036296,
+          "failure": null
+        }
+      ],
+      "seed": 6,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17199999978765845,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "d1298a455a6afeddf91215cff2882d1ab23f32f993959c733c3f07eb43833408",
+      "sources_sha256": "add9f75408348256bbf904497caba75d8f2c31b95152e6e36a47e88c5b218e97",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 7,
+          "budget": 5,
+          "status": "ok",
+          "mse": 39.16044961821296,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 7,
+          "budget": 10,
+          "status": "ok",
+          "mse": 5.291971726712603,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 7,
+          "budget": 20,
+          "status": "ok",
+          "mse": 0.30841764252952925,
+          "failure": null
+        }
+      ],
+      "seed": 7,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": 20,
+      "test_points_sha256": "bdf957e78bcb8a9fe9d3eb9fdb3bc30cff3f7cc474b50f49e1daf725ea5f219e",
+      "sources_sha256": "3b84c08d7ad5e6128e282256a2b8706a2178462c5ace34f7eee9360acddc1487",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 7,
+          "budget": 5,
+          "status": "ok",
+          "mse": 71.6516781414625,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 7,
+          "budget": 10,
+          "status": "ok",
+          "mse": 0.5326867573312628,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 7,
+          "budget": 20,
+          "status": "ok",
+          "mse": 0.5326867573312628,
+          "failure": null
+        }
+      ],
+      "seed": 7,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": 10,
+      "test_points_sha256": "bdf957e78bcb8a9fe9d3eb9fdb3bc30cff3f7cc474b50f49e1daf725ea5f219e",
+      "sources_sha256": "3b84c08d7ad5e6128e282256a2b8706a2178462c5ace34f7eee9360acddc1487",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 7,
+          "budget": 5,
+          "status": "ok",
+          "mse": 0.9239683998308046,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 7,
+          "budget": 10,
+          "status": "ok",
+          "mse": 0.9239683998308046,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 7,
+          "budget": 20,
+          "status": "ok",
+          "mse": 0.9239683998308046,
+          "failure": null
+        }
+      ],
+      "seed": 7,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1869999999180436,
+      "target_reached_at_checkpoint": 5,
+      "test_points_sha256": "bdf957e78bcb8a9fe9d3eb9fdb3bc30cff3f7cc474b50f49e1daf725ea5f219e",
+      "sources_sha256": "3b84c08d7ad5e6128e282256a2b8706a2178462c5ace34f7eee9360acddc1487",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 8,
+          "budget": 5,
+          "status": "ok",
+          "mse": 3.15187341256288,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 8,
+          "budget": 10,
+          "status": "ok",
+          "mse": 0.2048826202905715,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 8,
+          "budget": 20,
+          "status": "ok",
+          "mse": 0.2048826202905715,
+          "failure": null
+        }
+      ],
+      "seed": 8,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": 10,
+      "test_points_sha256": "3c47636636067744c8a697ae9c798c2a478dc1b132a0b419600c78e3e0934aa4",
+      "sources_sha256": "73cd560d7b412588ce31b8937a10b89f97d60e932a1ed952d5f6677bcba05129",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 8,
+          "budget": 5,
+          "status": "ok",
+          "mse": 625.4223967050345,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 8,
+          "budget": 10,
+          "status": "ok",
+          "mse": 178.07073230517997,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 8,
+          "budget": 20,
+          "status": "ok",
+          "mse": 477.3426695104924,
+          "failure": null
+        }
+      ],
+      "seed": 8,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3c47636636067744c8a697ae9c798c2a478dc1b132a0b419600c78e3e0934aa4",
+      "sources_sha256": "73cd560d7b412588ce31b8937a10b89f97d60e932a1ed952d5f6677bcba05129",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 8,
+          "budget": 5,
+          "status": "ok",
+          "mse": 4.462359430965693,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 8,
+          "budget": 10,
+          "status": "ok",
+          "mse": 4.462359430965693,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 8,
+          "budget": 20,
+          "status": "ok",
+          "mse": 4.462359430965693,
+          "failure": null
+        }
+      ],
+      "seed": 8,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17199999978765845,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3c47636636067744c8a697ae9c798c2a478dc1b132a0b419600c78e3e0934aa4",
+      "sources_sha256": "73cd560d7b412588ce31b8937a10b89f97d60e932a1ed952d5f6677bcba05129",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 9,
+          "budget": 5,
+          "status": "ok",
+          "mse": 7016.67998804138,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 9,
+          "budget": 10,
+          "status": "ok",
+          "mse": 8401.543991066635,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 9,
+          "budget": 20,
+          "status": "ok",
+          "mse": 7177.293959849587,
+          "failure": null
+        }
+      ],
+      "seed": 9,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "1e6f8a0c687a2f7f558831589f668b066604c8f5f857a4b1cad3bb14b61a581f",
+      "sources_sha256": "15dfd2ca9e3524347aa0992b5bd7e7b3bb4db3845c6ff785dcc9c3aeb82b3653",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 9,
+          "budget": 5,
+          "status": "ok",
+          "mse": 7095.177704989008,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 9,
+          "budget": 10,
+          "status": "ok",
+          "mse": 7250.83708296854,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 9,
+          "budget": 20,
+          "status": "ok",
+          "mse": 7251.125863731495,
+          "failure": null
+        }
+      ],
+      "seed": 9,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "1e6f8a0c687a2f7f558831589f668b066604c8f5f857a4b1cad3bb14b61a581f",
+      "sources_sha256": "15dfd2ca9e3524347aa0992b5bd7e7b3bb4db3845c6ff785dcc9c3aeb82b3653",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 9,
+          "budget": 5,
+          "status": "ok",
+          "mse": 7114.7955960564705,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 9,
+          "budget": 10,
+          "status": "ok",
+          "mse": 7129.520461509697,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 9,
+          "budget": 20,
+          "status": "ok",
+          "mse": 7129.520515085671,
+          "failure": null
+        }
+      ],
+      "seed": 9,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.20299999974668026,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "1e6f8a0c687a2f7f558831589f668b066604c8f5f857a4b1cad3bb14b61a581f",
+      "sources_sha256": "15dfd2ca9e3524347aa0992b5bd7e7b3bb4db3845c6ff785dcc9c3aeb82b3653",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 10,
+          "budget": 5,
+          "status": "ok",
+          "mse": 2.439621874053218,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 10,
+          "budget": 10,
+          "status": "ok",
+          "mse": 2.3770736488295983,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 10,
+          "budget": 20,
+          "status": "ok",
+          "mse": 2.3348218118620165,
+          "failure": null
+        }
+      ],
+      "seed": 10,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "e7cdffe5d5e37698854825f9645e1dbe7a72f345e380f474f6711993c8e9d229",
+      "sources_sha256": "92a5ccaafdbc057de88b2824f01032bc106ed2b5e71faea281fb0240a2acdbac",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 10,
+          "budget": 5,
+          "status": "ok",
+          "mse": 41.98034134343813,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 10,
+          "budget": 10,
+          "status": "ok",
+          "mse": 231.1362218276069,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 10,
+          "budget": 20,
+          "status": "ok",
+          "mse": 1.649626254300366,
+          "failure": null
+        }
+      ],
+      "seed": 10,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "e7cdffe5d5e37698854825f9645e1dbe7a72f345e380f474f6711993c8e9d229",
+      "sources_sha256": "92a5ccaafdbc057de88b2824f01032bc106ed2b5e71faea281fb0240a2acdbac",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 10,
+          "budget": 5,
+          "status": "ok",
+          "mse": 2.017116515239143,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 10,
+          "budget": 10,
+          "status": "ok",
+          "mse": 2.017116515239143,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 10,
+          "budget": 20,
+          "status": "ok",
+          "mse": 2.017116515239143,
+          "failure": null
+        }
+      ],
+      "seed": 10,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.20300000021234155,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "e7cdffe5d5e37698854825f9645e1dbe7a72f345e380f474f6711993c8e9d229",
+      "sources_sha256": "92a5ccaafdbc057de88b2824f01032bc106ed2b5e71faea281fb0240a2acdbac",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 11,
+          "budget": 5,
+          "status": "ok",
+          "mse": 382.5722412300647,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 11,
+          "budget": 10,
+          "status": "ok",
+          "mse": 382.5722412300647,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 11,
+          "budget": 20,
+          "status": "ok",
+          "mse": 382.5722412300647,
+          "failure": null
+        }
+      ],
+      "seed": 11,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "2e5b33ef6a6f746b501d6032a5275688f28db7b53feb85a09f71c7215f350f1b",
+      "sources_sha256": "01306a15daf9f185767832907a3b22c0344debba9b76df27f23e5251ccba33a9",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 11,
+          "budget": 5,
+          "status": "ok",
+          "mse": 504.07456400043304,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 11,
+          "budget": 10,
+          "status": "ok",
+          "mse": 1672.3042938038295,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 11,
+          "budget": 20,
+          "status": "ok",
+          "mse": 1286.8882878223617,
+          "failure": null
+        }
+      ],
+      "seed": 11,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.07799999974668026,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "2e5b33ef6a6f746b501d6032a5275688f28db7b53feb85a09f71c7215f350f1b",
+      "sources_sha256": "01306a15daf9f185767832907a3b22c0344debba9b76df27f23e5251ccba33a9",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 11,
+          "budget": 5,
+          "status": "ok",
+          "mse": 178.14977889918848,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 11,
+          "budget": 10,
+          "status": "ok",
+          "mse": 858.7350240555163,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 11,
+          "budget": 20,
+          "status": "ok",
+          "mse": 858.7350240497015,
+          "failure": null
+        }
+      ],
+      "seed": 11,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1880000000819564,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "2e5b33ef6a6f746b501d6032a5275688f28db7b53feb85a09f71c7215f350f1b",
+      "sources_sha256": "01306a15daf9f185767832907a3b22c0344debba9b76df27f23e5251ccba33a9",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 12,
+          "budget": 5,
+          "status": "ok",
+          "mse": 5.781988866694788,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 12,
+          "budget": 10,
+          "status": "ok",
+          "mse": 5.806027286913562,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 12,
+          "budget": 20,
+          "status": "ok",
+          "mse": 4.1804648027319855,
+          "failure": null
+        }
+      ],
+      "seed": 12,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3b98a48d3dee9f7f5edcc954ce8863c1744e05b704c07c7964bcd2915a528566",
+      "sources_sha256": "6596157358cb2e3cfd76f6b3d8fd2fa03f48654568049915fa38172c25759a3c",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 12,
+          "budget": 5,
+          "status": "ok",
+          "mse": 3.069210894340741,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 12,
+          "budget": 10,
+          "status": "ok",
+          "mse": 3.0692108940142555,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 12,
+          "budget": 20,
+          "status": "ok",
+          "mse": 3.06921089413469,
+          "failure": null
+        }
+      ],
+      "seed": 12,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3b98a48d3dee9f7f5edcc954ce8863c1744e05b704c07c7964bcd2915a528566",
+      "sources_sha256": "6596157358cb2e3cfd76f6b3d8fd2fa03f48654568049915fa38172c25759a3c",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 12,
+          "budget": 5,
+          "status": "ok",
+          "mse": 57.1307047407022,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 12,
+          "budget": 10,
+          "status": "ok",
+          "mse": 77.17821506874088,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 12,
+          "budget": 20,
+          "status": "ok",
+          "mse": 58.18985789603522,
+          "failure": null
+        }
+      ],
+      "seed": 12,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1880000000819564,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3b98a48d3dee9f7f5edcc954ce8863c1744e05b704c07c7964bcd2915a528566",
+      "sources_sha256": "6596157358cb2e3cfd76f6b3d8fd2fa03f48654568049915fa38172c25759a3c",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 13,
+          "budget": 5,
+          "status": "ok",
+          "mse": 100.70527918286783,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 13,
+          "budget": 10,
+          "status": "ok",
+          "mse": 23.341189460083132,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 13,
+          "budget": 20,
+          "status": "ok",
+          "mse": 20.006897767497023,
+          "failure": null
+        }
+      ],
+      "seed": 13,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "8752df977eb8502f78f74b81c6ec912f1aede9afca7ba62d98fdbe08ab578c31",
+      "sources_sha256": "76d2ca177da73eefc5ef57265dbe9441042766de7aea7898ccba78f8d92c8889",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 13,
+          "budget": 5,
+          "status": "ok",
+          "mse": 256.1952607103665,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 13,
+          "budget": 10,
+          "status": "ok",
+          "mse": 1.58045639206157,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 13,
+          "budget": 20,
+          "status": "ok",
+          "mse": 7.418058206254196,
+          "failure": null
+        }
+      ],
+      "seed": 13,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "8752df977eb8502f78f74b81c6ec912f1aede9afca7ba62d98fdbe08ab578c31",
+      "sources_sha256": "76d2ca177da73eefc5ef57265dbe9441042766de7aea7898ccba78f8d92c8889",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 13,
+          "budget": 5,
+          "status": "ok",
+          "mse": 34.75405959324488,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 13,
+          "budget": 10,
+          "status": "ok",
+          "mse": 34.75405959324488,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 13,
+          "budget": 20,
+          "status": "ok",
+          "mse": 34.75405959324488,
+          "failure": null
+        }
+      ],
+      "seed": 13,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1869999999180436,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "8752df977eb8502f78f74b81c6ec912f1aede9afca7ba62d98fdbe08ab578c31",
+      "sources_sha256": "76d2ca177da73eefc5ef57265dbe9441042766de7aea7898ccba78f8d92c8889",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 14,
+          "budget": 5,
+          "status": "ok",
+          "mse": 14.80954875861839,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 14,
+          "budget": 10,
+          "status": "ok",
+          "mse": 14.332946281296287,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 14,
+          "budget": 20,
+          "status": "ok",
+          "mse": 4.402948898325852,
+          "failure": null
+        }
+      ],
+      "seed": 14,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10999999986961484,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3fdb62d120fa6726151da46eb8c0d6af3fcb34bbc9b9a35f57cf645b80cef48a",
+      "sources_sha256": "cdbc2af3ecf43e627421d9b832af5f9300de301003bf081b073812d842659097",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 14,
+          "budget": 5,
+          "status": "ok",
+          "mse": 54.28414625698995,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 14,
+          "budget": 10,
+          "status": "ok",
+          "mse": 3.8891106220815863,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 14,
+          "budget": 20,
+          "status": "ok",
+          "mse": 2.3530201386539895,
+          "failure": null
+        }
+      ],
+      "seed": 14,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3fdb62d120fa6726151da46eb8c0d6af3fcb34bbc9b9a35f57cf645b80cef48a",
+      "sources_sha256": "cdbc2af3ecf43e627421d9b832af5f9300de301003bf081b073812d842659097",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 14,
+          "budget": 5,
+          "status": "ok",
+          "mse": 5.940259638939091,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 14,
+          "budget": 10,
+          "status": "ok",
+          "mse": 176.60546827982967,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 14,
+          "budget": 20,
+          "status": "ok",
+          "mse": 195.49198075711257,
+          "failure": null
+        }
+      ],
+      "seed": 14,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17100000008940697,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "3fdb62d120fa6726151da46eb8c0d6af3fcb34bbc9b9a35f57cf645b80cef48a",
+      "sources_sha256": "cdbc2af3ecf43e627421d9b832af5f9300de301003bf081b073812d842659097",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 15,
+          "budget": 5,
+          "status": "ok",
+          "mse": 28.213054571231602,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 15,
+          "budget": 10,
+          "status": "ok",
+          "mse": 260.46094959378644,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 15,
+          "budget": 20,
+          "status": "ok",
+          "mse": 457.98162546026833,
+          "failure": null
+        }
+      ],
+      "seed": 15,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "84038be6fdb5344f336f4147756e56aca36fd0e3ec67a194e8e2fd3d367c104b",
+      "sources_sha256": "c81ab76bcf70a100111c2906c6d0d40843b6b9fdb6b413b2f0841d3c5c2e516d",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 15,
+          "budget": 5,
+          "status": "ok",
+          "mse": 88.14237207971424,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 15,
+          "budget": 10,
+          "status": "ok",
+          "mse": 4.969281076218449,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 15,
+          "budget": 20,
+          "status": "ok",
+          "mse": 6.079406304014053,
+          "failure": null
+        }
+      ],
+      "seed": 15,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10999999986961484,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "84038be6fdb5344f336f4147756e56aca36fd0e3ec67a194e8e2fd3d367c104b",
+      "sources_sha256": "c81ab76bcf70a100111c2906c6d0d40843b6b9fdb6b413b2f0841d3c5c2e516d",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 15,
+          "budget": 5,
+          "status": "ok",
+          "mse": 705.0451212723218,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 15,
+          "budget": 10,
+          "status": "ok",
+          "mse": 2.6210905575730297,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 15,
+          "budget": 20,
+          "status": "ok",
+          "mse": 2.632775008859496,
+          "failure": null
+        }
+      ],
+      "seed": 15,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1869999999180436,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "84038be6fdb5344f336f4147756e56aca36fd0e3ec67a194e8e2fd3d367c104b",
+      "sources_sha256": "c81ab76bcf70a100111c2906c6d0d40843b6b9fdb6b413b2f0841d3c5c2e516d",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 16,
+          "budget": 5,
+          "status": "ok",
+          "mse": 69.18241924837125,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 16,
+          "budget": 10,
+          "status": "ok",
+          "mse": 69.18241924837125,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 16,
+          "budget": 20,
+          "status": "ok",
+          "mse": 69.18241924837125,
+          "failure": null
+        }
+      ],
+      "seed": 16,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "f1c669f9e58f44b1c3d950af07b90922416371ea6bc6ed49b1e27ebb52d0e662",
+      "sources_sha256": "161e04f398192b33341c34e858564f9403e4874bdb2a9be12f2f1e190d584a30",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 16,
+          "budget": 5,
+          "status": "ok",
+          "mse": 79.86830126984593,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 16,
+          "budget": 10,
+          "status": "ok",
+          "mse": 334.82265429493793,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 16,
+          "budget": 20,
+          "status": "ok",
+          "mse": 2400.0205621368996,
+          "failure": null
+        }
+      ],
+      "seed": 16,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.07899999991059303,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "f1c669f9e58f44b1c3d950af07b90922416371ea6bc6ed49b1e27ebb52d0e662",
+      "sources_sha256": "161e04f398192b33341c34e858564f9403e4874bdb2a9be12f2f1e190d584a30",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 16,
+          "budget": 5,
+          "status": "ok",
+          "mse": 81.9795645861445,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 16,
+          "budget": 10,
+          "status": "ok",
+          "mse": 82.64409924219765,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 16,
+          "budget": 20,
+          "status": "ok",
+          "mse": 82.26695732073905,
+          "failure": null
+        }
+      ],
+      "seed": 16,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17199999978765845,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "f1c669f9e58f44b1c3d950af07b90922416371ea6bc6ed49b1e27ebb52d0e662",
+      "sources_sha256": "161e04f398192b33341c34e858564f9403e4874bdb2a9be12f2f1e190d584a30",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 17,
+          "budget": 5,
+          "status": "ok",
+          "mse": 100.75001658123279,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 17,
+          "budget": 10,
+          "status": "ok",
+          "mse": 38.56600630447735,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 17,
+          "budget": 20,
+          "status": "ok",
+          "mse": 41.3308088781677,
+          "failure": null
+        }
+      ],
+      "seed": 17,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "7fb799ddcbdcb1c1c787f15f13beb32c76a361b6f07d30c1cbf1d387c3bddb20",
+      "sources_sha256": "4d17bb9c8e740b52a7709dcd40c3a522a9dac0f8c022bea7b3dea527a9af2601",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 17,
+          "budget": 5,
+          "status": "ok",
+          "mse": 9.093242542182114,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 17,
+          "budget": 10,
+          "status": "ok",
+          "mse": 13.862743448836842,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 17,
+          "budget": 20,
+          "status": "ok",
+          "mse": 19.2289906456948,
+          "failure": null
+        }
+      ],
+      "seed": 17,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.10900000017136335,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "7fb799ddcbdcb1c1c787f15f13beb32c76a361b6f07d30c1cbf1d387c3bddb20",
+      "sources_sha256": "4d17bb9c8e740b52a7709dcd40c3a522a9dac0f8c022bea7b3dea527a9af2601",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 17,
+          "budget": 5,
+          "status": "ok",
+          "mse": 14.176042244362119,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 17,
+          "budget": 10,
+          "status": "ok",
+          "mse": 14.259733374333294,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 17,
+          "budget": 20,
+          "status": "ok",
+          "mse": 14.259733203536053,
+          "failure": null
+        }
+      ],
+      "seed": 17,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.2190000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "7fb799ddcbdcb1c1c787f15f13beb32c76a361b6f07d30c1cbf1d387c3bddb20",
+      "sources_sha256": "4d17bb9c8e740b52a7709dcd40c3a522a9dac0f8c022bea7b3dea527a9af2601",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 18,
+          "budget": 5,
+          "status": "ok",
+          "mse": 120.83542169541379,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 18,
+          "budget": 10,
+          "status": "ok",
+          "mse": 7.31745084187474,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 18,
+          "budget": 20,
+          "status": "ok",
+          "mse": 2.409619752792631,
+          "failure": null
+        }
+      ],
+      "seed": 18,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.0940000000409782,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "9b6038dc88826b4955faabe6ca14c74f78bbaf251f9c9bbc241c90b40ba1fdc3",
+      "sources_sha256": "93f9b46f8bf1e5166caa589685b9df8d082cec773cbcf72d086ce92725383fc7",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 18,
+          "budget": 5,
+          "status": "ok",
+          "mse": 5.453690903547704,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 18,
+          "budget": 10,
+          "status": "ok",
+          "mse": 5.453690903526653,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 18,
+          "budget": 20,
+          "status": "ok",
+          "mse": 5.453690903529934,
+          "failure": null
+        }
+      ],
+      "seed": 18,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.09299999987706542,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "9b6038dc88826b4955faabe6ca14c74f78bbaf251f9c9bbc241c90b40ba1fdc3",
+      "sources_sha256": "93f9b46f8bf1e5166caa589685b9df8d082cec773cbcf72d086ce92725383fc7",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 18,
+          "budget": 5,
+          "status": "ok",
+          "mse": 4.887559866591364,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 18,
+          "budget": 10,
+          "status": "ok",
+          "mse": 14.834515830784435,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 18,
+          "budget": 20,
+          "status": "ok",
+          "mse": 3.1207976982168892,
+          "failure": null
+        }
+      ],
+      "seed": 18,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.25,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "9b6038dc88826b4955faabe6ca14c74f78bbaf251f9c9bbc241c90b40ba1fdc3",
+      "sources_sha256": "93f9b46f8bf1e5166caa589685b9df8d082cec773cbcf72d086ce92725383fc7",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 19,
+          "budget": 5,
+          "status": "ok",
+          "mse": 17.96641174203207,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 19,
+          "budget": 10,
+          "status": "ok",
+          "mse": 17.50510187735539,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 19,
+          "budget": 20,
+          "status": "ok",
+          "mse": 33.66014303175189,
+          "failure": null
+        }
+      ],
+      "seed": 19,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.14099999982863665,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "65e3b3606262a5833746e8ab325ed02775fddca70464283b8436fad5899788f3",
+      "sources_sha256": "e0ad4106a9ba6b963d06a434bff771fe292dbf6c163a70c029671753f1a5116e",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "grid",
+          "seed": 19,
+          "budget": 5,
+          "status": "ok",
+          "mse": 167.03618553230382,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 19,
+          "budget": 10,
+          "status": "ok",
+          "mse": 55.23263454659352,
+          "failure": null
+        },
+        {
+          "arm": "grid",
+          "seed": 19,
+          "budget": 20,
+          "status": "ok",
+          "mse": 33.25337121142162,
+          "failure": null
+        }
+      ],
+      "seed": 19,
+      "arm": "grid",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.14100000029429793,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "65e3b3606262a5833746e8ab325ed02775fddca70464283b8436fad5899788f3",
+      "sources_sha256": "e0ad4106a9ba6b963d06a434bff771fe292dbf6c163a70c029671753f1a5116e",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 19,
+          "budget": 5,
+          "status": "ok",
+          "mse": 137.85133164295524,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 19,
+          "budget": 10,
+          "status": "ok",
+          "mse": 57.409967188170526,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 19,
+          "budget": 20,
+          "status": "ok",
+          "mse": 57.40996718817054,
+          "failure": null
+        }
+      ],
+      "seed": 19,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.20300000021234155,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "65e3b3606262a5833746e8ab325ed02775fddca70464283b8436fad5899788f3",
+      "sources_sha256": "e0ad4106a9ba6b963d06a434bff771fe292dbf6c163a70c029671753f1a5116e",
+      "traces": [],
+      "particles": 256,
+      "simulations": 16
+    }
+  ]
+}

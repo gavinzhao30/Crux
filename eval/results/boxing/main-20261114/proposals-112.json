@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Mixture of three 2D Gaussian sources with equal strength 1. Each source has a normal prior N(0,1) for x and y. predict() sums three Gaussian densities at designs for each particle.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) - x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]   # (n_particles, 1, 6)\n\n    # Extract source positions\n    src1 = params_exp[:, :, 0:2]  # (n_particles, 1, 2)\n    src2 = params_exp[:, :, 2:4]\n    src3 = params_exp[:, :, 4:6]\n\n    # Compute squared distances\n    dist1 = np.sum((designs_exp - src1)**2, axis=2)  # (n_particles, n_designs)\n    dist2 = np.sum((designs_exp - src2)**2, axis=2)\n    dist3 = np.sum((designs_exp - src3)**2, axis=2)\n\n    # Gaussian kernel with fixed bandwidth=0.3\n    bandwidth = 0.3\n    intensity = (np.exp(-dist1/(2*bandwidth**2)) +\n                 np.exp(-dist2/(2*bandwidth**2)) +\n                 np.exp(-dist3/(2*bandwidth**2)))\n    return intensity\n\ndef sample_prior(rng, n):\n    # Prior: each source location ~ N(0,1)\n    return rng.normal(0, 1, size=(n, 6))\n"
+    },
+    {
+      "statement": "Mixture of three isotropic Cauchy sources with equal strength 1. Source locations have uniform prior over [-2,2]^2. predict() sums three Cauchy densities at designs for each particle.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1,n_designs,2)\n    params_exp = params[:, np.newaxis, :]   # (n_particles,1,6)\n\n    src1 = params_exp[:, :, 0:2]\n    src2 = params_exp[:, :, 2:4]\n    src3 = params_exp[:, :, 4:6]\n\n    # Compute squared distances\n    dist1 = np.sum((designs_exp - src1)**2, axis=2)\n    dist2 = np.sum((designs_exp - src2)**2, axis=2)\n    dist3 = np.sum((designs_exp - src3)**2, axis=2)\n\n    # Cauchy kernel with scale=0.3\n    scale = 0.3\n    intensity = (1/(1 + dist1/scale**2) +\n                 1/(1 + dist2/scale**2) +\n                 1/(1 + dist3/scale**2))\n    return intensity\n\ndef sample_prior(rng, n):\n    # Uniform prior over [-2,2]^2 for each source\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 804,
+    "cost_usd": 0.001373199999999998,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "7b199b4eea24491dbcba88ca7848ea90",
+      "run_id": "main-20261114-proposals-112",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/7b199b4eea24491dbcba88ca7848ea90"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Mixture of three 2D Gaussian sources with equal strength 1. Each source has a normal prior N(0,1) for x and y. predict() sums three Gaussian densities at designs for each particle.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) - x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]   # (n_particles, 1, 6)\n\n    # Extract source positions\n    src1 = params_exp[:, :, 0:2]  # (n_particles, 1, 2)\n    src2 = params_exp[:, :, 2:4]\n    src3 = params_exp[:, :, 4:6]\n\n    # Compute squared distances\n    dist1 = np.sum((designs_exp - src1)**2, axis=2)  # (n_particles, n_designs)\n    dist2 = np.sum((designs_exp - src2)**2, axis=2)\n    dist3 = np.sum((designs_exp - src3)**2, axis=2)\n\n    # Gaussian kernel with fixed bandwidth=0.3\n    bandwidth = 0.3\n    intensity = (np.exp(-dist1/(2*bandwidth**2)) +\n                 np.exp(-dist2/(2*bandwidth**2)) +\n                 np.exp(-dist3/(2*bandwidth**2)))\n    return intensity\n\ndef sample_prior(rng, n):\n    # Prior: each source location ~ N(0,1)\n    return rng.normal(0, 1, size=(n, 6))\n"
+      },
+      {
+        "statement": "Mixture of three isotropic Cauchy sources with equal strength 1. Source locations have uniform prior over [-2,2]^2. predict() sums three Cauchy densities at designs for each particle.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1,n_designs,2)\n    params_exp = params[:, np.newaxis, :]   # (n_particles,1,6)\n\n    src1 = params_exp[:, :, 0:2]\n    src2 = params_exp[:, :, 2:4]\n    src3 = params_exp[:, :, 4:6]\n\n    # Compute squared distances\n    dist1 = np.sum((designs_exp - src1)**2, axis=2)\n    dist2 = np.sum((designs_exp - src2)**2, axis=2)\n    dist3 = np.sum((designs_exp - src3)**2, axis=2)\n\n    # Cauchy kernel with scale=0.3\n    scale = 0.3\n    intensity = (1/(1 + dist1/scale**2) +\n                 1/(1 + dist2/scale**2) +\n                 1/(1 + dist3/scale**2))\n    return intensity\n\ndef sample_prior(rng, n):\n    # Uniform prior over [-2,2]^2 for each source\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      }
+    ]
+  }
+}

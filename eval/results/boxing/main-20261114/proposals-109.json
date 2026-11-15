@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Mixture of 3 Gaussian sources with unknown centers (2D) and equal amplitudes fixed to 1. Prior: centers uniform in [-2,2]^2. Predict sums Gaussian values at designs with fixed sigma=0.2.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 centers (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    centers = params.reshape(n_particles, 3, 2)  # (n_particles, 3 sources, 2)\n    sigma = 0.2\n    diff = designs[None, None, :, :] - centers[:, :, None, :]  # (n_particles, 3, n_designs, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, 3, n_designs)\n    vals = np.exp(-dist_sq/(2*sigma**2))\n    pred = vals.sum(axis=1)  # sum over 3 sources, shape (n_particles, n_designs)\n    return pred\n\ndef sample_prior(rng, n):\n    # Uniform prior over centers in [-2,2]^2\n    centers = rng.uniform(-2, 2, size=(n, 6))  # 3 centers * 2 coords\n    return centers"
+    },
+    {
+      "statement": "Model 2: Sum of 3 isotropic Laplace (double-exponential) sources with unknown centers in [-2,2]^2 and unknown scales in [0.05,0.3]. Amplitudes fixed to 1. Prior: uniform for centers and scales.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 centers (x,y) + 3 scales\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    centers = params[:, :6].reshape(n_particles, 3, 2)  # (n_particles, 3 sources, 2)\n    scales = params[:, 6:].reshape(n_particles, 3, 1)  # (n_particles, 3 sources, 1)\n\n    diff = designs[None, None, :, :] - centers[:, :, None, :]  # (n_particles, 3, n_designs, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, 3, n_designs)\n    vals = np.exp(-dist / scales) / (2 * scales)  # Laplace PDF (not normalized spatially, just shape)\n    pred = vals.sum(axis=1)  # sum over 3 sources\n    return pred\n\ndef sample_prior(rng, n):\n    centers = rng.uniform(-2, 2, size=(n, 6))\n    scales = rng.uniform(0.05, 0.3, size=(n, 3))\n    params = np.hstack([centers, scales])\n    return params"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 700,
+    "cost_usd": 0.001206800000000001,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "e25c24a518954a3588921342f03702a5",
+      "run_id": "main-20261114-proposals-109",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/e25c24a518954a3588921342f03702a5"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Mixture of 3 Gaussian sources with unknown centers (2D) and equal amplitudes fixed to 1. Prior: centers uniform in [-2,2]^2. Predict sums Gaussian values at designs with fixed sigma=0.2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 centers (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    centers = params.reshape(n_particles, 3, 2)  # (n_particles, 3 sources, 2)\n    sigma = 0.2\n    diff = designs[None, None, :, :] - centers[:, :, None, :]  # (n_particles, 3, n_designs, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, 3, n_designs)\n    vals = np.exp(-dist_sq/(2*sigma**2))\n    pred = vals.sum(axis=1)  # sum over 3 sources, shape (n_particles, n_designs)\n    return pred\n\ndef sample_prior(rng, n):\n    # Uniform prior over centers in [-2,2]^2\n    centers = rng.uniform(-2, 2, size=(n, 6))  # 3 centers * 2 coords\n    return centers"
+      },
+      {
+        "statement": "Model 2: Sum of 3 isotropic Laplace (double-exponential) sources with unknown centers in [-2,2]^2 and unknown scales in [0.05,0.3]. Amplitudes fixed to 1. Prior: uniform for centers and scales.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 centers (x,y) + 3 scales\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    centers = params[:, :6].reshape(n_particles, 3, 2)  # (n_particles, 3 sources, 2)\n    scales = params[:, 6:].reshape(n_particles, 3, 1)  # (n_particles, 3 sources, 1)\n\n    diff = designs[None, None, :, :] - centers[:, :, None, :]  # (n_particles, 3, n_designs, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, 3, n_designs)\n    vals = np.exp(-dist / scales) / (2 * scales)  # Laplace PDF (not normalized spatially, just shape)\n    pred = vals.sum(axis=1)  # sum over 3 sources\n    return pred\n\ndef sample_prior(rng, n):\n    centers = rng.uniform(-2, 2, size=(n, 6))\n    scales = rng.uniform(0.05, 0.3, size=(n, 3))\n    params = np.hstack([centers, scales])\n    return params"
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+arm,seed,budget,status,mse,failure
+single_agent,0,2,ok,67.99012625918792,
+single_agent,0,3,ok,222.02945576961346,
+crux_random,0,2,failed,1000000000000.0,NoPrediction
+crux_random,0,3,failed,1000000000000.0,NoPrediction
+crux_eig,0,2,failed,1000000000000.0,NoPrediction
+crux_eig,0,3,failed,1000000000000.0,NoPrediction
