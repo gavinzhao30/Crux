@@ -267,7 +267,20 @@ def test_the_verdict_falls_back_to_the_template_when_verdict_fails(tmp_path):
     _, events = run_fake(tmp_path, ok, run_id="r-ok")
     v = of(events, "dna.verdict")[0]
     assert v["author"] == "jetson/fake-model" and v["latency_ms"] == 1.0
-    assert v["text"].startswith("Fake verdict")
+    assert v["text"].startswith("Fake verdict") and "rs334" in v["text"]
+    assert [c for c in ok.calls if c[0] == "verdict"] == [("verdict", "ok")]
+
+
+def test_a_model_verdict_with_a_wrong_fact_is_retried_then_replaced_by_the_template(tmp_path):
+    wrong = FakeReader("hbs", verdict_mode="wrong")
+    _, events = run_fake(tmp_path, wrong, run_id="r-wrong")
+    v = of(events, "dna.verdict")[0]
+    assert v["author"] == "template" and v["latency_ms"] is None
+    assert "GTG (Val)" in v["text"] and "GAG (Val)" not in v["text"]
+    assert [c for c in wrong.calls if c[0] == "verdict"] == [("verdict", "wrong")] * 2
+    lines = [p["line"] for p in of(events, "experiment.log") if p["experiment_id"] == "verdict"]
+    assert sum("rejected by the fact check" in ln and "GAG with Val" in ln for ln in lines) == 2
+    assert lines[-1].startswith("verdict from the template")
 
 
 def test_the_engine_posts_show_before_polling_for_each_request(tmp_path):

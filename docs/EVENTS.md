@@ -96,7 +96,9 @@ rather than in the core table above:
 * `dna.verdict` `{"hypothesis_id": str, "name": str, "posterior": float, "reads": int, "text": str,
   "author": str, "latency_ms": float | null, "pdb_id": str, "residue": 6}`: after `question.settled`.
   `author` is `"jetson/<model>"` (the reader's `POST /verdict`, `qwen2.5:3b` on the Jetson) or
-  `"template"` when that fails. `pdb_id` is `2HBS` for HbS and `1A3N` (deoxy human haemoglobin)
+  `"template"` when that fails or when no model sentence passes the fact check
+  (`labs/oneletter/verdict_check.py`: every sequence, codon, amino acid, code, name and number
+  in it must come from the prompt's facts; a rejected sentence gets one retry). `pdb_id` is `2HBS` for HbS and `1A3N` (deoxy human haemoglobin)
   otherwise. Also carries `legacy` and `strip`.
 * `dna.lesson` `{"added": [hypothesis_id], "lessons_total": int}`: a regenerated option settled and was
   saved to `runs/oneletter_lessons.jsonl`; the next run starts with it.
