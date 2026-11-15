@@ -3,9 +3,12 @@
 Stand-in until DU-10's predictor lands; it keeps the ``Predictor.predict`` interface, so the
 swap is one line in the wiring.
 
-* Exact rows. A library diagnostic whose outcome an option fully determines carries
-  ``design["exact"] = {answer_key: {bin_id: p}}``. Options with a matching ``answer_key``
-  get that row as-is: no model call.
+* Library rows. A library diagnostic carries ``design["exact"]`` (an option fully
+  determines the bin) or ``design["stated"]`` (rows measured on synthetic and real data),
+  both ``{answer_key: {bin_id: p}}``. Options with a matching ``answer_key`` get that row,
+  floored by ``LIBRARY_FLOOR`` so no outcome is impossible: no model call. Without the
+  floor, an outcome a row calls impossible (for example "unclear" on real data) would
+  reject every real option at once.
 * Sampled rows. For every other option the predictor model is asked ``n`` times, blind to
   every other option, which bin the experiment will land in if that option is true. The
   counts become probabilities with ``core.scoring.likelihood_from_samples`` (add-half
@@ -28,14 +31,19 @@ the id of the single bin the result will most likely land in, and one short reas
 Reason from what the code computes; do not assume the option is likely or unlikely."""
 
 
+LIBRARY_FLOOR = 0.02
+
+
 class BinChoice(BaseModel):
     bin_id: str = Field(min_length=1)
     reason: str = ""
 
 
-def exact_row(exp: Experiment, hypothesis: Hypothesis) -> dict[str, float] | None:
-    """The library's deterministic row for this option, renormalised to the exp's bins."""
-    table = (exp.design or {}).get("exact") or {}
+def exact_row(
+    exp: Experiment, hypothesis: Hypothesis, *, table_key: str = "exact"
+) -> dict[str, float] | None:
+    """The library's row for this option (``exact`` by default), renormalised to the bins."""
+    table = (exp.design or {}).get(table_key) or {}
     row = table.get(hypothesis.answer_key or "")
     if not isinstance(row, dict):
         return None
@@ -45,6 +53,16 @@ def exact_row(exp: Experiment, hypothesis: Hypothesis) -> dict[str, float] | Non
     if total <= 0 or any(v < 0 for v in values.values()):
         return None
     return {b: v / total for b, v in values.items()}
+
+
+def library_row(
+    exp: Experiment, hypothesis: Hypothesis, *, floor: float = LIBRARY_FLOOR
+) -> dict[str, float] | None:
+    """The exact row, else the measured (stated) row, mixed with a uniform floor."""
+    row = exact_row(exp, hypothesis) or exact_row(exp, hypothesis, table_key="stated")
+    if row is None:
+        return None
+    return {b: (1 - floor) * p + floor / len(row) for b, p in row.items()}
 
 
 class SampledPredictor:
@@ -60,7 +78,7 @@ class SampledPredictor:
         table: dict[str, dict[str, float]] = {}
         sampled: list[Hypothesis] = []
         for h in hypotheses:
-            row = exact_row(exp, h)
+            row = library_row(exp, h)
             if row is not None:
                 table[h.id] = row
             else:

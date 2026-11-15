@@ -317,19 +317,25 @@ FORKS: tuple[_Fork, ...] = (
                     (
                         "as_given",
                         "PC1 groups match the labels",
-                        "n_mismatched == 0 and separation >= 4",
+                        "n_mismatched == 0 and n_boundary == 0 and separation >= 4",
                     ),
                     (
                         "mislabelled",
-                        "a library sits in the other line's PC1 group",
+                        "a library sits deep in the other line's PC1 group",
                         "n_mismatched >= 1 and separation >= 4",
                     ),
-                    ("unclear", "cell lines do not separate on PC1", "separation < 4"),
+                    (
+                        "unclear",
+                        "lines do not separate on PC1, or a library sits on the boundary",
+                        "separation < 4 or (n_mismatched == 0 and n_boundary >= 1)",
+                    ),
                 ),
                 est_cost_s=5,
-                exact={
-                    "as_given": {"as_given": 1.0, "mislabelled": 0.0, "unclear": 0.0},
-                    "mislabelled": {"as_given": 0.0, "mislabelled": 1.0, "unclear": 0.0},
+                # Measured, not exact: on real data PC1 is often unclear under either option
+                # (all 4 public datasets tried), so "unclear" carries weight in both rows.
+                stated={
+                    "as_given": {"as_given": 0.62, "mislabelled": 0.03, "unclear": 0.35},
+                    "mislabelled": {"as_given": 0.03, "mislabelled": 0.77, "unclear": 0.20},
                 },
             ),
         ),

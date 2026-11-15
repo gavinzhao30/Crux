@@ -3,9 +3,16 @@
 Log2 CPM of well-expressed genes, centred per gene and scaled to unit length per library,
 first principal component, libraries split by the sign of their PC1 score. Each group is
 named after the majority of its labels; libraries whose label disagrees with their group
-are mislabelled. ``separation`` is the gap between group means over the pooled within-group
+are mismatched. ``separation`` is the gap between group means over the pooled within-group
 standard deviation; below 4 the cell lines are not cleanly separated on PC1 and the check
 is unclear (``separation`` is 0 when a group is empty or its majority label is tied).
+
+A mismatched library counts as mislabelled only when it sits deep in the other group: its
+PC1 score is at least ``DEEP`` times that group's mean score. A truly swapped library sits
+at about 1.0. Real tissue data has libraries near the boundary (damaged or low-complexity
+samples, where PC1 picks up quality or disease rather than identity); those are reported as
+``boundary_samples`` and make the check unclear instead of a confident call. Calibrated on
+real data: two fatal-COVID lung samples sat at 0.06 and 0.54, planted swaps at 0.97-1.0.
 
 Libraries below a tenth of the median depth are left out (``skipped_samples``): their
 low-count genes are biased downwards in log space, which can drag them across PC1. The
@@ -16,6 +23,7 @@ import numpy as np
 from _common import emit, groups_of, load_inputs, log_cpm, shallow_libraries, to_cpm
 
 MIN_MEAN_CPM = 10.0
+DEEP = 0.75
 
 
 def main():
@@ -49,16 +57,28 @@ def main():
         separation = min(abs(a.mean() - b.mean()) / max(pooled, 1e-9), 1000.0)
     ids = [inputs.sample_ids[k] for k in use]
     wrong = sorted(wrong)
+    depth = {
+        k: float(scores[k] / scores[clusters == clusters[k]].mean()) for k in wrong
+    }
+    deep = [k for k in wrong if depth[k] >= DEEP]
+    confident = separation >= 4
+    boundary = [k for k in wrong if depth[k] < DEEP]
     return {
-        "n_mismatched": len(wrong),
-        "mismatched_samples": [ids[k] for k in wrong],
-        "flagged_samples": [ids[k] for k in wrong],
-        "suggested_cell_lines": [f"{ids[k]}:{names[int(clusters[k])]}" for k in wrong],
+        "n_mismatched": len(deep),
+        "n_boundary": len(boundary),
+        "mismatched_samples": [ids[k] for k in deep],
+        "boundary_samples": [ids[k] for k in boundary],
+        "mismatch_depth": [round(depth[k], 3) for k in wrong],
+        # Only a confident call names libraries for delivery to relabel.
+        "flagged_samples": [ids[k] for k in deep] if confident else [],
+        "suggested_cell_lines": [f"{ids[k]}:{names[int(clusters[k])]}" for k in deep],
         "separation": float(separation),
         "pc1_variance_fraction": float(singular[0] ** 2 / (singular**2).sum()),
         "cluster_sizes": sorted(int((clusters == c).sum()) for c in (0, 1)),
         "skipped_samples": [
-            s for s, keep in zip(inputs.sample_ids, ~shallow_libraries(inputs.counts)) if not keep
+            s
+            for s, keep in zip(inputs.sample_ids, ~shallow_libraries(inputs.counts))
+            if not keep
         ],
     }
 
