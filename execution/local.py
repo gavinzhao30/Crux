@@ -62,7 +62,12 @@ class LocalExecutor:
         *,
         python: str | None = None,
         rscript: str | None = None,
+        diagnostic_timeout_s: int = 120,
     ) -> None:
+        # Same cap as ModalExecutor; Task9Lab.run passes it to every diagnostic.
+        if not 1 <= diagnostic_timeout_s <= 120:
+            raise ValueError("Diagnostic timeout must be between 1 and 120 seconds")
+        self.diagnostic_timeout_s = diagnostic_timeout_s
         self.data_dir = Path(data_dir).resolve()
         if (
             not (self.data_dir / COUNTS).is_file()
@@ -202,6 +207,10 @@ class LocalExecutor:
     async def collect_outputs(self, sandbox_id: str) -> list[dict]:
         directory = self._runs[sandbox_id]
         source, destination = directory / "outputs", directory / "artifacts"
+        # Like ModalExecutor, the artifact folder mirrors the outputs exactly: files the
+        # code deleted do not linger from an earlier export.
+        if destination.exists():
+            shutil.rmtree(destination)
         artifacts = []
         for path in sorted(p for p in source.rglob("*") if p.is_file()):
             name = path.relative_to(source).as_posix()
