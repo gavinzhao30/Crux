@@ -4,8 +4,27 @@ import json
 import httpx
 
 from agents.jev_predictor import JevPredictor, discover_model
-from eval.calibrate_task9 import eligible_records, evaluate, stated_rows
+from eval.calibrate_task9 import eligible_records, evaluate, predict_rows, stated_rows
 from eval.predictor_data.dataset import library_index
+
+
+def test_identical_prediction_inputs_share_one_draw():
+    class Predictor:
+        calls = 0
+
+        async def predict(self, exp, hypotheses, context):
+            self.calls += 1
+            return {
+                h.id: {b.id: 1 / len(exp.bins) for b in exp.bins} for h in hypotheses
+            }
+
+    predictor = Predictor()
+    record = {"diagnostic": "labels_swap_search", "profile": "same profile"}
+    inputs = [dict(record, case_id=case) for case in ("case-01", "case-02")]
+    rows = asyncio.run(predict_rows(predictor, inputs, concurrency=2))
+    assert predictor.calls == 1
+    assert list(rows) == ["case-01|labels_swap_search", "case-02|labels_swap_search"]
+    assert len({json.dumps(row) for row in rows.values()}) == 1
 
 
 def test_jev_batches_options_and_caches_response(tmp_path):

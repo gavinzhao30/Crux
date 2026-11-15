@@ -97,24 +97,31 @@ def stated_rows(records: list[dict]) -> dict:
 
 async def predict_rows(predictor, records: list[dict], *, concurrency: int) -> dict:
     limit = asyncio.Semaphore(concurrency)
+    inputs = {
+        record_key(record): (record["diagnostic"], record["profile"])
+        for record in records
+    }
 
-    async def one(r: dict):
-        entry = library_index()[r["diagnostic"]]
+    async def one(diagnostic: str, profile: str):
+        entry = library_index()[diagnostic]
         options = list(entry.options.values())
         context = (
-            f"Data profile: {r['profile']}\nQuestion: {entry.question_text}\nOptions: "
+            f"Data profile: {profile}\nQuestion: {entry.question_text}\nOptions: "
             + "; ".join(option.statement for option in options)
         )
-        experiment = model_only(r["diagnostic"])
+        experiment = model_only(diagnostic)
         async with limit:
             # Outcomes and the planted answer key stay in the evaluator.
             rows = await predictor.predict(experiment, options, context)
         bins = [b.id for b in experiment.bins]
-        return record_key(r), {
+        return {
             key: probability_row(rows[h.id], bins) for key, h in entry.options.items()
         }
 
-    return dict(await asyncio.gather(*(one(record) for record in records)))
+    unique = list(dict.fromkeys(inputs.values()))
+    predictions = await asyncio.gather(*(one(*item) for item in unique))
+    shared = dict(zip(unique, predictions, strict=True))
+    return {key: shared[item] for key, item in inputs.items()}
 
 
 def reliability(pairs: list[tuple[dict[str, float], str]]) -> list[dict]:
