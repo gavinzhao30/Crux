@@ -93,6 +93,7 @@ class PastMemory:
         self._scope_ready = False
         self._scope_lock = asyncio.Lock()
         self._flush_lock = asyncio.Lock()
+        self._submit_lock = asyncio.Lock()
         self._worker: asyncio.Task | None = None
         self._closed = False
 
@@ -251,6 +252,33 @@ class PastMemory:
                 await asyncio.sleep(delay)
                 delay = min(delay * 2, 30)
 
+    async def submit(self) -> None:
+        """Send every queued body that has no ingestion receipt yet, without waiting for
+        indexing. The provider indexes sent records on its side; receipts stay in the
+        outbox so a later flush can confirm them. Bounded by the adapter timeout."""
+        self._check_run(self.context.run_id)
+        async with asyncio.timeout(self._timeout):
+            await self._ensure_scope()
+            await self._submit_unsent()
+
+    async def _submit_unsent(self) -> None:
+        async with self._submit_lock:
+            for row in self.store.pending():
+                if row["status"] == "rejected" or row["ingestion_id"] is not None:
+                    continue
+                try:
+                    receipt = _Receipt.model_validate(
+                        await self._request("POST", "/ingest", json.loads(row["body"]))
+                    )
+                except (httpx.HTTPError, ValueError) as exc:
+                    self.store.progress(
+                        row["source_id"], attempts=row["attempts"] + 1, error=type(exc).__name__
+                    )
+                    raise
+                self.store.progress(
+                    row["source_id"], ingestion_id=receipt.ingestionId, status=receipt.status
+                )
+
     async def flush(self) -> None:
         """Drain the durable queue with a bounded wait; safe to retry after a restart."""
         self._check_run(self.context.run_id)
@@ -258,6 +286,8 @@ class PastMemory:
             if not self.store.pending():
                 return
             await self._ensure_scope()
+            # Send every new body before polling any, so none waits behind another's poll.
+            await self._submit_unsent()
             rejected = False
             for row in self.store.pending():
                 source_id = row["source_id"]
@@ -291,6 +321,8 @@ class PastMemory:
                                 break
                             raise IngestionFailed(f"Ingestion failed: {code}")
                         if status != "completed":
+                            # Records written while this one indexes are sent meanwhile.
+                            await self._submit_unsent()
                             await asyncio.sleep(self._poll_interval)
                     if status == "completed":
                         self.store.progress(source_id, status="completed", error=None)

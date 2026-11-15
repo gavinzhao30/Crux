@@ -6,7 +6,8 @@
 
 Prints the run id, the number of events, which questions settled (or ended robust or
 unresolved) and the path of the events file. The fakes need no network access and no API
-key; ``bixbench3`` calls the models (OPENAI_API_KEY) and, with ``--manifest``, Modal.
+key; ``bixbench3`` calls the models (OPENAI_API_KEY), with ``--manifest`` Modal, and with
+PAST_API_KEY set past.dev for the agents' shared memory (``--config`` picks the arm).
 """
 
 from __future__ import annotations

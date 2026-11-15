@@ -10,6 +10,7 @@ Wraps ``Task9Lab`` (DU-13) without changing it:
 * ``deliver`` asks the delivery planner for code, runs it, and retries invalid plans
   or failed executions up to ``max_attempts`` times per delivery round. Generated code
   is kept under ``delivery/`` in the run folder.
+* ``memory``, when set, is the run's memory; ``close`` closes it after the sandbox.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
     from core.schemas import Artifact, EngineState, Evidence, Experiment, Observation
 
 Planner = Callable[..., Awaitable[list[tuple[str, str]]]]
+TASK_ID = "bixbench3-task9"
 TASK9_PRICES: dict[str, tuple[float, float]] = {
     "gpt-4.1-mini": (0.40, 1.60),
     "gpt-5.5": (5.00, 30.00),
@@ -83,6 +85,8 @@ class SwarmTask9Lab:
         self.profile_facts: list[dict] = []
         # ``build_task9_run`` hands over the search it built; ``close`` releases it.
         self.owns_search = owns_search
+        # Likewise the run's memory, when build_task9_run built it.
+        self.memory: Any = None
 
     # --- Lab -------------------------------------------------------------------------
 
@@ -168,10 +172,15 @@ class SwarmTask9Lab:
                 sandbox, self.sandbox_id = self.sandbox_id, None
                 await self.executor.close(sandbox)
         finally:
-            search = self.inner.search
-            if self.owns_search and search is not None and hasattr(search, "aclose"):
-                self.owns_search = False
-                await search.aclose()
+            try:
+                search = self.inner.search
+                if self.owns_search and search is not None and hasattr(search, "aclose"):
+                    self.owns_search = False
+                    await search.aclose()
+            finally:
+                memory, self.memory = self.memory, None
+                if memory is not None and hasattr(memory, "aclose"):
+                    await memory.aclose()
 
     # --- helpers ---------------------------------------------------------------------
 
@@ -265,12 +274,20 @@ def build_task9_run(
     run gets the guarded Exa search (``search.task9.build_task9_search``) as ``Deps.search``
     and in the lab, which closes it at the end of the run. With ``cfg.search`` off neither
     gets a search, even one passed in.
+
+    Memory: ``memory`` if given (the caller closes it), else one built from ``cfg.memory``
+    by ``memory.run.memory_from_config``: past.dev when ``PAST_API_KEY`` is set, the
+    role-only local ledger for ``local_role_only``, otherwise none. A built memory is scoped
+    to the run id on first use and closed with the lab. The proposers, the designer and the
+    critic read it; the experimenter (profile and search results), the referee, the critic
+    and, with ``cfg.lessons``, the reporter write it.
     """
     from agents.llm import LLM, STRONG_MODEL, LLMConfig
     from agents.predictor import SampledPredictor
     from agents.swarm import SwarmRoles
     from core.orchestrator import Deps
     from execution.staging import COUNTS
+    from memory.run import memory_from_config
 
     owns_search = False
     if not getattr(cfg, "search", False):
@@ -298,10 +315,19 @@ def build_task9_run(
         search=search,
         owns_search=owns_search,
     )
+    if memory is None:
+        memory = memory_from_config(cfg, task_id=TASK_ID)
+        lab.memory = memory
     counts = Path(case_dir) / COUNTS if case_dir is not None else None
-    # The referee reads log files relative to the run folder, which the lab learns in bind().
+    # The referee reads log files relative to the run folder, and the proposers recall under
+    # the run id; the lab learns both in bind().
     roles = SwarmRoles(
-        llm, cfg, memory=memory, counts_path=counts, run_dir=lambda: lab.run_dir
+        llm,
+        cfg,
+        memory=memory,
+        run_id=lambda: lab.run_id,
+        counts_path=counts,
+        run_dir=lambda: lab.run_dir,
     )
     predictor: Any = SampledPredictor(llm, n=cfg.n_predictor_samples, eps=cfg.eps)
     if getattr(cfg, "predictor", None) == "tinker":

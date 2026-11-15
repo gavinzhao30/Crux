@@ -64,9 +64,14 @@ the lesson prompt. Review metadata and development-source pointers accompany eac
 
 `prepare()` writes `lesson.written` audit payloads using the existing event contract. The
 final filtered recall is audited with writer/reader roles, corpus hash, case ID, latency
-and labeled prompt-size estimates. These records are ready to forward through the team's
-event bus; complete orchestration integration is still needed. Lessons must be loaded
-before independent proposals, without sharing one proposer's current proposals with another.
+and labeled prompt-size estimates. Lessons must be loaded before independent proposals,
+without sharing one proposer's current proposals with another.
+
+The Task 9 run does not load a reviewed corpus yet: that waits for real lessons reviewed
+from development runs. In a run, `lessons=True` (off by default) only makes the
+orchestrator write each settled or robust question's lesson, authored by the reporter, to
+the run's own memory and emit `lesson.written`. Those are candidates for review. They are
+never reused unreviewed, and the run-scoped audience keeps them out of later runs.
 
 ## Paired comparison
 

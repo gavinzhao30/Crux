@@ -75,6 +75,23 @@ A failed remote recall is recorded separately from an empty successful response.
 
 The role-only configuration (`memory="local_role_only"`) provides the comparison for measuring the effect of sharing evidence.
 
+### Memory in a Task 9 run
+
+`build_task9_run` builds the run's memory from `cfg.memory` (`memory.run.memory_from_config`): past.dev when `PAST_API_KEY` is set, the role-only local ledger for `local_role_only` (no key needed), and no memory otherwise, with a warning and no network calls. The memory binds to the run id on its first call, so each run gets its own past.dev audience and journal (`runs/<run_id>/memory/`). It closes with the lab. A failed write or recall is logged and audited but never stops the run; a failed recall gives no extra context.
+
+| Who | Writes | Reads, and where it lands |
+| --- | --- | --- |
+| Experimenter (the lab's profile and the Exa search) | the data profile; each search result | |
+| Referee | each valid observation; each rejected option as an objection | |
+| Critic | each finding: a `block` as an objection, a `warn` as an observation | before each review, into `contract["recalled_evidence"]` in its prompt |
+| Designer | | before each design, merged into its evidence list |
+| Proposers (statistician, bioinformatician, sceptic) | | at proposal time, into their prompts' `recalled` field |
+| Reporter | with `cfg.lessons`, each settled question's lesson | |
+
+Every run writes the profile; the referee writes once a diagnostic is valid or an option is rejected, and the critic once it finds anything. The proposers read in every run, the designer for each question it designs for, and the critic for each review. The critic's prompt carries records the experimenter and the referee wrote, and in a repair round its own earlier objections. Every write and every orchestrator recall is in the event log as `memory.written` and `memory.recalled`, whose `authors` show whose record each reader used; the proposers' recalls are logged in the memory journal only. Objections are kept in every later recall, so a veto is never dropped.
+
+Recalled records only inform prompts. Beliefs change only through the orchestrator's Bayes update on a new observation, and a record the run already holds is never counted twice: the designer's evidence is deduplicated by evidence id, and the proposers' recall drops the profile they already receive. With `cfg.lessons` on, lessons are written for review and are not reused within or across runs; the reviewed corpus in `memory/lessons.py` is loaded only by the paired lessons comparison for now.
+
 ## Credits
 
 The stack uses FastAPI, Uvicorn, Pydantic, HTTPX, the OpenAI SDK, exa-py, Modal, NumPy, pandas, and Langfuse. Development tooling includes uv, pytest, and Ruff. The benchmark designs reference BixBench3 and BoxingGym. Shared memory uses [past.dev](https://past.dev/) ([API contract](https://past.dev/docs/memory-api/api-reference), [audience access controls](https://past.dev/docs/memory-api/access-control)).

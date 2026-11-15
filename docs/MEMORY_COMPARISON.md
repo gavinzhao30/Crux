@@ -51,7 +51,9 @@ Both backends use `MemoryTelemetry` and `format_memory(evidence)`. Audit records
 [EVENTS.md](EVENTS.md). Additional measurement fields are compatible with its rule to
 ignore unknown payload fields. A sync or async `on_event(event_type, payload)` callback
 can forward these to the event bus. Callback failures are audited without losing evidence.
-The complete event-bus/orchestrator integration remains a separate workstream.
+In a run, the orchestrator emits its own `memory.written` and `memory.recalled` events for
+every write and recall it makes; this telemetry adds the measurement fields to the run's
+memory journal (`runs/<run_id>/memory/`).
 
 The default prompt count is **an estimate: UTF-8 bytes divided by four, rounded up**.
 It is labeled `estimate_utf8_bytes_div4`, not reported as actual model usage. To measure
@@ -123,16 +125,15 @@ as live past.dev measurements.
 
 ## Integration status
 
-This branch merges the existing DU-16 prerequisite commit into current `main` and adds
-DU-17 as its own change. It preserves the team's newer LLM, executable-EIG and event
-contract work. Python dependencies include numpy and openai for those existing modules.
-The shared `RunConfig` also retains DU-15's search flags; the search adapter itself remains
-on its own branch.
+Both arms run inside the engine. `memory.run.RunMemory` binds either backend to one run on
+its first call, and `build_task9_run` builds it from `cfg.memory`: `pastdev` when
+`PAST_API_KEY` is set, `local_role_only` always (it needs no key), otherwise no memory.
+The orchestrator writes and recalls at the same points in both arms and drops other
+roles' records in the role-only arm, so the call sites, prompts and instrumentation match.
+The shared `RunConfig` is `main`'s; this work adds no config fields.
 
-The role-local backend and replay harness are ready for integration. Completing DU-17
-still requires the live past.dev row, a reviewed frozen development history and actual
-orchestrator prompt insertion with the same instrumentation in both arms. Until then,
-the issue remains In Progress. The vector and full-context extensions remain optional.
+Still open: a reviewed frozen development history (the replay fixture is synthetic). The
+vector and full-context extensions remain optional; `memory="vector"` runs without memory.
 
 Existing dependency credits are in the README. This work additionally uses only Python's
 standard library for the local backend, metrics, fixture hashing and report generation.

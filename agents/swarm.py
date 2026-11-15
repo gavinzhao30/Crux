@@ -3,7 +3,9 @@
 * ``propose``: Gavin's independent proposers plus the DU-42 fork library
   (``agents.proposer.propose``). The orchestrator owns events and the null option, so the
   proposer runs with a silent bus and ``null_hypothesis`` off; question ids it assigns are
-  kept by the orchestrator.
+  kept by the orchestrator. Each proposer recalls from the run's shared memory under the
+  real run id (``run_id``) and its own role; records it already has in ``evidence`` (the
+  profile) are dropped from that recall, so nothing reaches its prompt twice.
 * ``design``: stand-in until DU-10's designer lands. It returns the library diagnostics
   the proposer attached to the question, plus the pre-registered search diagnostics
   (``search.task9.search_diagnostics``) for questions that documentation can decide, such
@@ -59,6 +61,23 @@ class NullMemory:
         return []
 
 
+class _Unseen:
+    """A memory view that hides records the caller already holds (by evidence id)."""
+
+    def __init__(self, memory: Any, seen: set[str]) -> None:
+        self.memory = memory
+        self.seen = seen
+
+    async def write(self, ev: Evidence, run_id: str, author_role: str) -> None:
+        await self.memory.write(ev, run_id, author_role)
+
+    async def recall(
+        self, query: str, run_id: str, reader_role: str, k: int = 8
+    ) -> list[Evidence]:
+        found = await self.memory.recall(query, run_id, reader_role, k)
+        return [e for e in found if e.id not in self.seen]
+
+
 class SwarmRoles:
     def __init__(
         self,
@@ -66,6 +85,7 @@ class SwarmRoles:
         config: Any,
         *,
         memory: Any = None,
+        run_id: Callable[[], str | None] | None = None,
         library: Callable[[dict], list] | None = None,
         propose_fn: Callable | None = None,
         referee_fn: Callable | None = None,
@@ -79,6 +99,7 @@ class SwarmRoles:
         self.llm = llm
         self.config = config
         self.memory = memory or NullMemory()
+        self.run_id = run_id
         self.library = library
         self.search_library = search_library
         self.propose_fn = propose_fn
@@ -111,6 +132,8 @@ class SwarmRoles:
         entries = library(brief) if library is not None else []
         self.rounds += 1
         cfg = self.config.model_copy(update={"null_hypothesis": False})
+        # The proposer recalls under ``bus.run_id``; run-scoped memory needs the real one.
+        run_id = (self.run_id() if self.run_id is not None else None) or f"round{self.rounds}"
         # The library's forks are pre-registered: fixed options, answer keys and
         # diagnostics. On the first real Task 9 run the merge model folded five of them and
         # unrelated questions into one 20-option question, so they skip the merge and are
@@ -119,8 +142,8 @@ class SwarmRoles:
             brief,
             list(evidence),
             llm=self.llm,
-            memory=self.memory,
-            bus=SilentBus(f"round{self.rounds}"),
+            memory=_Unseen(self.memory, {e.id for e in evidence}),
+            bus=SilentBus(run_id),
             config=cfg,
             library=[],
         )
