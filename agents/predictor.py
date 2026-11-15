@@ -39,6 +39,19 @@ class BinChoice(BaseModel):
     reason: str = ""
 
 
+def diagnostic_spec(exp: Experiment) -> dict:
+    return {
+        "goal": exp.goal,
+        "language": exp.language,
+        "code": exp.code,
+        "query": exp.query,
+        "bins": [
+            {"id": b.id, "description": b.description, "rule": b.rule}
+            for b in exp.bins
+        ],
+    }
+
+
 def exact_row(
     exp: Experiment, hypothesis: Hypothesis, *, table_key: str = "exact"
 ) -> dict[str, float] | None:
@@ -93,16 +106,6 @@ class SampledPredictor:
     async def _sample(
         self, exp: Experiment, h: Hypothesis, context: str
     ) -> dict[str, int]:
-        spec = {
-            "goal": exp.goal,
-            "language": exp.language,
-            "code": exp.code,
-            "query": exp.query,
-            "bins": [
-                {"id": b.id, "description": b.description, "rule": b.rule}
-                for b in exp.bins
-            ],
-        }
         messages = [
             {"role": "system", "content": _SYSTEM},
             {
@@ -110,7 +113,7 @@ class SampledPredictor:
                 "content": json.dumps(
                     {
                         "assume_true": h.statement,
-                        "diagnostic": spec,
+                        "diagnostic": diagnostic_spec(exp),
                         "context": context[:4000],
                     }
                 ),

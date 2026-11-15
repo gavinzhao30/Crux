@@ -1,0 +1,199 @@
+{
+  "eps": 0.1,
+  "status": {
+    "stated": "Library-authored approximate probability tables",
+    "sampled": "gpt-4.1-mini, eight draws per option, 584 fresh calls, $0.935 estimated",
+    "jev": "Pending after TypeSafe HTTP 401"
+  },
+  "splits": {
+    "dev": {
+      "executed": 48,
+      "invalid": 0,
+      "eligible": 20,
+      "matched": 20,
+      "methods": {
+        "stated": {
+          "n": 20,
+          "log_loss": 0.508441862439245,
+          "brier": 0.2885583666666666,
+          "accuracy": 0.75,
+          "ece": 0.3079,
+          "impossible": 0,
+          "reliability": [
+            {
+              "low": 0.4,
+              "high": 0.5,
+              "n": 4,
+              "mean_confidence": 0.48333333333333334,
+              "observed_accuracy": 0.0
+            },
+            {
+              "low": 0.5,
+              "high": 0.6,
+              "n": 8,
+              "mean_confidence": 0.5598333333333334,
+              "observed_accuracy": 0.875
+            },
+            {
+              "low": 0.7,
+              "high": 0.8,
+              "n": 7,
+              "mean_confidence": 0.779047619047619,
+              "observed_accuracy": 1.0
+            },
+            {
+              "low": 0.8,
+              "high": 0.9,
+              "n": 1,
+              "mean_confidence": 0.8433333333333334,
+              "observed_accuracy": 1.0
+            }
+          ],
+          "ranking_groups": 8,
+          "changed_vs_stated": 0,
+          "no_choice": 0
+        },
+        "sampled": {
+          "n": 20,
+          "log_loss": 0.7808928001491738,
+          "brier": 0.46030655586334246,
+          "accuracy": 0.7,
+          "ece": 0.20122807017543864,
+          "impossible": 0,
+          "reliability": [
+            {
+              "low": 0.4,
+              "high": 0.5,
+              "n": 1,
+              "mean_confidence": 0.45964912280701753,
+              "observed_accuracy": 1.0
+            },
+            {
+              "low": 0.5,
+              "high": 0.6,
+              "n": 1,
+              "mean_confidence": 0.5543859649122808,
+              "observed_accuracy": 0.0
+            },
+            {
+              "low": 0.6,
+              "high": 0.7,
+              "n": 2,
+              "mean_confidence": 0.6491228070175439,
+              "observed_accuracy": 1.0
+            },
+            {
+              "low": 0.7,
+              "high": 0.8,
+              "n": 2,
+              "mean_confidence": 0.743859649122807,
+              "observed_accuracy": 0.0
+            },
+            {
+              "low": 0.8,
+              "high": 0.9,
+              "n": 14,
+              "mean_confidence": 0.8385964912280702,
+              "observed_accuracy": 0.7857142857142857
+            }
+          ],
+          "ranking_groups": 8,
+          "changed_vs_stated": 4,
+          "no_choice": 0
+        }
+      }
+    },
+    "test": {
+      "executed": 108,
+      "invalid": 0,
+      "eligible": 45,
+      "matched": 45,
+      "methods": {
+        "stated": {
+          "n": 45,
+          "log_loss": 0.5948427838358806,
+          "brier": 0.3352418666666667,
+          "accuracy": 0.7333333333333333,
+          "ece": 0.28773333333333334,
+          "impossible": 0,
+          "reliability": [
+            {
+              "low": 0.4,
+              "high": 0.5,
+              "n": 9,
+              "mean_confidence": 0.4833333333333333,
+              "observed_accuracy": 0.0
+            },
+            {
+              "low": 0.5,
+              "high": 0.6,
+              "n": 16,
+              "mean_confidence": 0.5558958333333334,
+              "observed_accuracy": 0.9375
+            },
+            {
+              "low": 0.7,
+              "high": 0.8,
+              "n": 19,
+              "mean_confidence": 0.7718070175438596,
+              "observed_accuracy": 0.8947368421052632
+            },
+            {
+              "low": 0.8,
+              "high": 0.9,
+              "n": 1,
+              "mean_confidence": 0.8433333333333334,
+              "observed_accuracy": 1.0
+            }
+          ],
+          "ranking_groups": 18,
+          "changed_vs_stated": 0,
+          "no_choice": 0
+        },
+        "sampled": {
+          "n": 45,
+          "log_loss": 0.8555876645332314,
+          "brier": 0.4948771929824562,
+          "accuracy": 0.6888888888888889,
+          "ece": 0.14346978557504872,
+          "impossible": 0,
+          "reliability": [
+            {
+              "low": 0.6,
+              "high": 0.7,
+              "n": 8,
+              "mean_confidence": 0.6491228070175439,
+              "observed_accuracy": 0.75
+            },
+            {
+              "low": 0.7,
+              "high": 0.8,
+              "n": 4,
+              "mean_confidence": 0.743859649122807,
+              "observed_accuracy": 0.5
+            },
+            {
+              "low": 0.8,
+              "high": 0.9,
+              "n": 33,
+              "mean_confidence": 0.8385964912280702,
+              "observed_accuracy": 0.696969696969697
+            }
+          ],
+          "ranking_groups": 18,
+          "changed_vs_stated": 9,
+          "no_choice": 0
+        }
+      }
+    }
+  },
+  "heldout_log_loss_winner": null,
+  "jev_beats_both": null,
+  "stated_diagnostics": [
+    "cell_line_pc1",
+    "direction_marker",
+    "direction_signature",
+    "labels_nearest_neighbour",
+    "labels_swap_search"
+  ]
+}
