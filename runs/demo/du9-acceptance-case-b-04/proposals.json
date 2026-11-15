@@ -1,0 +1,763 @@
+{
+  "questions": [
+    {
+      "id": "proposal-1-q0",
+      "text": "What design formula should be used for the DESeq2 differential expression analysis to best account for biological replicates and conditions in each cell line?",
+      "kind": "categorical",
+      "impact": 1.0,
+      "status": "open",
+      "raised_by": "bioinformatician,statistician"
+    },
+    {
+      "id": "proposal-1-q1",
+      "text": "Should any samples be filtered or excluded prior to DE analysis to improve result robustness?",
+      "kind": "categorical",
+      "impact": 0.8,
+      "status": "open",
+      "raised_by": "sceptic,statistician"
+    },
+    {
+      "id": "proposal-1-q2",
+      "text": "What multiple testing correction strategy should be applied to control false discoveries in gene-level DE results?",
+      "kind": "categorical",
+      "impact": 0.85,
+      "status": "open",
+      "raised_by": "statistician"
+    },
+    {
+      "id": "proposal-1-q3",
+      "text": "Which gene identifier should be used as the primary key for differential expression results: the versioned Ensembl gene ID or the gene symbol?",
+      "kind": "categorical",
+      "impact": 0.8,
+      "status": "open",
+      "raised_by": "bioinformatician"
+    },
+    {
+      "id": "proposal-1-q4",
+      "text": "What normalization approach should be applied to the published counts before running DESeq2 differential expression analysis?",
+      "kind": "categorical",
+      "impact": 0.9,
+      "status": "open",
+      "raised_by": "bioinformatician,sceptic"
+    },
+    {
+      "id": "proposal-1-q5",
+      "text": "For the shared and cell-line-specific gene lists, what criteria should be used to define 'shared' and 'specific' genes from the DE results?",
+      "kind": "categorical",
+      "impact": 0.85,
+      "status": "open",
+      "raised_by": "bioinformatician,sceptic"
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "proposal-1-q0-h0",
+      "question_id": "proposal-1-q0",
+      "statement": "Use a simple design formula with condition only: '~ condition'.",
+      "author": "statistician",
+      "rationale": "This models expression differences between treatment and control within each cell line but ignores potential batch or sample effects.",
+      "answer_key": "~ condition",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h1",
+      "question_id": "proposal-1-q0",
+      "statement": "Use a design formula including cell line and condition: '~ cell_line + condition'.",
+      "author": "statistician",
+      "rationale": "This accounts for differences between cell lines and tests for treatment effects controlling cell line variability, which may improve accuracy if samples are combined.",
+      "answer_key": "~ cell_line + condition",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h2",
+      "question_id": "proposal-1-q0",
+      "statement": "Use a nested design formula per cell line: run separate DESeq2 analyses within each cell line using '~ condition'.",
+      "author": "statistician",
+      "rationale": "This aligns with the brief to analyze treatment versus control within each cell line separately, properly controlling for cell line-specific baseline expression and variation.",
+      "answer_key": "Separate per cell line: '~ condition'",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h3",
+      "question_id": "proposal-1-q0",
+      "statement": "Perform separate DESeq2 analyses for each cell line comparing each treatment condition versus its matched control samples within that cell line.",
+      "author": "bioinformatician",
+      "rationale": "The brief instructs using treatment versus control within each cell line, respecting biological replicates and avoiding confounding effects. This ensures accurate cell-line-specific DE results as required by the output contract.",
+      "answer_key": "Separate DE per cell line and condition",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h4",
+      "question_id": "proposal-1-q0",
+      "statement": "None of these options.",
+      "author": "statistician",
+      "rationale": "Other complex designs or batch effect adjustments might be necessary depending on sample metadata, but are not specified in the brief.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h5",
+      "question_id": "proposal-1-q0",
+      "statement": "None of these options.",
+      "author": "bioinformatician",
+      "rationale": "Consider alternative contrast definitions not listed here.",
+      "answer_key": "None",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h6",
+      "question_id": "proposal-1-q0",
+      "statement": "Fit a single DESeq2 model including cell line and condition as factors, then extract contrasts for treatments versus controls within each cell line.",
+      "author": "bioinformatician",
+      "rationale": "A joint model can borrow information across conditions and cell lines, potentially improving power, but may require careful modeling and contrast specification to avoid confounding.",
+      "answer_key": "Joint model with contrasts",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h7",
+      "question_id": "proposal-1-q0",
+      "statement": "Compare all treatment samples pooled across cell lines against all controls pooled together.",
+      "author": "bioinformatician",
+      "rationale": "Pooling samples across cell lines ignores cell-line specificity and is inconsistent with the task goal of cell-line-specific DE and gene lists.",
+      "answer_key": "Pooled comparison across cell lines",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.10625,
+      "posterior": 0.10625,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q0-h0-null",
+      "question_id": "proposal-1-q0",
+      "statement": "None of these",
+      "author": "engine",
+      "rationale": "Allow for missing explanations.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": true,
+      "prior": 0.15,
+      "posterior": 0.15,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h0",
+      "question_id": "proposal-1-q1",
+      "statement": "No filtering; use all samples as provided.",
+      "author": "statistician",
+      "rationale": "Using all samples maximizes power but risks including outliers or duplicates that might bias results.",
+      "answer_key": "No filtering",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.13076923076923078,
+      "posterior": 0.13076923076923078,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h1",
+      "question_id": "proposal-1-q1",
+      "statement": "No evidence suggests sample label swaps from the given correlation and metadata information.",
+      "author": "sceptic",
+      "rationale": "High correlations within replicates and expected groupings reduce concern of label swap.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.13076923076923078,
+      "posterior": 0.13076923076923078,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h2",
+      "question_id": "proposal-1-q1",
+      "statement": "Exclude samples with identical or nearly identical expression profiles (e.g., identical columns S10 and S13).",
+      "author": "statistician",
+      "rationale": "Identical columns indicate duplicated or technical replicates that could bias variance estimates and inflate significance; filtering improves robustness.",
+      "answer_key": "Exclude identical samples",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.13076923076923078,
+      "posterior": 0.13076923076923078,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h3",
+      "question_id": "proposal-1-q1",
+      "statement": "Yes, the presence of identical columns S10 and S13 indicates duplicated libraries or technical replicates that may bias differential expression results.",
+      "author": "sceptic",
+      "rationale": "Identical columns imply duplicated samples or technical replicates that were not accounted for, which can inflate statistical power or bias results.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.13076923076923078,
+      "posterior": 0.13076923076923078,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h4",
+      "question_id": "proposal-1-q1",
+      "statement": "Filter samples with very high zero fraction or low library size to remove low-quality samples.",
+      "author": "statistician",
+      "rationale": "Samples with high zero counts or low library sizes may have poor quality or technical issues, affecting differential expression accuracy.",
+      "answer_key": "Filter low-quality samples",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.13076923076923078,
+      "posterior": 0.13076923076923078,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h5",
+      "question_id": "proposal-1-q1",
+      "statement": "None of these options.",
+      "author": "sceptic,statistician",
+      "rationale": "Other filtering criteria may be needed but are not evident from the provided profile and brief.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.19615384615384615,
+      "posterior": 0.19615384615384615,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q1-h0-null",
+      "question_id": "proposal-1-q1",
+      "statement": "None of these",
+      "author": "engine",
+      "rationale": "Allow for missing explanations.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": true,
+      "prior": 0.15,
+      "posterior": 0.15,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q2-h0",
+      "question_id": "proposal-1-q2",
+      "statement": "Use Benjamini-Hochberg false discovery rate (FDR) correction and select genes with padj < 0.05.",
+      "author": "statistician",
+      "rationale": "This is the standard approach in DESeq2 and aligns with contract requirements for padj threshold to define DE genes.",
+      "answer_key": "Benjamini-Hochberg FDR",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q2-h1",
+      "question_id": "proposal-1-q2",
+      "statement": "Use more stringent corrections such as Bonferroni adjustment for padj < 0.05.",
+      "author": "statistician",
+      "rationale": "Bonferroni is conservative and reduces false positives but likely reduces power and may miss true DE genes.",
+      "answer_key": "Bonferroni correction",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q2-h2",
+      "question_id": "proposal-1-q2",
+      "statement": "Use independent hypothesis weighting or adaptive FDR methods to improve power while controlling FDR.",
+      "author": "statistician",
+      "rationale": "These advanced methods can increase detection power by accounting for gene-level covariates but are more complex and not specified in the brief.",
+      "answer_key": "Adaptive FDR methods",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q2-h3",
+      "question_id": "proposal-1-q2",
+      "statement": "None of these options.",
+      "author": "statistician",
+      "rationale": "Alternative correction methods could be considered if justified but are not described in the provided materials.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q2-h0-null",
+      "question_id": "proposal-1-q2",
+      "statement": "None of these",
+      "author": "engine",
+      "rationale": "Allow for missing explanations.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": true,
+      "prior": 0.15,
+      "posterior": 0.15,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q3-h0",
+      "question_id": "proposal-1-q3",
+      "statement": "Use versioned Ensembl gene IDs (e.g., ENSG00000000003.15) as the primary key.",
+      "author": "bioinformatician",
+      "rationale": "The input counts and profiles use versioned Ensembl gene IDs consistently, ensuring unambiguous mapping and matching to published results which specify gene_id columns. This avoids ambiguity from gene symbols that may be duplicated or outdated.",
+      "answer_key": "Use versioned Ensembl gene IDs",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q3-h1",
+      "question_id": "proposal-1-q3",
+      "statement": "Use gene symbols as the primary key for DE results.",
+      "author": "bioinformatician",
+      "rationale": "Gene symbols are more interpretable and commonly used for downstream analysis and reporting. Some output files use gene_symbol as the row key, so using gene symbols facilitates integration with shared gene lists.",
+      "answer_key": "Use gene symbols",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q3-h2",
+      "question_id": "proposal-1-q3",
+      "statement": "Use both identifiers in parallel for cross-validation.",
+      "author": "bioinformatician",
+      "rationale": "Reporting both Ensembl gene IDs and gene symbols can ensure matching and allow for manual checks of ambiguous cases, improving robustness of results and consistency with output contract.",
+      "answer_key": "Use both identifiers",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q3-h3",
+      "question_id": "proposal-1-q3",
+      "statement": "None of these options.",
+      "author": "bioinformatician",
+      "rationale": "Consider alternative identifiers or approaches not covered here.",
+      "answer_key": "None",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.2125,
+      "posterior": 0.2125,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q3-h0-null",
+      "question_id": "proposal-1-q3",
+      "statement": "None of these",
+      "author": "engine",
+      "rationale": "Allow for missing explanations.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": true,
+      "prior": 0.15,
+      "posterior": 0.15,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h0",
+      "question_id": "proposal-1-q4",
+      "statement": "Use raw published counts directly as input to DESeq2 without additional normalization.",
+      "author": "bioinformatician",
+      "rationale": "DESeq2 internally normalizes counts by estimating size factors from raw counts, so raw published counts are appropriate input and avoid introducing bias or errors from external normalization.",
+      "answer_key": "Use raw counts",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h1",
+      "question_id": "proposal-1-q4",
+      "statement": "Yes, DESeq2 treatment versus control within each cell line is appropriate for this experimental design and data structure.",
+      "author": "sceptic",
+      "rationale": "This method aligns with the goal and sample metadata, allowing within-cell-line comparisons controlling for biological replicates.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h2",
+      "question_id": "proposal-1-q4",
+      "statement": "Apply library size normalization (e.g., CPM or TMM) to counts before DESeq2 analysis.",
+      "author": "bioinformatician",
+      "rationale": "Normalizing counts by library size or composition before DESeq2 could adjust for sample differences explicitly, but may conflict with DESeq2 assumptions and reduce statistical power.",
+      "answer_key": "Apply library size normalization",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h3",
+      "question_id": "proposal-1-q4",
+      "statement": "No, data should be normalized for library size differences or zero inflation before DESeq2 analysis.",
+      "author": "sceptic",
+      "rationale": "Library size differences and zero inflation can affect count distributions and statistical testing assumptions.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h4",
+      "question_id": "proposal-1-q4",
+      "statement": "Normalize counts using log-transformation before DESeq2.",
+      "author": "bioinformatician",
+      "rationale": "Log-transforming counts before DESeq2 is not recommended because DESeq2 expects raw counts and models count data with negative binomial distribution. Log transformation may distort variance modeling.",
+      "answer_key": "Log-transform counts before DESeq2",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h5",
+      "question_id": "proposal-1-q4",
+      "statement": "None of these options.",
+      "author": "bioinformatician",
+      "rationale": "Consider alternative normalization strategies outside typical DESeq2 workflow.",
+      "answer_key": "None",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h6",
+      "question_id": "proposal-1-q4",
+      "statement": "No, additional factors such as batch effects or library size normalization should be explicitly modeled beyond simple treatment vs control.",
+      "author": "sceptic",
+      "rationale": "Ignoring batch effects or other confounders may lead to biased differential expression results.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.12142857142857143,
+      "posterior": 0.12142857142857143,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q4-h0-null",
+      "question_id": "proposal-1-q4",
+      "statement": "None of these",
+      "author": "engine",
+      "rationale": "Allow for missing explanations.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": true,
+      "prior": 0.15,
+      "posterior": 0.15,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h0",
+      "question_id": "proposal-1-q5",
+      "statement": "Define 'shared' genes as those significantly DE (padj < 0.05) in all relevant conditions, and 'specific' genes as those significant only in one condition and not in others.",
+      "author": "bioinformatician",
+      "rationale": "This approach aligns with the output contract requiring gene lists with regulation labels and matches typical definitions of shared versus specific DE genes.",
+      "answer_key": "Shared = DE in all; Specific = DE in one only",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.14166666666666666,
+      "posterior": 0.14166666666666666,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h1",
+      "question_id": "proposal-1-q5",
+      "statement": "Yes, gene lists are consistent with DE results and verified using F1 and label F1 scores as per contract checks.",
+      "author": "sceptic",
+      "rationale": "Contract specifies F1 metrics confirming gene list quality, suggesting proper derivation and verification.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.14166666666666666,
+      "posterior": 0.14166666666666666,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h2",
+      "question_id": "proposal-1-q5",
+      "statement": "Use fold-change thresholds (e.g., absolute log2FC > 1) in addition to padj < 0.05 to define shared and specific genes.",
+      "author": "bioinformatician",
+      "rationale": "Adding fold-change criteria can refine gene lists to biologically meaningful changes but may exclude statistically significant but smaller effects.",
+      "answer_key": "Use padj plus fold-change thresholds",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.14166666666666666,
+      "posterior": 0.14166666666666666,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h3",
+      "question_id": "proposal-1-q5",
+      "statement": "Define shared and specific genes based on expression clustering or correlation rather than DE significance.",
+      "author": "bioinformatician",
+      "rationale": "Clustering may identify co-expressed gene modules but does not directly address DE significance required by the task and output contract.",
+      "answer_key": "Use clustering/correlation criteria",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.14166666666666666,
+      "posterior": 0.14166666666666666,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h4",
+      "question_id": "proposal-1-q5",
+      "statement": "None of these options.",
+      "author": "bioinformatician",
+      "rationale": "Consider other definitions for gene list membership.",
+      "answer_key": "None",
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.14166666666666666,
+      "posterior": 0.14166666666666666,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h5",
+      "question_id": "proposal-1-q5",
+      "statement": "No, insufficient verification of gene lists for consistency with DE results may lead to false positives or negatives.",
+      "author": "sceptic",
+      "rationale": "Gene lists without cross-validation or proper metrics can be misleading and reduce reproducibility.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": false,
+      "prior": 0.14166666666666666,
+      "posterior": 0.14166666666666666,
+      "status": "active",
+      "rejected_by": []
+    },
+    {
+      "id": "proposal-1-q5-h0-null",
+      "question_id": "proposal-1-q5",
+      "statement": "None of these",
+      "author": "engine",
+      "rationale": "Allow for missing explanations.",
+      "answer_key": null,
+      "model_code": null,
+      "is_null": true,
+      "prior": 0.15,
+      "posterior": 0.15,
+      "status": "active",
+      "rejected_by": []
+    }
+  ],
+  "diagnostics": [],
+  "provenance": {
+    "proposal-1-q0": [
+      "statistician-q0",
+      "bioinformatician-q2"
+    ],
+    "proposal-1-q0-h0": [
+      "statistician-q0-h0"
+    ],
+    "proposal-1-q0-h1": [
+      "statistician-q0-h1"
+    ],
+    "proposal-1-q0-h2": [
+      "statistician-q0-h2"
+    ],
+    "proposal-1-q0-h3": [
+      "bioinformatician-q2-h0"
+    ],
+    "proposal-1-q0-h4": [
+      "statistician-q0-h3"
+    ],
+    "proposal-1-q0-h5": [
+      "bioinformatician-q2-h3"
+    ],
+    "proposal-1-q0-h6": [
+      "bioinformatician-q2-h1"
+    ],
+    "proposal-1-q0-h7": [
+      "bioinformatician-q2-h2"
+    ],
+    "proposal-1-q1": [
+      "statistician-q1",
+      "sceptic-q0"
+    ],
+    "proposal-1-q1-h0": [
+      "statistician-q1-h0"
+    ],
+    "proposal-1-q1-h1": [
+      "sceptic-q0-h3"
+    ],
+    "proposal-1-q1-h2": [
+      "statistician-q1-h1"
+    ],
+    "proposal-1-q1-h3": [
+      "sceptic-q0-h0"
+    ],
+    "proposal-1-q1-h4": [
+      "statistician-q1-h2"
+    ],
+    "proposal-1-q1-h5": [
+      "statistician-q1-h3",
+      "sceptic-q0-h1",
+      "sceptic-q0-h2"
+    ],
+    "proposal-1-q2": [
+      "statistician-q2"
+    ],
+    "proposal-1-q2-h0": [
+      "statistician-q2-h0"
+    ],
+    "proposal-1-q2-h1": [
+      "statistician-q2-h1"
+    ],
+    "proposal-1-q2-h2": [
+      "statistician-q2-h2"
+    ],
+    "proposal-1-q2-h3": [
+      "statistician-q2-h3"
+    ],
+    "proposal-1-q3": [
+      "bioinformatician-q0"
+    ],
+    "proposal-1-q3-h0": [
+      "bioinformatician-q0-h0"
+    ],
+    "proposal-1-q3-h1": [
+      "bioinformatician-q0-h1"
+    ],
+    "proposal-1-q3-h2": [
+      "bioinformatician-q0-h2"
+    ],
+    "proposal-1-q3-h3": [
+      "bioinformatician-q0-h3"
+    ],
+    "proposal-1-q4": [
+      "bioinformatician-q1",
+      "sceptic-q1"
+    ],
+    "proposal-1-q4-h0": [
+      "bioinformatician-q1-h0"
+    ],
+    "proposal-1-q4-h1": [
+      "sceptic-q1-h0"
+    ],
+    "proposal-1-q4-h2": [
+      "bioinformatician-q1-h1"
+    ],
+    "proposal-1-q4-h3": [
+      "sceptic-q1-h2"
+    ],
+    "proposal-1-q4-h4": [
+      "bioinformatician-q1-h2"
+    ],
+    "proposal-1-q4-h5": [
+      "bioinformatician-q1-h3"
+    ],
+    "proposal-1-q4-h6": [
+      "sceptic-q1-h1",
+      "sceptic-q1-h3"
+    ],
+    "proposal-1-q5": [
+      "bioinformatician-q3",
+      "sceptic-q2"
+    ],
+    "proposal-1-q5-h0": [
+      "bioinformatician-q3-h0"
+    ],
+    "proposal-1-q5-h1": [
+      "sceptic-q2-h0"
+    ],
+    "proposal-1-q5-h2": [
+      "bioinformatician-q3-h1"
+    ],
+    "proposal-1-q5-h3": [
+      "bioinformatician-q3-h2"
+    ],
+    "proposal-1-q5-h4": [
+      "bioinformatician-q3-h3"
+    ],
+    "proposal-1-q5-h5": [
+      "sceptic-q2-h1",
+      "sceptic-q2-h2",
+      "sceptic-q2-h3"
+    ]
+  }
+}

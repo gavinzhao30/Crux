@@ -222,3 +222,33 @@ def test_duplicate_options_do_not_multiply_proposer_support(tmp_path):
         assert [h.prior for h in real] == pytest.approx([0.425, 0.425])
 
     asyncio.run(scenario())
+
+
+def test_merge_preserves_conflicting_answer_keys(tmp_path):
+    class ConflictingClient(Client):
+        async def structured(self, role, schema, messages, n=1):
+            result = await super().structured(role, schema, messages, n)
+            # A different model-proposed deliverable must survive grouping.
+            if schema is ProposalBatch and "Bioinformatician" in messages[0]["content"]:
+                result[0].questions[0].options[0].answer_key = "alternative"
+            return result
+
+    async def scenario():
+        bus = EventBus("conflicting", tmp_path)
+        await bus.emit("run.started", {})
+        result = await propose(
+            {},
+            [],
+            llm=ConflictingClient(),
+            memory=FakeMemory(),
+            bus=bus,
+            config=RunConfig(),
+        )
+        hypotheses = [
+            h for h in result.hypotheses if h.question_id == result.questions[0].id
+        ]
+        assert len(hypotheses) == 4
+        assert {h.answer_key for h in hypotheses} == {None, "alternative"}
+        assert sum(h.prior for h in hypotheses) == pytest.approx(1)
+
+    asyncio.run(scenario())
