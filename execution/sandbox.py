@@ -116,6 +116,7 @@ class ModalExecutor:
         self.on_event = on_event
         self._runs: dict[str, _Run] = {}
         self._active_run_ids: set[str] = set()
+        self.image_ids: dict[str, str] = {}
 
     def _event(self, run: _Run, event_type: str, payload: dict) -> None:
         event = {"type": event_type, "run_id": run.run_id, **payload}
@@ -139,9 +140,10 @@ class ModalExecutor:
                 raise ValueError(f"Run ID {run_id} already has a staged input manifest")
             app = await modal.App.lookup.aio(self.app_name, create_if_missing=True)
             volume = modal.Volume.from_name(VOLUME_NAME)
+            image = task9_image(minimal=self.minimal_image)
             sandbox = await modal.Sandbox.create.aio(
                 app=app,
-                image=task9_image(minimal=self.minimal_image),
+                image=image,
                 volumes={
                     "/data": volume.with_mount_options(
                         read_only=True, sub_path=f"/{self.inputs.bundle_id}"
@@ -154,7 +156,11 @@ class ModalExecutor:
                 idle_timeout=600,
             )
             check = await sandbox.exec.aio(
-                _PYTHON, "-c", _VERIFY_INPUTS, json.dumps(self.inputs.files), timeout=120
+                _PYTHON,
+                "-c",
+                _VERIFY_INPUTS,
+                json.dumps(self.inputs.files),
+                timeout=120,
             )
             if await check.wait.aio() != 0:
                 details = (await check.stderr.read.aio()).strip()
@@ -163,6 +169,8 @@ class ModalExecutor:
             run = _Run(sandbox, directory, run_id)
             self._event(run, "sandbox.ready", {"startup_seconds": monotonic() - started})
             self._runs[sandbox.object_id] = run
+            if getattr(image, "_is_hydrated", False):
+                self.image_ids[sandbox.object_id] = image.object_id
             return sandbox.object_id
         except BaseException:
             try:

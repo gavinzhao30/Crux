@@ -10,20 +10,23 @@ and compares it with the recorded ``belief.updated`` events:
 * ``hypothesis.rejected`` removes the option and renormalises the rest.
 
 The Bayes update here is written independently of ``core/eig.py``. Numeric questions
-(particle beliefs) are checked only for finite posteriors that sum to one.
+use recorded family log likelihoods and a stable log-space update. Legacy numeric
+logs without those statistics fail verification rather than claiming reproduction.
 
 It also checks the envelope: ``seq`` starts at 0 with no gaps, one ``run_id``, ``run.started``
 first, exactly one ``run.finished`` or ``run.error`` and it is last, and no ``belief.updated``
 for an experiment the referee ruled invalid.
 
-``python -m core.replay <events.jsonl>`` prints a short summary and exits 0 when every check
+``python -m core.replay <run_id | run_directory | events.jsonl>`` prints a summary and exits 0 when every check
 passes, 1 otherwise.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -88,6 +91,10 @@ def _renormalise(belief: dict[str, float]) -> dict[str, float]:
 def replay_check(path: str | Path, tol: float = 1e-9) -> ReplayResult:
     """Validate the event file at ``path``; see the module docstring."""
     path = Path(path)
+    if path.is_dir():
+        path = path / "events.jsonl"
+    elif not path.exists() and re.fullmatch(r"[A-Za-z0-9_-][A-Za-z0-9._-]*", str(path)):
+        path = Path("runs") / path / "events.jsonl"
     result = ReplayResult(path=path.as_posix())
     events: list[dict[str, Any]] = []
     try:
@@ -102,6 +109,9 @@ def replay_check(path: str | Path, tol: float = 1e-9) -> ReplayResult:
             obj = json.loads(line)
         except json.JSONDecodeError as exc:
             result.errors.append(f"line {n}: not JSON ({exc.msg})")
+            continue
+        if not isinstance(obj, dict):
+            result.errors.append(f"line {n}: envelope must be an object")
             continue
         missing = {"run_id", "seq", "ts", "type", "payload"} - set(obj)
         if missing or not isinstance(obj.get("payload"), dict):
@@ -147,7 +157,22 @@ def replay_check(path: str | Path, tol: float = 1e-9) -> ReplayResult:
                 beliefs[p["question_id"]] = {k: float(v) for k, v in p["priors"].items()}
             elif etype == E.EXPERIMENT_PROPOSED:
                 exp = p["experiment"]
+                digest = exp.get("spec_hash")
+                if digest:
+                    blob = json.dumps(
+                        {k: exp.get(k) for k in ("code", "query", "design", "bins")},
+                        sort_keys=True,
+                        separators=(",", ":"),
+                        ensure_ascii=False,
+                        default=str,
+                    )
+                    if hashlib.sha256(blob.encode()).hexdigest() != digest:
+                        result.errors.append(f"seq {seq}: diagnostic spec hash mismatch")
                 tables[exp["id"]] = exp.get("likelihood") or {}
+                if p.get("replay_prior"):
+                    qid = exp["question_ids"][0]
+                    if qid in beliefs and kinds.get(qid) != "categorical":
+                        beliefs[qid] = {k: float(v) for k, v in p["replay_prior"].items()}
             elif etype == E.REFEREE_VERDICT and not p["valid"]:
                 invalid.add(p["experiment_id"])
             elif etype == E.HYPOTHESIS_REJECTED:
@@ -160,7 +185,7 @@ def replay_check(path: str | Path, tol: float = 1e-9) -> ReplayResult:
                 _check_update(result, seq, p, kinds, tables, beliefs, invalid, tol)
         except (KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
             result.errors.append(f"seq {seq} ({etype}): malformed payload ({exc!r})")
-    result.final_beliefs = {qid: b for qid, b in beliefs.items() if kinds.get(qid) == "categorical"}
+    result.final_beliefs = beliefs
     return result
 
 
@@ -186,6 +211,34 @@ def _check_update(
             result.errors.append(f"seq {seq}: non-finite posterior for {qid}")
         elif abs(sum(values) - 1.0) > 1e-6:
             result.errors.append(f"seq {seq}: posterior for {qid} sums to {sum(values)}")
+        if "log_likelihood" not in p:
+            result.errors.append(f"seq {seq}: numeric update lacks replay log_likelihood")
+            return
+        prior = {k: float(v) for k, v in p["prior"].items()}
+        if qid not in beliefs or not _close(prior, beliefs[qid], tol):
+            result.errors.append(f"seq {seq}: recorded numeric prior does not match the replay")
+            return
+        log_lik = p["log_likelihood"]
+        if set(log_lik) != set(prior):
+            result.errors.append(f"seq {seq}: likelihood families differ from prior")
+            return
+        joint = {
+            k: math.log(max(v, 1e-300))
+            + (float(log_lik[k]) if log_lik[k] is not None else -math.inf)
+            for k, v in beliefs[qid].items()
+        }
+        peak = max(joint.values())
+        if math.isfinite(peak):
+            z = peak + math.log(sum(math.exp(v - peak) for v in joint.values()))
+            expected = _renormalise(
+                {k: math.exp(max(v - z, math.log(1e-300))) for k, v in joint.items()}
+            )
+        else:
+            expected = dict(beliefs[qid])
+        result.n_checked += 1
+        if not _close(expected, posterior, tol):
+            result.errors.append(f"seq {seq}: numeric posterior differs from the replay")
+        beliefs[qid] = expected
         return
     if qid not in beliefs:
         result.errors.append(f"seq {seq}: belief.updated for {qid} before its priors")
@@ -220,7 +273,10 @@ def _check_update(
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
     if len(args) != 1:
-        print("usage: python -m core.replay <events.jsonl>", file=sys.stderr)
+        print(
+            "usage: python -m core.replay <run_id | run_directory | events.jsonl>",
+            file=sys.stderr,
+        )
         return 2
     result = replay_check(args[0])
     print(result.summary())

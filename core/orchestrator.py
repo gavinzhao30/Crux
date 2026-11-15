@@ -58,6 +58,7 @@ from core.config import EngineConfig
 from core.eig_exec import NULL_NAME, ModelFamily, ParticleBelief, as_designs
 from core.events import EventBus, jsonable, new_run_id
 from core.interfaces import AgentRoles, Executor, Lab, Memory, Predictor, Search
+from core.manifest import RunManifest
 from core.schemas import (
     BeliefUpdate,
     CriticFinding,
@@ -71,6 +72,7 @@ from core.schemas import (
     Trial,
     bin_for,
 )
+from core.tracing import TraceSession, current_run
 
 __all__ = ["Deps", "run", "spec_hash"]
 
@@ -193,7 +195,9 @@ class _Run:
         self.budget = Budget(cfg.max_usd, cfg.max_llm_calls, cfg.max_seconds, clock=deps.clock)
         self.rng = random.Random(cfg.seed)
         self.state = EngineState(
-            run_id=run_id, run_dir=self.run_dir.as_posix(), lab=getattr(lab, "name", "lab")
+            run_id=run_id,
+            run_dir=self.run_dir.as_posix(),
+            lab=getattr(lab, "name", "lab"),
         )
         self.belief: dict[str, dict[str, float]] = {}  # question -> active option -> probability
         self.null_of: dict[str, str] = {}  # question -> null hypothesis id
@@ -218,6 +222,8 @@ class _Run:
         self._emit_lock = asyncio.Lock()  # keeps queued ticks and other events in order
         self._pending_ticks: list[dict[str, Any]] = []
         self._flush_task: asyncio.Task[None] | None = None
+        self.manifest = RunManifest(self.run_dir, run_id, cfg, lab, deps)
+        self.tracing = TraceSession(run_id, lambda: self._where)
 
     # ------------------------------------------------------------------ lifecycle
 
@@ -234,8 +240,11 @@ class _Run:
         self._started = True
 
     async def execute(self) -> Report:
-        self._install_usage_hook()
+        token = current_run.set(self.tracing)
+        outcome = "error"
         try:
+            self._install_usage_hook()
+            self.manifest.start()
             try:
                 self.state.brief = dict(self.lab.brief())
             except Exception:
@@ -251,8 +260,10 @@ class _Run:
                 self._stop_reason = exc.reason
             report = self._report if status == "ok" and self._report else self._fallback(status)
             await self._finish(report, status)
+            outcome = status
             return report
         except asyncio.CancelledError:
+            outcome = "stopped"
             if self._started and not self._terminal:
                 self._stop_reason = "the run was cancelled"
                 await self._finish(self._fallback("stopped"), "stopped")
@@ -276,6 +287,14 @@ class _Run:
                     logger.exception("closing lab %s failed", self.state.lab)
             if self._flush_task is not None and not self._flush_task.done():
                 self._flush_task.cancel()  # nothing is queued after the terminal event
+            try:
+                await self.tracing.flush()
+            except Exception:  # telemetry cannot mask the run outcome
+                logger.exception("tracing flush failed for %s", self.run_id)
+            finally:
+                current_run.reset(token)
+                if self._started:
+                    self.manifest.finish(outcome, self.tracing, self.budget.snapshot())
 
     async def _main(self) -> None:
         lab = self.lab
@@ -320,6 +339,30 @@ class _Run:
             raise ValueError(f"unknown event type {type_!r}")
         async with self._emit_lock:
             await self._drain_ticks()
+            if type_ == E.PROFILE_DONE:
+                self.manifest.refresh_execution(self.lab, self.deps)
+            if type_ == E.EXPERIMENT_STARTED:
+                exp = self.state.experiments[payload["experiment_id"]]
+                # Durable spec precedes both the event and lab.run().
+                exp.spec_hash = spec_hash(exp)
+                self.manifest.diagnostic(exp)
+                payload["spec_hash"] = exp.spec_hash
+            if type_ == E.ARTIFACT_WRITTEN:
+                self.manifest.artifact(payload["artifact"])
+            if type_ not in {E.EXPERIMENT_LOG, E.BUDGET_TICK}:
+                qids = [payload["question_id"]] if "question_id" in payload else []
+                exp = payload.get("experiment")
+                if exp is not None:
+                    qids.extend(exp.question_ids)
+                targets = [*qids, payload.get("experiment_id", "")]
+                refs = [
+                    ref
+                    for ref in self.tracing.refs
+                    if any(t and ref["step"].endswith(f":{t}") for t in targets)
+                ]
+                refs = refs or self.tracing.refs[-3:]
+                if refs:
+                    payload["traces"] = refs
             await self.bus.emit(type_, jsonable(payload))
 
     async def _drain_ticks(self) -> None:
@@ -354,6 +397,8 @@ class _Run:
         previous = llm.on_usage
 
         def hook(usage: Any) -> None:
+            if self._started and not self._terminal:
+                self.manifest.usage(usage)
             if previous is not None:
                 previous(usage)
             if self._terminal or not self._started:
@@ -362,6 +407,9 @@ class _Run:
             self._queue_tick()
             self.budget.check()
 
+        if callable(getattr(llm, "bind_usage", None)):
+            self._restore_hook = llm.bind_usage(hook)
+            return
         llm.on_usage = hook
 
         def restore() -> None:
@@ -405,7 +453,10 @@ class _Run:
         backend = self._memory_backend()
         for e in evidence:
             await self._emit(
-                E.MEMORY_WRITTEN, evidence_id=e.id, author_role=e.author_role, backend=backend
+                E.MEMORY_WRITTEN,
+                evidence_id=e.id,
+                author_role=e.author_role,
+                backend=backend,
             )
 
     async def _recall(self, reader_role: str, query: str) -> list[Evidence]:
@@ -538,7 +589,11 @@ class _Run:
         if merges:
             for kept, merged in merges:
                 await self._emit(
-                    E.HYPOTHESIS_MERGED, question_id=q.id, kept=kept, merged=merged, priors=priors
+                    E.HYPOTHESIS_MERGED,
+                    question_id=q.id,
+                    kept=kept,
+                    merged=merged,
+                    priors=priors,
                 )
         else:
             await self._emit(
@@ -559,9 +614,15 @@ class _Run:
 
     async def _unresolve(self, q: Question, reason: str) -> None:
         q.status = "unresolved"
-        top = sorted(self._active_real(q.id), key=lambda h: -self.belief.get(q.id, {}).get(h.id, 0))
+        top = sorted(
+            self._active_real(q.id),
+            key=lambda h: -self.belief.get(q.id, {}).get(h.id, 0),
+        )
         await self._emit(
-            E.QUESTION_UNRESOLVED, question_id=q.id, reason=reason, top=[h.id for h in top]
+            E.QUESTION_UNRESOLVED,
+            question_id=q.id,
+            reason=reason,
+            top=[h.id for h in top],
         )
 
     async def _check_robust(self, q: Question) -> bool:
@@ -611,7 +672,12 @@ class _Run:
             reason=reason,
         )
         self.state.rejected.append(
-            {"hypothesis": hid, "question": qid, "evidence_id": evidence_id, "reason": reason}
+            {
+                "hypothesis": hid,
+                "question": qid,
+                "evidence_id": evidence_id,
+                "reason": reason,
+            }
         )
         objection = self._register_evidence(
             Evidence(
@@ -1134,7 +1200,10 @@ class _Run:
         for e in found:
             line = f"{e.url or '-'}: {e.claim}"
             await self._emit(
-                E.EXPERIMENT_LOG, experiment_id=exp.id, stream="stdout", line=line[:MAX_LOG_CHARS]
+                E.EXPERIMENT_LOG,
+                experiment_id=exp.id,
+                stream="stdout",
+                line=line[:MAX_LOG_CHARS],
             )
         await self._memory_write(found)
         return Observation(
@@ -1170,7 +1239,10 @@ class _Run:
         if len(lines) > MAX_LOG_LINES:
             more = f"... {len(lines) - MAX_LOG_LINES} more lines in {log_ref}"
             await self._emit(
-                E.EXPERIMENT_LOG, experiment_id=experiment_id, stream="stdout", line=more
+                E.EXPERIMENT_LOG,
+                experiment_id=experiment_id,
+                stream="stdout",
+                line=more,
             )
 
     # ------------------------------------------------------------------ numeric labs
@@ -1282,9 +1354,17 @@ class _Run:
             )
             exp.spec_hash = spec_hash(exp)
             self.state.experiments[exp.id] = exp
+            await self._emit(
+                E.EXPERIMENT_PROPOSED,
+                experiment=exp,
+                replay_prior=mapped(belief.family_posterior()) if i == 0 else None,
+            )
             self._where = f"run:{exp.id}"
             await self._emit(
-                E.EXPERIMENT_STARTED, experiment_id=exp.id, question_ids=[q.id], kind="measure"
+                E.EXPERIMENT_STARTED,
+                experiment_id=exp.id,
+                question_ids=[q.id],
+                kind="measure",
             )
             obs = (await self.lab.run(exp)).model_copy(update={"experiment_id": exp.id})
             await self._stream_logs(exp.id, obs.log_ref)
@@ -1310,10 +1390,16 @@ class _Run:
                 observed=float(y),
                 prior=prior,
                 posterior=posterior,
+                log_likelihood={
+                    names[k]: v for k, v in result.log_likelihood.items() if k in names
+                },
             )
             self.state.updates.append(
                 BeliefUpdate(
-                    question_id=q.id, experiment_id=exp.id, prior=prior, posterior=posterior
+                    question_id=q.id,
+                    experiment_id=exp.id,
+                    prior=prior,
+                    posterior=posterior,
                 )
             )
             self.belief[q.id] = posterior
@@ -1391,7 +1477,12 @@ class _Run:
             reason=reason,
         )
         self.state.rejected.append(
-            {"hypothesis": hid, "question": qid, "evidence_id": evidence_id, "reason": reason}
+            {
+                "hypothesis": hid,
+                "question": qid,
+                "evidence_id": evidence_id,
+                "reason": reason,
+            }
         )
 
     async def _numeric_pick(

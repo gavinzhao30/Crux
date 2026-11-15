@@ -1,0 +1,62 @@
+[
+  {
+    "name": "METHODS.md",
+    "sha256": "65e4af2930dfb9f4c862784fa449c0b305213d3859605552f8582f5c9457e322",
+    "bytes": 5677,
+    "contract_ok": true
+  },
+  {
+    "name": "hek293_d10_vs_control_degs.csv",
+    "sha256": "e26d25a645d76bad1df987d492127a1a23804b4bce6c74eb368c0c6eb7fcc6e9",
+    "bytes": 40294,
+    "contract_ok": true
+  },
+  {
+    "name": "hek293_e6_vs_control_degs.csv",
+    "sha256": "7930554aeac123182f65be3854dc1dc734c965e24b16e75431672af64f24b269",
+    "bytes": 29759,
+    "contract_ok": true
+  },
+  {
+    "name": "hek293_shared_degs.csv",
+    "sha256": "baade1f3ae4104ea216de3d47f98fad6917194a833130342fcad9546fc62c433",
+    "bytes": 3115,
+    "contract_ok": true
+  },
+  {
+    "name": "t98g_c10_vs_control_degs.csv",
+    "sha256": "d27b7ff5cd287dbb7d184120b95d5a08489aedc7d9b5f5c74c892923f21758af",
+    "bytes": 66759,
+    "contract_ok": true
+  },
+  {
+    "name": "t98g_d4_specific_upregulated_genes.csv",
+    "sha256": "27445e7fc7c13bec5bc68e6b03a4afe5563c35c76b95235265db78159a762eee",
+    "bytes": 5248,
+    "contract_ok": true
+  },
+  {
+    "name": "t98g_d4_vs_control_degs.csv",
+    "sha256": "cf7af21162338f0309f3b94ed243d086941363394eabd29b4d4547ea748d49f0",
+    "bytes": 292618,
+    "contract_ok": true
+  },
+  {
+    "name": "t98g_f7_vs_control_degs.csv",
+    "sha256": "542b6d67679d666ead0c89fb21e63f63727797640e83b7c553c12237c8c14a6d",
+    "bytes": 173085,
+    "contract_ok": true
+  },
+  {
+    "name": "t98g_g2_vs_control_degs.csv",
+    "sha256": "fcb6fd9cb1d8259d6772971f1ccae13908ec5c0e3e99d662bd9debd6acdbb625",
+    "bytes": 475943,
+    "contract_ok": true
+  },
+  {
+    "name": "t98g_slow_shared_degs.csv",
+    "sha256": "fac6e8006747f8903e4a850aea32b3fbaa4588ba6deda061a531d9fb83248bcb",
+    "bytes": 6951,
+    "contract_ok": true
+  }
+]

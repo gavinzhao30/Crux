@@ -100,7 +100,11 @@ def _is_prob_map(d: object) -> bool:
 
 def check_payload(etype: str, p: dict) -> None:
     """Raise AssertionError when ``p`` breaks the EVENTS.md payload for ``etype``."""
-    assert set(p) == PAYLOAD_KEYS[etype], f"{etype}: keys {sorted(p)}"
+    optional = {"traces"}
+    optional |= {"experiment.proposed": {"replay_prior"},
+                 "experiment.started": {"spec_hash"},
+                 "belief.updated": {"log_likelihood"}}.get(etype, set())
+    assert set(p) - optional == PAYLOAD_KEYS[etype], f"{etype}: keys {sorted(p)}"
     if etype in NESTED:
         key, model = NESTED[etype]
         model.model_validate(p[key])

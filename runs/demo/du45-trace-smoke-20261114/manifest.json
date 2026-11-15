@@ -1,0 +1,293 @@
+{
+  "artifacts": [
+    {
+      "contract_ok": false,
+      "findings": [],
+      "name": "de_table.csv",
+      "path": "runs/du45-trace-smoke-20261114/artifacts/de_table.csv",
+      "sha256": "5d80ddc2a5ed946122d3e83afa294c65436dcdb8ba990db4f66aa6f083bff1a9"
+    },
+    {
+      "contract_ok": false,
+      "findings": [],
+      "name": "qc_summary.csv",
+      "path": "runs/du45-trace-smoke-20261114/artifacts/qc_summary.csv",
+      "sha256": "99b2cc1b8aa7d423a53ca8e9e2908c0128e2351a748d623efbfa846348fba8bb"
+    },
+    {
+      "contract_ok": false,
+      "findings": [
+        "de_table.csv is missing required column(s): padj"
+      ],
+      "name": "de_table.csv",
+      "path": "runs/du45-trace-smoke-20261114/artifacts/de_table.csv",
+      "sha256": "5d80ddc2a5ed946122d3e83afa294c65436dcdb8ba990db4f66aa6f083bff1a9"
+    },
+    {
+      "contract_ok": true,
+      "findings": [],
+      "name": "qc_summary.csv",
+      "path": "runs/du45-trace-smoke-20261114/artifacts/qc_summary.csv",
+      "sha256": "99b2cc1b8aa7d423a53ca8e9e2908c0128e2351a748d623efbfa846348fba8bb"
+    },
+    {
+      "contract_ok": false,
+      "findings": [],
+      "name": "de_table.csv",
+      "path": "runs/du45-trace-smoke-20261114/artifacts/de_table.csv",
+      "sha256": "0bd2f61c0e065481f2eaf82c3597bab35ba2514a8e3cfcf6cb9fc640bfd32cb7"
+    },
+    {
+      "contract_ok": true,
+      "findings": [],
+      "name": "de_table.csv",
+      "path": "runs/du45-trace-smoke-20261114/artifacts/de_table.csv",
+      "sha256": "0bd2f61c0e065481f2eaf82c3597bab35ba2514a8e3cfcf6cb9fc640bfd32cb7"
+    }
+  ],
+  "budget": {
+    "cost_usd": 0.0,
+    "llm_calls": 4,
+    "seconds": 9.788391,
+    "tokens_in": 7500,
+    "tokens_out": 381
+  },
+  "config": {
+    "cost_lambda": 0.2,
+    "critic": true,
+    "eps": 0.1,
+    "lessons": false,
+    "llm": {
+      "cache": false,
+      "cache_dir": "runs\\.cache\\llm",
+      "max_concurrency": 8,
+      "max_retries": 1,
+      "prices_per_mtok": {},
+      "role_models": {
+        "default": "gpt-4.1-mini"
+      },
+      "role_temperature": {
+        "default": 0.2,
+        "predictor": 0.8,
+        "proposer": 0.7
+      },
+      "timeout_s": 120.0
+    },
+    "max_critic_rounds": 2,
+    "max_experiments_per_question": 4,
+    "max_llm_calls": 8,
+    "max_regenerations": 2,
+    "max_seconds": 1800.0,
+    "max_usd": 2.0,
+    "memory": "pastdev",
+    "min_eig_bits": 0.05,
+    "n_predictor_samples": 8,
+    "name": "default",
+    "null_hypothesis": true,
+    "null_prior": 0.15,
+    "predictor": "sampled",
+    "proposers": 3,
+    "reject_below": 0.02,
+    "runs_dir": "runs",
+    "search": true,
+    "seed": 0,
+    "selection": "model_pick",
+    "settle": 0.9
+  },
+  "diagnostics": [
+    {
+      "experiment_id": "strand_fraction",
+      "recorded_at": "2026-11-15T01:25:16.344249+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "most reads on the sense strand",
+            "id": "sense_high",
+            "rule": "frac_sense > 0.85"
+          },
+          {
+            "description": "reads split evenly",
+            "id": "balanced",
+            "rule": "0.35 <= frac_sense <= 0.65"
+          },
+          {
+            "description": "most reads on the antisense strand",
+            "id": "antisense_high",
+            "rule": "frac_sense < 0.15"
+          },
+          {
+            "description": "an uneven split no single protocol gives",
+            "id": "skewed",
+            "rule": "True"
+          }
+        ],
+        "code": "import pandas as pd\ncounts = pd.read_csv('counts_by_strand.csv')\nfrac = counts['sense'].sum() / (counts['sense'].sum() + counts['antisense'].sum())\nprint('RESULT: {\"frac_sense\": %.3f}' % frac)\n",
+        "design": {
+          "diagnostic": "strand_fraction"
+        },
+        "query": null
+      },
+      "spec_hash": "4c62481b1fe9f949c0fe4c17968de902a9f3fff731066ff593bbff533da95e83"
+    },
+    {
+      "experiment_id": "design_comparison",
+      "recorded_at": "2026-11-15T01:25:18.148164+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "the covariate lowers dispersion",
+            "id": "batch_better",
+            "rule": "delta_dispersion > 0.05"
+          },
+          {
+            "description": "dispersion unchanged",
+            "id": "no_difference",
+            "rule": "delta_dispersion <= 0.05"
+          }
+        ],
+        "code": "print('RESULT: {\"delta_dispersion\": ...}')\n",
+        "design": {
+          "diagnostic": "design_comparison"
+        },
+        "query": null
+      },
+      "spec_hash": "3df528061ee1ee1e65a12a66c6de9f0f4b43c78cfdcd26a2e451a9e6636aafa7"
+    },
+    {
+      "experiment_id": "batch_search",
+      "recorded_at": "2026-11-15T01:25:19.952337+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "cell lines sequenced separately",
+            "id": "separate_runs",
+            "rule": "'separate' in text"
+          },
+          {
+            "description": "nothing about sequencing runs",
+            "id": "no_mention",
+            "rule": "not ('separate' in text)"
+          }
+        ],
+        "code": null,
+        "design": {
+          "diagnostic": "batch_search"
+        },
+        "query": "cell line libraries sequenced separate batches"
+      },
+      "spec_hash": "9a33def1177d2e3ce280e9cdfc423ec3be08271135d23243ca6248ca45808c40"
+    },
+    {
+      "experiment_id": "pca_cell_line",
+      "recorded_at": "2026-11-15T01:25:21.112209+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "cell line drives PC1",
+            "id": "cell_line_dominates",
+            "rule": "pc1_cell_line_r2 > 0.5"
+          },
+          {
+            "description": "condition drives PC1",
+            "id": "condition_dominates",
+            "rule": "pc1_cell_line_r2 <= 0.5"
+          }
+        ],
+        "code": "print('RESULT: {\"pc1_cell_line_r2\": ...}')\n",
+        "design": {
+          "diagnostic": "pca_cell_line"
+        },
+        "query": null
+      },
+      "spec_hash": "073356da2c38cc26daabf19b65c4586587b3413b83092211a7a574ad2660b787"
+    }
+  ],
+  "ended_at": "2026-11-15T01:25:21.838114+00:00",
+  "execution_backend": "FakeExecutor",
+  "git_commit": "d5f1d5fb04dc87f701944ea9b0567ac385da899d",
+  "git_dirty": false,
+  "grader_commit": "6932de3ec9440504aa9cb79eceaf13e176036775",
+  "input_bundle_id": null,
+  "input_hashes": {},
+  "lab": "fake",
+  "model_ids": {
+    "default": "gpt-4.1-mini"
+  },
+  "observed_model_ids": {
+    "designer": "gpt-4.1-mini"
+  },
+  "prompt_hashes": {
+    "agents/prompts/bioinformatician.md": "1791da788cffdbe741dad414868f1136014bfb97123e70f97a782d382be7305d",
+    "agents/prompts/merge.md": "60d5930b8f6e3ce314385b52aeca8b8eff5a7540a51029a665e3f56f9fa2cb32",
+    "agents/prompts/sceptic.md": "0aed208acc2b03150dc01edf7de1df4d3355469aea85e499ad624e146d2940cf",
+    "agents/prompts/statistician.md": "f3477e178e870cc927b6d05441b76fcb57fd4c8b1c2f59360448f5d5704df93b"
+  },
+  "run_id": "du45-trace-smoke-20261114",
+  "sandbox_id": null,
+  "sandbox_image_id": null,
+  "sandbox_image_recipe_sha256": "a89dbe618631f5b9c0825d89dd20125fcbb404157ef654afe7080ac7dae2e3b4",
+  "schema_version": 1,
+  "seeds": {
+    "orchestrator": 0,
+    "particles": 0
+  },
+  "started_at": "2026-11-15T01:25:12.049723+00:00",
+  "status": "ok",
+  "total_cost_usd": null,
+  "total_tokens": 7881,
+  "traces": [
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "2f61ef5a4fb6d30a1633f392f45a253bf363a38dfe8a4d629fc520aaf557d5b2",
+      "role": "designer",
+      "run_id": "du45-trace-smoke-20261114",
+      "step": "design:q1",
+      "trace_id": "acbf5594d72a4809bc57924636164739",
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/acbf5594d72a4809bc57924636164739"
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "96da66fa0a5c25478a619d126ebb14f540e2c5874dc26f9cd754d601f3bc9ac1",
+      "role": "designer",
+      "run_id": "du45-trace-smoke-20261114",
+      "step": "design:q2",
+      "trace_id": "c321d530ef574ebfae81d9f6286d4ee0",
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/c321d530ef574ebfae81d9f6286d4ee0"
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "3ca493c9fffa86b6f340865843ac81dfc6f1d27aa21b6650ea38a3733f6841b5",
+      "role": "designer",
+      "run_id": "du45-trace-smoke-20261114",
+      "step": "design:q2",
+      "trace_id": "52a9da3483c54381a8dcf487e8721f0f",
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/52a9da3483c54381a8dcf487e8721f0f"
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "5f20333f9313531723bf0ce1e3a14d075c975870e48e1b4975c56357f22f99c2",
+      "role": "designer",
+      "run_id": "du45-trace-smoke-20261114",
+      "step": "design:q2",
+      "trace_id": "9d2280061d68470b9c601b50b3e26b43",
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/9d2280061d68470b9c601b50b3e26b43"
+    }
+  ],
+  "tracing": {
+    "dropped": 0,
+    "errors": [],
+    "pending": 0
+  },
+  "usage": {
+    "calls": 4,
+    "cost_usd": null,
+    "input_tokens": 7500,
+    "known_cost_usd": 0.0,
+    "output_tokens": 381,
+    "unpriced_calls": 4
+  }
+}

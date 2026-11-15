@@ -11,6 +11,7 @@ from core.config import RunConfig
 from core.events import EventBus
 from core.fakes import FakeMemory
 from core.schemas import Evidence
+from core.tracing import TraceSession, current_run
 
 
 async def run(args):
@@ -25,6 +26,8 @@ async def run(args):
             "config": config.model_dump(mode="json"),
         },
     )
+    tracing = TraceSession(args.run_id, lambda: "propose")
+    token = current_run.set(tracing)
     try:
         result = await propose(
             data["brief"],
@@ -40,6 +43,15 @@ async def run(args):
             "run.error", {"message": type(error).__name__, "where": "proposers"}
         )
         raise
+    finally:
+        try:
+            await tracing.flush()
+            bus.path.with_name("traces.json").write_text(
+                json.dumps({"traces": tracing.refs, "tracing": tracing.status()}, indent=2),
+                encoding="utf-8",
+            )
+        finally:
+            current_run.reset(token)
 
 
 if __name__ == "__main__":

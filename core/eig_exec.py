@@ -98,6 +98,7 @@ class UpdateResult:
     """
 
     design: Design
+    log_likelihood: dict[str, float]
     y: float
     family_posterior: dict[str, float]
     z_score: float
@@ -490,6 +491,9 @@ class ParticleBelief:
             self._maybe_resample(k)
         result = UpdateResult(
             design=a.design,
+            log_likelihood={
+                f.name: float(v) for f, v in zip(self._families, a.log_evidence, strict=True)
+            },
             y=a.y,
             family_posterior=self.family_posterior(),
             z_score=a.z_score,

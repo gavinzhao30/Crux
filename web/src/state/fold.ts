@@ -15,6 +15,7 @@ import type {
   RankingRow,
   Report,
   RunEvent,
+  TraceRef,
 } from '../types';
 
 /* ------------------------------------------------------------------ */
@@ -195,6 +196,7 @@ export interface BudgetView {
 export type RunStatus = 'idle' | 'running' | 'finished' | 'error';
 
 export interface RunState {
+  decisionTraces: Record<string, TraceRef[]>;
   runId: string | null;
   lastSeq: number;
   eventCount: number;
@@ -232,6 +234,7 @@ export const FEED_LIMIT = 80;
 
 export function initialState(): RunState {
   return {
+    decisionTraces: {},
     runId: null,
     lastSeq: -1,
     eventCount: 0,
@@ -1159,8 +1162,22 @@ export function foldEvent(state: RunState, event: RunEvent | unknown): RunState 
   }
 
   const ev: RunEvent = { run_id: runId, seq, ts: ts ?? 0, type, payload: event.payload };
+  const payload = obj(event.payload);
+  const traces = arr(payload.traces).filter((v): v is TraceRef => {
+    if (!isObj(v) || typeof v.trace_id !== 'string' || typeof v.role !== 'string' ||
+        typeof v.step !== 'string' || v.run_id !== runId || typeof v.url !== 'string') return false;
+    try { return ['http:', 'https:'].includes(new URL(v.url).protocol); } catch { return false; }
+  });
+  const decisionTraces = { ...state.decisionTraces };
+  if (traces.length) {
+    const exp = obj(payload.experiment);
+    const keys = [payload.question_id, payload.experiment_id, exp.id, obj(payload.question).id,
+      ...arr(exp.question_ids)];
+    for (const key of keys) if (typeof key === 'string') decisionTraces[key] = traces;
+  }
   const base: RunState = {
     ...state,
+    decisionTraces,
     runId: state.runId ?? (runId || null),
     lastSeq: Math.max(state.lastSeq, seq),
     eventCount: state.eventCount + 1,
