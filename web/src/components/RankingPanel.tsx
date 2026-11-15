@@ -3,6 +3,7 @@ import { binDescription, focusQuestionId, questionLabel } from '../state/selecto
 import type { RankingRow } from '../types';
 import { bits, cls, compact, usd, value } from '../lib/format';
 import { Empty, KindTag, LiveDot, Panel } from './Panel';
+import { DecisionTraces } from './DecisionTraces';
 
 function Meter({
   label,
@@ -105,6 +106,7 @@ function Row({
         </p>
         {chosen && <PhaseChip r={r} />}
       </div>
+      <DecisionTraces traces={state.decisionTraces[row.experiment_id] ?? state.decisionTraces[r.questionId]} />
       <div className="mt-[0.45rem] grid grid-cols-[1fr_1fr_auto] items-end gap-x-[1rem] pl-[1.65rem]">
         <Meter label="Info gain" text={`${bits(row.eig_bits)} bits`} frac={maxEig > 0 ? row.eig_bits / maxEig : 0} on={chosen} />
         <Meter

@@ -51,3 +51,23 @@ Every run writes one JSON object per line to `runs/<run_id>/events.jsonl`. The o
 * Replaying a file through `core/replay.py` must rebuild the same final beliefs as the recorded `belief.updated` events.
 * Nothing from the grader ever appears in an event file. Grades live in `eval/results/`.
 * Keys and other secrets never appear in any payload.
+
+## DU-45 optional provenance fields
+
+Existing envelope keys and required payload fields are unchanged. Payloads may also
+contain `traces`, a list of `{trace_id, run_id, role, step, prompt_sha256, model,
+cached, url}` references. `url` is null when no Langfuse project is configured.
+Question and experiment cards use these references, including when replaying SSE.
+The API snapshot exposes the same references as `decision_traces` keyed by question
+or experiment ID. Trace references contain no credentials or prompt text.
+
+`experiment.started.spec_hash` identifies the canonical code/query/design/bins
+specification durably saved in the manifest before the event and execution.
+
+Numeric `experiment.proposed` includes `replay_prior` on its first measurement.
+Numeric `belief.updated.log_likelihood` maps hypothesis IDs to the predictive log
+likelihood of the observation, computed before the particle update. A null entry
+means negative infinity. Replay independently recomputes the family probability
+update with these sufficient statistics. It does not execute model code or
+regenerate particle clouds. Historical numeric logs without these statistics
+remain displayable but fail full replay verification.

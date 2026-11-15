@@ -2,6 +2,14 @@
 // carried inside payloads (docs/ERD.md section 4.2). Field names match the
 // pydantic models dumped with model_dump(mode="json").
 
+export interface TraceRef {
+  trace_id: string;
+  run_id: string;
+  role: string;
+  step: string;
+  url: string | null;
+}
+
 export interface RunEvent<P = unknown> {
   run_id: string;
   seq: number;
@@ -159,9 +167,9 @@ export interface PayloadMap {
     merged: string[];
     priors: Record<string, number>;
   };
-  'experiment.proposed': { experiment: Experiment };
+  'experiment.proposed': { experiment: Experiment; replay_prior?: Record<string, number> | null };
   'experiment.scored': { question_id: string; ranking: RankingRow[]; chosen: string };
-  'experiment.started': { experiment_id: string; question_ids: string[]; kind: string };
+  'experiment.started': { experiment_id: string; question_ids: string[]; kind: string; spec_hash?: string };
   'experiment.log': { experiment_id: string; stream: 'stdout' | 'stderr'; line: string };
   'experiment.finished': { observation: Observation };
   'referee.verdict': { experiment_id: string; valid: boolean; note: string };
@@ -171,6 +179,7 @@ export interface PayloadMap {
     observed: string | number;
     prior: Record<string, number>;
     posterior: Record<string, number>;
+    log_likelihood?: Record<string, number | null>;
   };
   'model.curves': {
     question_id: string;

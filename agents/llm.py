@@ -28,10 +28,9 @@ What it does:
 * **Usage accounting.** Every sample produces a :class:`Usage` (tokens, cost from
   ``prices_per_mtok`` or ``None`` when the model has no price, wall time) that is passed to
   ``on_usage`` and summed into :meth:`LLM.usage_totals`.
-* **Optional tracing.** When ``langfuse`` is importable and ``LANGFUSE_PUBLIC_KEY`` and
-  ``LANGFUSE_SECRET_KEY`` are set, the client comes from ``langfuse.openai`` and each call
-  carries role, step and run id as metadata. Any tracing failure falls back to the plain
-  ``openai.AsyncOpenAI`` client with a single warning; tracing never breaks a run.
+* **Optional tracing.** A run-scoped background exporter records generations in Langfuse
+  and optionally local Phoenix. Inference uses the plain OpenAI client: exporter failures
+  cannot discard or repeat a paid response. Every record carries role, step and run id.
 
 Configuration (:class:`LLMConfig`; ``core/config.py`` imports and overrides it):
 
@@ -51,6 +50,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import contextvars
 import hashlib
 import json
 import logging
@@ -64,6 +64,8 @@ from typing import Any, Literal, TypeVar
 
 import openai
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+
+from core.tracing import current_run
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +201,7 @@ class LLM:
     ) -> None:
         self.config = config if config is not None else LLMConfig()
         self.on_usage = on_usage
+        self._usage_hook = contextvars.ContextVar(f"llm_usage_{id(self)}", default=None)
         self.trace_tags = dict(trace_tags or {})
         # An injected client is used as-is (its own retry and timeout settings apply).
         # Otherwise the client is created on the first cache miss, so cached runs need no key.
@@ -260,6 +263,10 @@ class LLM:
         """
         return dict(self._totals)
 
+    def bind_usage(self, callback):
+        token = self._usage_hook.set(callback)
+        return lambda: self._usage_hook.reset(token)
+
     # --- one sample ---------------------------------------------------------------------
 
     async def _sample(
@@ -273,6 +280,33 @@ class LLM:
         step: str | None,
     ) -> T:
         start = time.perf_counter()
+        session = current_run.get()
+        stage = str(session.step()) if session else step
+        prompt_hash = hashlib.sha256(
+            json.dumps(
+                messages,
+                sort_keys=True,
+                ensure_ascii=False,
+                default=str,
+            ).encode()
+        ).hexdigest()
+
+        def trace(output, usage, error=None):
+            if session is not None:
+                try:
+                    session.record(
+                        role=role,
+                        model=model,
+                        prompt_sha256=prompt_hash,
+                        messages=messages,
+                        output=output,
+                        usage=usage,
+                        error=error,
+                        step=stage,
+                    )
+                except Exception:  # noqa: BLE001 - telemetry must not discard a paid response
+                    logger.warning("local telemetry record failed; inference continues")
+
         path: Path | None = None
         if self.config.cache:
             key = cache_key(
@@ -286,6 +320,7 @@ class LLM:
             path = Path(self.config.cache_dir) / key[:2] / f"{key}.json"
             hit = _cache_read(path, schema)
             if hit is not None:
+                trace(hit.model_dump(mode="json"), {"cached": True, "cost_usd": 0.0})
                 self._record(
                     Usage(
                         role=role,
@@ -299,9 +334,13 @@ class LLM:
                 )
                 return hit
 
-        response = await self._call_with_retries(
-            role, model, schema, messages, index, temperature, step
-        )
+        try:
+            response = await self._call_with_retries(
+                role, model, schema, messages, index, temperature, step
+            )
+        except BaseException as exc:
+            trace(None, {}, type(exc).__name__)
+            raise
         input_tokens, output_tokens = _token_counts(getattr(response, "usage", None))
         usage = Usage(
             role=role,
@@ -315,8 +354,10 @@ class LLM:
         try:
             parsed = self._extract(response, schema, role, model, index)
         except LLMOutputError:
+            trace(None, usage.model_dump(), "LLMOutputError")
             self._record(usage)  # the tokens were still billed
             raise
+        trace(parsed.model_dump(mode="json"), usage.model_dump())
         if path is not None:
             _cache_write(path, parsed, usage)
         self._record(usage)
@@ -341,7 +382,11 @@ class LLM:
             try:
                 async with self._semaphore():
                     return await self._invoke(
-                        model, schema, messages, temperature if send_temperature else None, metadata
+                        model,
+                        schema,
+                        messages,
+                        temperature if send_temperature else None,
+                        metadata,
                     )
             except openai.BadRequestError as exc:
                 if send_temperature and _is_temperature_rejection(exc):
@@ -380,14 +425,6 @@ class LLM:
                 if metadata and "metadata" in str(exc):
                     self._drop_metadata(exc)
                     continue
-                if self._tracing:
-                    self._fallback_to_plain_client(exc)
-                    continue
-                raise
-            except Exception as exc:
-                if self._tracing:
-                    self._fallback_to_plain_client(exc)
-                    continue
                 raise
 
     async def _invoke(
@@ -418,19 +455,28 @@ class LLM:
             parsed = getattr(response, "output_parsed", None)
             if parsed is None:
                 raise LLMOutputError(
-                    _responses_failure(response), role=role, model=model, sample_index=index
+                    _responses_failure(response),
+                    role=role,
+                    model=model,
+                    sample_index=index,
                 )
         else:
             choices = getattr(response, "choices", None) or []
             if not choices:
                 raise LLMOutputError(
-                    "response has no choices", role=role, model=model, sample_index=index
+                    "response has no choices",
+                    role=role,
+                    model=model,
+                    sample_index=index,
                 )
             message = choices[0].message
             refusal = getattr(message, "refusal", None)
             if refusal:
                 raise LLMOutputError(
-                    f"model refused: {refusal}", role=role, model=model, sample_index=index
+                    f"model refused: {refusal}",
+                    role=role,
+                    model=model,
+                    sample_index=index,
                 )
             parsed = getattr(message, "parsed", None)
             if parsed is None:
@@ -475,7 +521,8 @@ class LLM:
         if self._send_metadata:
             self._send_metadata = False
             logger.warning(
-                "trace metadata rejected (%s); calls continue without it", type(exc).__name__
+                "trace metadata rejected (%s); calls continue without it",
+                type(exc).__name__,
             )
 
     def _fallback_to_plain_client(self, exc: BaseException) -> None:
@@ -515,9 +562,10 @@ class LLM:
             totals["unpriced_calls"] += 1
         else:
             totals["cost_usd"] += usage.cost_usd
-        if self.on_usage is not None:
+        callback = self._usage_hook.get() or self.on_usage
+        if callback is not None:
             # Exceptions propagate on purpose: a budget hook may stop the run.
-            self.on_usage(usage)
+            callback(usage)
 
 
 # --- module-level helpers -------------------------------------------------------------------
@@ -545,9 +593,10 @@ def _make_default_client(timeout_s: float) -> tuple[Any, bool]:
     global _tracing_warned
     if os.environ.get("LANGFUSE_PUBLIC_KEY") and os.environ.get("LANGFUSE_SECRET_KEY"):
         try:
-            from langfuse.openai import AsyncOpenAI as TracedAsyncOpenAI
-
-            return TracedAsyncOpenAI(max_retries=0, timeout=timeout_s), True
+            # Explicit generation exports are isolated in core.tracing. Importing
+            # langfuse.openai monkey-patches inference globally and can throw *after*
+            # a paid response, so it must not be used for fail-open inference.
+            import langfuse  # noqa: F401
         except Exception as exc:  # noqa: BLE001 - tracing must never break a run
             if not _tracing_warned:
                 _tracing_warned = True

@@ -149,6 +149,7 @@ def fold_events(events: list[dict]) -> dict:
     memory: dict[str, list] = {"writes": [], "recalls": []}
     searches: list[dict] = []
     budget: dict | None = None
+    decision_traces: dict[str, list] = {}
     last_seq = -1
 
     def question(qid: str) -> dict:
@@ -173,6 +174,13 @@ def fold_events(events: list[dict]) -> dict:
         if not isinstance(p, dict):
             continue
         t = ev.get("type")
+        if p.get("traces"):
+            exp = p.get("experiment") or {}
+            keys = [p.get("question_id"), p.get("experiment_id"), exp.get("id"),
+                    (p.get("question") or {}).get("id"), *(exp.get("question_ids") or [])]
+            for key in keys:
+                if isinstance(key, str):
+                    decision_traces[key] = p["traces"]
         if t == "question.opened":
             q = p.get("question") or {}
             if "id" in q:
@@ -303,6 +311,7 @@ def fold_events(events: list[dict]) -> dict:
         "memory": memory,
         "searches": searches,
         "budget": budget,
+        "decision_traces": decision_traces,
         "status": status_of(events),
         "last_seq": last_seq,
     }

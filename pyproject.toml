@@ -4,10 +4,11 @@ version = "0.1.0"
 description = "Experimental design and scientific artifact reproduction"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "arize-phoenix-otel",
     "exa-py",
     "fastapi",
     "httpx",
-    "langfuse",
+    "langfuse>=5,<6",
     "modal",
     "numpy",
     "openai>=1.60",

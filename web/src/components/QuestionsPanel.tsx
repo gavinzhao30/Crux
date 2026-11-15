@@ -5,6 +5,7 @@ import { familyColors } from '../lib/palette';
 import { useTween } from '../lib/useTween';
 import { BeliefHistory } from './BeliefHistory';
 import { Empty, LiveDot, Panel } from './Panel';
+import { DecisionTraces } from './DecisionTraces';
 
 /** Sizes for the normal and the dense (three or more cards) layout. */
 const SIZES = {
@@ -231,6 +232,7 @@ function QuestionCard({
         </span>
       </div>
       <h3 className={cls('mt-[0.25rem] font-semibold leading-snug text-fg', sz.title)}>{q.text}</h3>
+      <DecisionTraces traces={state.decisionTraces[q.id]} />
 
       {surprise && live && (
         <div className="mt-[0.55rem] flex gap-[0.6rem] rounded-[0.5rem] border border-warn/45 bg-warn/10 px-[0.75rem] py-[0.5rem] text-[0.92rem] leading-snug animate-fade-up">
