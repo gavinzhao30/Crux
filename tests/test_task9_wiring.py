@@ -178,11 +178,13 @@ async def scripted_propose(brief, evidence, *, llm, memory, bus, config, library
     return Proposals(questions=[q], hypotheses=hyps, diagnostics=diags)
 
 
-async def referee_ok(llm, exp, obs):
+async def referee_ok(llm, exp, obs, *, run_dir=None):
+    assert run_dir is None or Path(run_dir).is_dir()
     return obs.valid, "ok"
 
 
-async def critic_from_lab(llm, artifacts, contract, *, counts_path=None):
+async def critic_from_lab(llm, artifacts, contract, *, counts_path=None, brief=None):
+    assert brief and "contract" in brief
     names = {a.name for a in artifacts}
     return [
         CriticFinding(

@@ -249,7 +249,10 @@ def build_task9_run(
         search=search,
     )
     counts = Path(case_dir) / COUNTS if case_dir is not None else None
-    roles = SwarmRoles(llm, cfg, memory=memory, counts_path=counts)
+    # The referee reads log files relative to the run folder, which the lab learns in bind().
+    roles = SwarmRoles(
+        llm, cfg, memory=memory, counts_path=counts, run_dir=lambda: lab.run_dir
+    )
     deps = Deps(
         agents=roles,
         predictor=SampledPredictor(llm),

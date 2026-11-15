@@ -70,6 +70,7 @@ class SwarmRoles:
         critic_fn: Callable | None = None,
         report_fn: Callable | None = None,
         counts_path: Path | None = None,
+        run_dir: Callable[[], Path | None] | None = None,
     ) -> None:
         self.llm = llm
         self.config = config
@@ -80,6 +81,8 @@ class SwarmRoles:
         self.critic_fn = critic_fn
         self.report_fn = report_fn
         self.counts_path = counts_path
+        self.run_dir = run_dir
+        self.brief: dict = {}
         self.diagnostics: dict[str, list[Experiment]] = {}
         self.rounds = 0
 
@@ -99,6 +102,7 @@ class SwarmRoles:
                 )
             except ImportError:
                 library = None
+        self.brief = dict(brief)
         entries = library(brief) if library is not None else []
         self.rounds += 1
         cfg = self.config.model_copy(update={"null_hypothesis": False})
@@ -143,7 +147,8 @@ class SwarmRoles:
         fn = self.referee_fn
         if fn is None:
             from agents.referee import referee as fn
-        return await fn(self.llm, experiment, observation)
+        run_dir = self.run_dir() if self.run_dir is not None else None
+        return await fn(self.llm, experiment, observation, run_dir=run_dir)
 
     async def critic(
         self, artifacts: list[Artifact], contract: dict
@@ -151,7 +156,13 @@ class SwarmRoles:
         fn = self.critic_fn
         if fn is None:
             from agents.critic import critique as fn
-        return await fn(self.llm, artifacts, contract, counts_path=self.counts_path)
+        return await fn(
+            self.llm,
+            artifacts,
+            contract,
+            counts_path=self.counts_path,
+            brief=self.brief,
+        )
 
     async def report(self, state: EngineState, artifacts: list[Artifact]) -> Report:
         fn = self.report_fn
