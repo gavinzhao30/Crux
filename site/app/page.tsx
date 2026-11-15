@@ -88,48 +88,16 @@ const REPORTS = [
 
 const CAVEATS = [
   {
-    title: "Two single-agent runs scored 0, and both count.",
-    body: "One agent decided the mounted data folder was empty; one hit the $2 cap. Leaving out the first gives +0.147 (+0.025 to +0.299); leaving out both, which can only favour the single agent, gives +0.089 (+0.002 to +0.189).",
+    title: "A focused pilot.",
+    body: "One task, 13 cases, one run per approach, using published counts and checks designed for six known fault types. Both zero-score single-agent runs remain included; sensitivity analyses are in the report.",
     path: BATCH04,
   },
   {
-    title: "On the reused seed-43 suite, scores were tied.",
-    body: "Pre-registered, the paired difference was −0.064 (−0.242 to 0.080); with three crashed swarm runs repeated, +0.068 (−0.013 to 0.167).",
+    title: "The selection advantage is still open.",
+    body: "Earlier Task 9 comparisons were inconclusive, and random diagnostic selection matched information gain. BoxingGym also showed no EIG advantage. These results do not establish general-purpose auditing or detection of unknown faults.",
     path: BATCH03,
-  },
-  {
-    title: "Random experiment choice did as well there.",
-    body: "A swarm that picked its checks at random matched information-gain selection on score and cost. A BoxingGym study found no EIG advantage either.",
-    path: BATCH03,
-  },
-  {
-    title: "The checks match the planted faults.",
-    body: "The library holds diagnostics for exactly the six fault types the suite plants. This shows the checks catch what they were written for, not unknown faults.",
-    path: BATCH04,
-  },
-  {
-    title: "One task, small samples.",
-    body: "BixBench3 task 9 of 20, from published counts, one run per arm per case.",
-    path: BATCH04,
   },
 ];
-
-function Source({ path, className }: { path: string; className?: string }) {
-  return (
-    <a
-      href={repoFile(path)}
-      target="_blank"
-      rel="noreferrer"
-      className={
-        "inline-flex items-center gap-1 font-mono text-xs text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground " +
-        (className ?? "")
-      }
-    >
-      {path}
-      <ArrowUpRightIcon className="size-3" aria-hidden="true" />
-    </a>
-  );
-}
 
 function CircleArrow() {
   return (
@@ -261,15 +229,16 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="mt-16">
-              <h3 className="font-display text-3xl">What it does not show</h3>
-              <ul className="mt-8 grid gap-x-12 gap-y-0 md:grid-cols-2">
+            <div className="mt-8 max-w-4xl border-t pt-4">
+              <h3 className="text-xs font-medium text-muted-foreground">What it does not show</h3>
+              <ul className="mt-3 grid gap-x-8 gap-y-3 md:grid-cols-2">
                 {CAVEATS.map((c) => (
-                  <li key={c.title} className="border-t py-6">
-                    <p className="font-medium">{c.title}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{c.body}</p>
-                    <p className="mt-3">
-                      <Source path={c.path} />
+                  <li key={c.title} className="text-xs leading-relaxed text-muted-foreground">
+                    <p><span className="font-medium text-foreground/80">{c.title}</span> {c.body}</p>
+                    <p className="mt-1">
+                      <a href={repoFile(c.path)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[0.7rem] underline decoration-border underline-offset-4 hover:text-foreground">
+                        Full report <ArrowUpRightIcon className="size-3" aria-hidden="true" />
+                      </a>
                     </p>
                   </li>
                 ))}
