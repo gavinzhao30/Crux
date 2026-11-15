@@ -11,7 +11,7 @@ import {
 import { cls } from '../lib/format';
 
 const SPEEDS = [1, 2, 4];
-const LABS = ['bixbench3', 'boxing', 'bench'];
+const LABS = ['bixbench3', 'boxing', 'bench', 'oneletter'];
 
 type Tab = Exclude<SourceKind, 'none'>;
 

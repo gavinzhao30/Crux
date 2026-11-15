@@ -279,15 +279,24 @@ function QuestionCard({
   );
 }
 
-export function QuestionsPanel({ state }: { state: RunState }) {
+/** `maxDensity` caps the roominess for layouts with less height (One Letter); unset, nothing changes. */
+export function QuestionsPanel({ state, maxDensity }: { state: RunState; maxDensity?: 'normal' | 'dense' }) {
   const qs = state.questionOrder
     .map((id) => state.questions[id])
     .filter((q): q is QuestionView => q !== undefined);
   const optionCount = qs.reduce((n, q) => n + visibleOptions(q).length, 0);
-  const density: Density =
+  const auto: Density =
     qs.length >= 3 || optionCount > 8 ? 'dense' : qs.length === 1 && optionCount <= 7 ? 'roomy' : 'normal';
+  const density: Density =
+    maxDensity === 'dense' || (maxDensity === 'normal' && auto === 'roomy') ? maxDensity : auto;
   const single = qs.length === 1 ? qs[0] : undefined;
-  const threshold = typeof state.config.settle_threshold === 'number' ? state.config.settle_threshold : 0.9;
+  // The orchestrator writes `settle_threshold`; the One Letter lab writes `settle`.
+  const threshold =
+    typeof state.config.settle_threshold === 'number'
+      ? state.config.settle_threshold
+      : typeof state.config.settle === 'number'
+        ? state.config.settle
+        : 0.9;
   const counts = {
     open: qs.filter((q) => q.status === 'open').length,
     settled: qs.filter((q) => q.status === 'settled').length,

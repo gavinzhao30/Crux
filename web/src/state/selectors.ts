@@ -1,7 +1,16 @@
 // Derived views over RunState. Pure functions; panels call these instead of
 // re-deriving logic inline.
 
-import type { FindingView, OptionView, QuestionView, RunState } from './fold';
+import type {
+  DnaReadView,
+  DnaRequestView,
+  FindingView,
+  OptionView,
+  QuestionView,
+  RunState,
+  SurpriseView,
+} from './fold';
+import { referenceBases, windowDef } from '../lib/hbb';
 import type { Artifact } from '../types';
 
 export function visibleOptions(q: QuestionView): OptionView[] {
@@ -156,4 +165,196 @@ export function evidenceText(s: RunState, evidenceId: string | null): string | n
 export function binDescription(s: RunState, experimentId: string | null, binId: string): string | null {
   if (!experimentId) return null;
   return s.experiments[experimentId]?.bins.find((b) => b.id === binId)?.description ?? null;
+}
+
+/* One Letter (labs/oneletter) --------------------------------------- */
+
+export const ONE_LETTER_LAB = 'oneletter';
+
+/** The run uses the One Letter layout only when run.started says lab "oneletter". */
+export function isOneLetterLab(s: RunState): boolean {
+  return s.lab === ONE_LETTER_LAB;
+}
+
+/**
+ * Reads are "recorded" when they do not come from the camera right now: a
+ * bundled fixture, an API replay, or a run on the fake reader.
+ */
+export function isRecorded(s: RunState, sourceKind: string): boolean {
+  return sourceKind === 'local' || sourceKind === 'api-replay' || s.config.fake_reader === true;
+}
+
+export function isFakeReader(s: RunState): boolean {
+  return s.config.fake_reader === true;
+}
+
+function httpUrl(v: unknown): string | null {
+  if (typeof v !== 'string' || !v) return null;
+  try {
+    const u = new URL(v);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? v.replace(/\/+$/, '') : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface ReaderUrls {
+  reader: string | null;
+  /** The reader's annotated MJPEG stream. */
+  annotated: string | null;
+  /** The strip display page the presenter opens on the phone. */
+  strip: string | null;
+}
+
+export function readerUrls(s: RunState): ReaderUrls {
+  const reader = httpUrl(s.config.reader_url);
+  const annotated = httpUrl(s.config.annotated_url) ?? (reader ? `${reader}/annotated_stream` : null);
+  return { reader, annotated, strip: reader ? `${reader}/strip` : null };
+}
+
+/** The window the engine is waiting to see, until a read of that window arrives. */
+export function pendingRequest(s: RunState): DnaRequestView | null {
+  const r = s.dna.request;
+  if (!r || s.status === 'finished' || s.status === 'error') return null;
+  const answered = s.dna.reads.some((x) => x.seq > r.seq && x.window === r.window);
+  return answered ? null : r;
+}
+
+/** The variant question (q-variant per the contract, else the focused one). */
+export function variantQuestionId(s: RunState): string | null {
+  if (s.questions['q-variant']) return 'q-variant';
+  return focusQuestionId(s);
+}
+
+export function variantName(s: RunState, hypothesisId: string): string {
+  const v = s.dna.variants[hypothesisId];
+  if (v?.name) return v.name;
+  if (hypothesisId === 'h0') return 'None of these';
+  const qid = variantQuestionId(s);
+  return qid ? optionStatement(s, qid, hypothesisId) : hypothesisId;
+}
+
+export interface ReadCell {
+  index: number;
+  base: string;
+  /** The HBB reference (HbA) base at this position. */
+  ref: string;
+  /** Reported by the engine in mismatch_positions. */
+  mismatch: boolean;
+  differsFromRef: boolean;
+  confidence: number | null;
+  /** Hypotheses whose expected string has this base here. */
+  supports: string[];
+}
+
+export function readCells(read: DnaReadView): ReadCell[] {
+  const ref = referenceBases(read.window);
+  return [...read.bases].map((base, i) => {
+    const c = read.confidence[i];
+    return {
+      index: i,
+      base,
+      ref: ref[i] ?? '',
+      mismatch: read.mismatchPositions.includes(i),
+      differsFromRef: Boolean(ref[i]) && ref[i] !== base,
+      confidence: typeof c === 'number' && Number.isFinite(c) ? c : null,
+      supports: Object.entries(read.expected)
+        .filter(([, e]) => e[i] === base)
+        .map(([hid]) => hid),
+    };
+  });
+}
+
+/** Hypotheses whose expected string equals the read exactly. */
+export function readMatches(read: DnaReadView): string[] {
+  return Object.entries(read.expected)
+    .filter(([, e]) => e === read.bases)
+    .map(([hid]) => hid);
+}
+
+export interface SequenceMarks {
+  /** Windows read at least once, in first-read order. */
+  windowsRead: number[];
+  /** Absolute 0-based positions in HBB_REF flagged by the latest read of each window. */
+  mismatches: number[];
+  latest: DnaReadView | null;
+}
+
+/** Reads of the strip on the bench now (every read if the question was never reopened). */
+export function currentStripReads(s: RunState): DnaReadView[] {
+  return s.dna.reads.filter((r) => r.seq > s.dna.stripSince);
+}
+
+/** Read and mismatch highlights for the strip on the bench now; earlier strips stay in the read list. */
+export function sequenceMarks(s: RunState): SequenceMarks {
+  const reads = currentStripReads(s);
+  const windowsRead: number[] = [];
+  const latestByWindow = new Map<number, DnaReadView>();
+  for (const r of reads) {
+    if (!windowsRead.includes(r.window)) windowsRead.push(r.window);
+    latestByWindow.set(r.window, r);
+  }
+  const mismatches: number[] = [];
+  for (const r of latestByWindow.values()) {
+    const d = windowDef(r.window);
+    if (!d) continue;
+    for (const i of r.mismatchPositions) if (d.start + i < d.end) mismatches.push(d.start + i);
+  }
+  return {
+    windowsRead,
+    mismatches: mismatches.sort((a, b) => a - b),
+    latest: reads.at(-1) ?? null,
+  };
+}
+
+/** The open surprise on the variant question, if any. */
+export function activeSurprise(s: RunState): SurpriseView | null {
+  const qid = variantQuestionId(s);
+  const sp = qid ? s.questions[qid]?.surprise : null;
+  return sp && !sp.resolved ? sp : null;
+}
+
+export type VerdictStanding = 'current' | 'new-strip' | 'surprise';
+
+/**
+ * A verdict stops standing when the question is reopened for a new strip,
+ * or a surprise reopens it, after the verdict was written.
+ */
+export function verdictStanding(s: RunState): VerdictStanding {
+  const v = s.dna.verdict;
+  if (!v) return 'current';
+  if (s.dna.stripSince > v.seq) return 'new-strip';
+  const sp = activeSurprise(s);
+  return sp && sp.seq > v.seq ? 'surprise' : 'current';
+}
+
+export function verdictSuperseded(s: RunState): boolean {
+  return verdictStanding(s) !== 'current';
+}
+
+/** The engine's latest progress line while it waits for the requested window. */
+export function readerProgress(s: RunState): string | null {
+  const req = pendingRequest(s);
+  if (!req) return null;
+  for (let i = s.console.length - 1; i >= 0; i -= 1) {
+    const line = s.console[i];
+    if (!line || line.seq <= req.seq) break;
+    if (line.kind === 'stdout' && line.text) return line.text;
+  }
+  return null;
+}
+
+/** True for "none of these" (h0), whose dna.variant carries empty fields. */
+export function isNullVariant(s: RunState, hypothesisId: string): boolean {
+  if (hypothesisId === 'h0') return true;
+  const v = s.dna.variants[hypothesisId];
+  return Boolean(v && !v.hgvs && !v.legacy && !v.codon && !v.rsid);
+}
+
+/** "jetson/qwen2.5:3b" -> written on the Jetson; anything else is the template. */
+export function verdictAuthor(author: string): { onJetson: boolean; label: string } {
+  if (author.startsWith('jetson/')) {
+    return { onJetson: true, label: `written on the Jetson · ${author.slice('jetson/'.length)}` };
+  }
+  return { onJetson: false, label: author || 'template' };
 }
