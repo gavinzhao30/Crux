@@ -125,7 +125,8 @@ class FakeBackend(object):
         self.source = "fake"
 
     def show(self, rgb):
-        self.level = sum(rgb) / 3.0
+        # A grey patch keeps an integer level, as before the RGB bench; colours use the mean.
+        self.level = rgb[0] if rgb[0] == rgb[1] == rgb[2] else sum(rgb) / 3.0
 
     def measure(self, frames, discard, roi):
         clean = 255.0 * (self.level / 255.0) ** self.gamma * self.gain
@@ -187,6 +188,11 @@ class CameraBackend(object):
             self.cap.set(cv2.CAP_PROP_WB_TEMPERATURE, float(wb))
         if gain is not None:
             self.cap.set(cv2.CAP_PROP_GAIN, float(gain))
+        self._start_reader()
+
+    def _start_reader(self):
+        """Start the frame reader thread on ``self.cap``. Subclasses that open the camera
+        themselves (for example with their own V4L2 controls) call this once it is open."""
         self.cond = threading.Condition()
         self.frame, self.seq, self.fps = None, 0, 0.0
         self.stop = threading.Event()
@@ -235,9 +241,10 @@ class CameraBackend(object):
             h, w = frame.shape[0], frame.shape[1]
             half = max(1, min(roi, h, w) // 2)
             cy, cx = h // 2, w // 2
-            crops.append(
-                frame[cy - half : cy + half, cx - half : cx + half].astype("float64")
-            )
+            crop = frame[cy - half : cy + half, cx - half : cx + half].astype("float64")
+            if crop.ndim == 2:  # a greyscale camera: equal r, g and b
+                crop = np.repeat(crop[:, :, None], 3, axis=2)
+            crops.append(crop)
         stack = np.stack(crops)  # frames x H x W x 3 (BGR)
         bgr = stack.mean(axis=(0, 1, 2))
         gray = stack.mean(axis=3)  # frames x H x W
@@ -280,8 +287,10 @@ class CameraBackend(object):
         return out
 
     def close(self):
-        self.stop.set()
-        self.cap.release()
+        if getattr(self, "stop", None) is not None:
+            self.stop.set()
+        if self.cap is not None:
+            self.cap.release()
 
 
 # --------------------------------------------------------------------------- display

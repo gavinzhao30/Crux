@@ -27,6 +27,9 @@ class HeadlessDisplay(object):
     def set_level(self, level):
         pass
 
+    def set_rgb(self, rgb):  # the node's /patch calls this since the RGB bench
+        pass
+
 
 class Controls(object):
     """v4l2-ctl adapter with an explicit device path and no shell commands."""
@@ -146,6 +149,7 @@ class ExposureCamera(node.CameraBackend):
             self.cap = node.cv2.VideoCapture(device, node.cv2.CAP_V4L2)
             if not self.cap.isOpened():
                 raise RuntimeError(f"could not open USB webcam {device}")
+            self._start_reader()  # node.CameraBackend's frame reader thread
             self.source = device
             self.level = 0
             for name, value in self.fixed.items():
@@ -164,8 +168,11 @@ class ExposureCamera(node.CameraBackend):
         return True
 
     def show(self, level):
+        # The node passes an (r, g, b) tuple since the RGB bench; grey uses its mean.
+        if isinstance(level, (tuple, list)):
+            level = sum(level) / len(level)
         self.verify()
-        value = self.mapping[int(level)]
+        value = self.mapping[round(level)]
         self.controls.set(self.exposure, value)
         self.applied = value
         self.level = int(level)
@@ -195,6 +202,8 @@ class ExposureCamera(node.CameraBackend):
 
     def close(self):
         errors = []
+        if getattr(self, "stop", None) is not None:
+            self.stop.set()
         if self.cap is not None:
             self.cap.release()
             self.cap = None
