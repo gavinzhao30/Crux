@@ -1,6 +1,16 @@
 "use client";
 
-import { ActivityIcon, ChevronsUpDownIcon, DnaIcon, HomeIcon, LogOutIcon, PlayCircleIcon, RadioIcon, UploadIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  ChevronsUpDownIcon,
+  CpuIcon,
+  DnaIcon,
+  HomeIcon,
+  LogOutIcon,
+  PlayCircleIcon,
+  RadioIcon,
+  UploadIcon,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -36,6 +46,7 @@ const NAV = [
   { href: "/app/live", label: "Live run", icon: RadioIcon, match: (p: string) => p.startsWith("/app/live") },
   { href: "/app/explore", label: "Explore", icon: DnaIcon, match: (p: string) => p.startsWith("/app/explore") },
   { href: "/app/graded", label: "Graded runs", icon: PlayCircleIcon, match: (p: string) => p.startsWith("/app/graded") },
+  { href: "/app/jetson", label: "Jetson run", icon: CpuIcon, match: (p: string) => p.startsWith("/app/jetson") },
   { href: "/app/upload", label: "Upload a paper", icon: UploadIcon, match: (p: string) => p === "/app/upload" },
   { href: "/app/runs/demo", label: "Claims audit run", icon: ActivityIcon, match: (p: string) => p.startsWith("/app/runs") },
 ];
