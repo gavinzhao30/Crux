@@ -15,7 +15,7 @@ class RunConfig(BaseModel):
     selection: Literal["eig", "random", "model_pick"] = "eig"
     proposers: Literal[3, 1] = 3
     critic: bool = True
-    predictor: Literal["sampled", "exact_only", "jev", "stated"] = "sampled"
+    predictor: Literal["sampled", "exact_only", "jev", "stated", "tinker"] = "sampled"
     memory: Literal["pastdev", "local_role_only", "vector"] = "pastdev"
     search: bool = True
     lessons: bool = False

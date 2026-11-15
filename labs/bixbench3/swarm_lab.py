@@ -15,6 +15,7 @@ Wraps ``Task9Lab`` (DU-13) without changing it:
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -233,7 +234,13 @@ def build_task9_run(
     search: Any = None,
     memory: Any = None,
 ) -> tuple[SwarmTask9Lab, Any]:
-    """The lab and ``Deps`` for one real Task 9 run with the swarm's agents."""
+    """The lab and ``Deps`` for one real Task 9 run with the swarm's agents.
+
+    ``cfg.predictor == "tinker"`` swaps the sampled predictor for ``TinkerPredictor`` on the
+    sampler path in env ``CRUX_TINKER_PREDICTOR``, reading the lab's parsed profile; the
+    sampled predictor stays as its fallback. Library rows win as in the sampled predictor;
+    ``CRUX_TINKER_OVERRIDE_STATED=1`` lets the model replace the stated rows too.
+    """
     from agents.llm import LLM, STRONG_MODEL, LLMConfig
     from agents.predictor import SampledPredictor
     from agents.swarm import SwarmRoles
@@ -261,9 +268,27 @@ def build_task9_run(
     roles = SwarmRoles(
         llm, cfg, memory=memory, counts_path=counts, run_dir=lambda: lab.run_dir
     )
+    predictor: Any = SampledPredictor(llm)
+    if getattr(cfg, "predictor", None) == "tinker":
+        from agents.tinker_predictor import TinkerPredictor, load_model_path
+
+        path = load_model_path()
+        if path is None:
+            raise ValueError(
+                'predictor="tinker" needs CRUX_TINKER_PREDICTOR (a tinker:// sampler path)'
+            )
+        # The sampled predictor stays as the fallback if Tinker errors mid-run.
+        predictor = TinkerPredictor(
+            path,
+            profile=lambda: lab.profile_facts,
+            eps=getattr(cfg, "eps", 0.1),
+            fallback=predictor,
+            # Opt in to let the model replace the library's stated rows.
+            use_stated_rows=os.environ.get("CRUX_TINKER_OVERRIDE_STATED") != "1",
+        )
     deps = Deps(
         agents=roles,
-        predictor=SampledPredictor(llm),
+        predictor=predictor,
         memory=memory,
         search=search,
         llm=llm,

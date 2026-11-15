@@ -3,8 +3,10 @@
 The synthetic data follow the Task 9 design (T98G Ctrl, C10, F7, G2, D4 and HEK293 Ctrl,
 D10, E6, two replicates each) with negative-binomial counts, a large cell line effect, a
 knockout signature partly shared by both lines (including a target transcript lost in every
-knockout clone), and clone-specific effects. Faults are applied here, not by
-``eval.suites.task9.make_cases``, so a swap really exchanges two columns.
+knockout clone), and clone-specific effects. The generator and the fault appliers live in
+``diagnostics.de_from_counts.synth`` (shared with the predictor training data); faults are
+applied there, not by ``eval.suites.task9.make_cases``, so a swap really exchanges two
+columns.
 """
 
 import ast
@@ -19,7 +21,6 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from agents.proposer import LibraryQuestion, MergePlan, ProposalBatch, propose
@@ -27,159 +28,18 @@ from core.config import RunConfig
 from core.events import EventBus
 from core.fakes import FakeMemory
 from diagnostics.de_from_counts import library_questions
+from diagnostics.de_from_counts.synth import (
+    FAULT_FORK,
+    GROUPS,
+    featurecounts_case,
+    plant,
+    simulate,
+    suite_case,
+    write_case,
+)
 from labs.bixbench3.bins import choose_bin
 
-GROUPS = {"T98G": ("Ctrl", "C10", "F7", "G2", "D4"), "HEK293": ("Ctrl", "D10", "E6")}
-COUNTS = "tagseq_featurecounts_matrix.tsv"
-SAMPLES = "samples.tsv"
-FAULT_FORK = {
-    "sample_swap": "sample_labels",
-    "label_inversion": "group_direction",
-    "duplicate_library": "duplicates",
-    "low_depth": "sample_quality",
-    "cell_line_swap": "cell_line",
-    "gene_version": "gene_ids",
-}
 ALLOWED_IMPORTS = {"json", "math", "os", "pathlib", "re", "numpy", "pandas"}
-
-
-# --- synthetic data -------------------------------------------------------------------
-
-
-def simulate(seed: int, n_genes: int = 3000, depth: float = 1.5e6):
-    """Counts (genes x 16), gene IDs and the design, from a negative-binomial model."""
-    rng = np.random.default_rng(seed)
-    design = [(line, cond) for line, conds in GROUPS.items() for cond in conds for _ in (1, 2)]
-    base = rng.normal(0.0, 2.0, n_genes)  # natural-log abundance
-    line_effect = {
-        "T98G": np.zeros(n_genes),
-        "HEK293": rng.normal(0.0, 1.5, n_genes) * (rng.random(n_genes) < 0.5),
-    }
-    signature = rng.random(n_genes) < 0.08
-    knockout_t = rng.normal(0.0, 0.8, n_genes) * signature
-    knockout_h = (0.7 * knockout_t + 0.71 * rng.normal(0.0, 0.8, n_genes)) * signature
-    knockout = {"T98G": knockout_t, "HEK293": knockout_h}
-    base[0] = np.log(200e-6 * np.exp(base).sum())  # knockout target, ~200 CPM in controls
-    line_effect["HEK293"][0] = 0.0
-    for line in GROUPS:
-        knockout[line][0] = -4.0 * np.log(2)  # 16-fold loss in every knockout clone
-    clone = {
-        (line, cond): rng.normal(0.0, 0.8, n_genes) * (rng.random(n_genes) < 0.06)
-        for line, conds in GROUPS.items()
-        for cond in conds[1:]
-    }
-    columns = []
-    for line, cond in design:
-        log_mu = base + line_effect[line]
-        if cond != "Ctrl":
-            log_mu = log_mu + knockout[line] + clone[line, cond]
-        share = np.exp(log_mu - log_mu.max())
-        mean = share / share.sum() * depth * rng.uniform(0.6, 1.5)
-        dispersion = 0.02 + 0.5 / np.sqrt(mean + 1)
-        columns.append(rng.poisson(rng.gamma(1 / dispersion, dispersion * mean)))
-    counts = np.column_stack(columns).astype(np.int64)
-    versions = rng.integers(1, 20, n_genes)
-    genes = [f"ENSG{100000 + 7 * i:011d}.{versions[i]}" for i in range(n_genes)]
-    genes[-1] += "_PAR_Y"  # GENCODE-style tail on one versioned ID
-    return counts, genes, design
-
-
-def suite_case(counts, genes, design, seed):
-    """The make_cases layout: shuffled, blinded sample IDs and a ``gene_id`` column."""
-    order = np.random.default_rng(seed).permutation(len(design))
-    ids = [f"S{i:02d}" for i in range(1, len(design) + 1)]
-    sheet = pd.DataFrame(
-        {
-            "sample_id": ids,
-            "cell_line": [design[k][0] for k in order],
-            "condition": [design[k][1] for k in order],
-        }
-    )
-    frame = pd.DataFrame(counts[:, order], columns=ids)
-    frame.insert(0, "gene_id", genes)
-    frame.insert(1, "gene_symbol", [f"SYM{i}" for i in range(len(genes))])
-    return sheet, frame
-
-
-def featurecounts_case(counts, genes, design):
-    """The published layout: featureCounts header, annotation columns, ``count_column``."""
-    seen: dict[tuple[str, str], int] = {}
-    ids, paths = [], []
-    for line, cond in design:
-        seen[line, cond] = seen.get((line, cond), 0) + 1
-        ids.append(f"{line}_{cond}_{seen[line, cond]}")
-        paths.append(f"/align/{ids[-1]}.Aligned.sortedByCoord.out.bam")
-    sheet = pd.DataFrame(
-        {
-            "sample_id": ids,
-            "cell_line": [d[0] for d in design],
-            "condition": [d[1] for d in design],
-            "count_column": paths,
-        }
-    )
-    n = len(genes)
-    frame = pd.DataFrame(
-        {
-            "Geneid": genes,
-            "Chr": ["chr1"] * n,
-            "Start": np.arange(n) * 100 + 1,
-            "End": np.arange(n) * 100 + 90,
-            "Strand": ["+"] * n,
-            "Length": [90] * n,
-        }
-    )
-    frame = pd.concat([frame, pd.DataFrame(counts, columns=paths)], axis=1)
-    return sheet, frame
-
-
-def write_case(folder: Path, sheet: pd.DataFrame, frame: pd.DataFrame, comment: bool = False):
-    folder.mkdir(parents=True)
-    sheet.to_csv(folder / SAMPLES, sep="\t", index=False, lineterminator="\n")
-    with (folder / COUNTS).open("w", encoding="utf-8", newline="\n") as handle:
-        if comment:
-            handle.write("# Program:featureCounts v2.0.6; Command:featureCounts -a genes.gtf\n")
-        frame.to_csv(handle, sep="\t", index=False, lineterminator="\n")
-
-
-def plant(fault: str, sheet: pd.DataFrame, frame: pd.DataFrame, line: str, rng):
-    """Apply one fault to copies; return them with the implicated sample IDs."""
-    sheet, frame = sheet.copy(), frame.copy()
-
-    def members(cell, cond):
-        mask = (sheet["cell_line"] == cell) & (sheet["condition"] == cond)
-        return sheet.loc[mask, "sample_id"].tolist()
-
-    treated = str(rng.choice(GROUPS[line][1:]))
-    if fault == "sample_swap":
-        a, b = str(rng.choice(members(line, "Ctrl"))), str(rng.choice(members(line, treated)))
-        frame[[a, b]] = frame[[b, a]].to_numpy(copy=True)
-        return sheet, frame, [a, b]
-    if fault == "label_inversion":
-        ctrl, other = members(line, "Ctrl"), members(line, treated)
-        sheet.loc[sheet["sample_id"].isin(ctrl), "condition"] = treated
-        sheet.loc[sheet["sample_id"].isin(other), "condition"] = "Ctrl"
-        return sheet, frame, ctrl + other
-    if fault == "duplicate_library":
-        source, target = rng.permutation(members(line, treated)).tolist()
-        frame[target] = frame[source].to_numpy(copy=True)
-        return sheet, frame, [source, target]
-    if fault == "low_depth":
-        sample = str(rng.choice(members(line, treated)))
-        frame[sample] = rng.binomial(frame[sample].to_numpy(), 1 / 50)
-        return sheet, frame, [sample]
-    if fault == "cell_line_swap":
-        a = str(rng.choice(members("T98G", "Ctrl")))
-        b = str(rng.choice(members("HEK293", "Ctrl")))
-        sheet.loc[sheet["sample_id"] == a, "cell_line"] = "HEK293"
-        sheet.loc[sheet["sample_id"] == b, "cell_line"] = "T98G"
-        return sheet, frame, [a, b]
-    if fault == "gene_version":
-        rows = rng.permutation(len(frame))[: max(1, min(1000, len(frame) // 20))]
-        frame.loc[rows, "gene_id"] = frame.loc[rows, "gene_id"].str.replace(
-            r"\.\d+$", "", regex=True
-        )
-        return sheet, frame, []
-    raise ValueError(fault)
 
 
 # --- running diagnostics ----------------------------------------------------------------

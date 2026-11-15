@@ -105,7 +105,7 @@ class Experiment(BaseModel):          # a "diagnostic"
     code: str | None = None; query: str | None = None; design: dict | None = None
     bins: list[OutcomeBin] = []
     likelihood: dict[str, dict[str, float]] = {}        # hypothesis_id -> bin_id -> probability
-    likelihood_source: Literal["exact", "sampled", "jev", "stated"] = "sampled"
+    likelihood_source: Literal["exact", "sampled", "jev", "stated", "tinker"] = "sampled"
     est_cost_s: float = 30; est_cost_usd: float = 0.0
     eig_bits: float | None = None; score: float | None = None
     spec_hash: str | None = None      # sha256 of code + bins, written BEFORE the run
