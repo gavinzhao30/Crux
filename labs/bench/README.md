@@ -5,6 +5,7 @@ A screen shows a grey level chosen by the EIG engine, a camera on the Jetson mea
 * `node.py`: the thin node that runs on the Jetson (Python 3.6, standard library + optional OpenCV/numpy). The commands for locking the camera are in its docstring.
 * `lab.py`: laptop side, the four `ModelFamily` hypotheses (priors documented at the top) and `BenchClient` / `BenchLab`.
 * `run_bench.py`: standalone loop that works without the orchestrator and writes `events.jsonl`.
+* `preflight.py`: laptop-side instrument checks and three recorded, timed rehearsals.
 
 ## 1. Hardware check (on the Jetson)
 
@@ -41,7 +42,56 @@ curl -X POST -d '{"level":128}' http://<jetson>:8765/patch
 for i in $(seq 20); do curl -s http://<jetson>:8765/measure; echo; done
 ```
 
-The means must agree within about 1.5 grey levels with no trend. A trend means exposure or white balance is still auto: fix that before going on. Also check that level 255 reads below 245 (no clipping) and level 0 reads close to 0.
+The means must agree within about 1.5 grey levels with no trend. Drift can indicate an unlocked camera or changing illumination: fix that before going on. Also check that level 255 reads below 245 (no clipping) and level 0 reads close to 0.
+
+### Automated preflight and rehearsal evidence
+
+After locking exposure, gain and white balance, run this **on the laptop** from the repo root
+(Python 3.12; the thin node remains compatible with Python 3.6):
+
+```
+uv run python -m labs.bench.preflight --node http://<jetson>:8765 --camera-locked --rehearse --output runs/bench-check/report.json
+```
+
+`--camera-locked` records **operator confirmation**, not automatic verification. The command
+does not change camera controls: check them on the Jetson first. OpenCV property values are
+included in the health snapshot for diagnosis but do not prove exposure lock across drivers.
+Run without `--rehearse` to check the instrument before starting the experiment loop.
+
+The report records:
+
+* Node health, board release, Python version, display and camera settings. A real node without
+  an active OpenCV/Tk display fails before any patches are requested.
+* **20 measurement batches** at mid-grey, each averaging the node's configured frame count
+  (8 by default). This is more than 20 individual camera frames. The report keeps every batch,
+  timestamps, sample SD, peak-to-peak spread and fitted brightness change over time.
+* Default limits: peak-to-peak spread <= 1.5, absolute fitted change <= 1.5, black mean <= 15,
+  white mean < 245 and white-minus-black range >= 100, all on the 0–255 brightness scale.
+  `--max-spread` and `--max-drift` override stability limits and are recorded in the report.
+* After a successful preflight, `--rehearse` runs **three consecutive EIG trials** with seeds
+  0, 1 and 2, up to 10 measurements each. Every trial must finish in **strictly less than 60 s**,
+  end at posterior >= 0.95 and have no surprise events. Each gets a distinct replayable
+  `events.jsonl` under `report-runs/<run_id>/`, next to the report. Time includes event writing
+  and model scoring. A failed check skips rehearsals; an HTTP failure preserves the partial
+  report. `--timeout` sets the per-request HTTP timeout (default 5 s), not a whole-run deadline.
+* `jetson_rehearsal_passed` is true only for a real node reporting a board release, successful
+  preflight and three passing trials. It does not sign off the live UI, tint recovery or video.
+
+Exit codes are **0** for passed physical checks (including rehearsals when requested), **1**
+for failure, and **2** for otherwise successful simulation-only checks. Fake nodes can never
+set `jetson_rehearsal_passed`, even with `--camera-locked`. The stock fake node clips at full
+white and has independent measurement noise, so it may correctly fail the strict checks;
+the integration test uses an unclipped, stable simulated instrument.
+
+`--sigma` sets observation noise in the EIG model (default 2.0). The measured mid-grey SD is
+diagnostic evidence, not automatically a noise estimate valid at every brightness. Camera
+exposure or screen-brightness changes can alter the response enough that the built-in priors
+do not fit: keep an unresolved or surprised trial as a failure and inspect it rather than
+loosening thresholds merely to pass. Runs on a laptop camera can pass physical checks but
+do not qualify as Jetson rehearsals when the board release is absent.
+
+These files are local under ignored `runs/` by default. Share the report and recordings with
+the team and post the real-hardware results on DU-44; do not commit large recording files.
 
 ## 4. Run the loop
 

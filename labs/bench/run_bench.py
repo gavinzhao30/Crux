@@ -75,7 +75,9 @@ def _hypothesis(name, belief, families, prior) -> dict:
         "question_id": QUESTION_ID,
         "statement": statement,
         "author": "bench",
-        "rationale": "built-in null" if is_null else f"{name} family from labs/bench/lab.py",
+        "rationale": "built-in null"
+        if is_null
+        else f"{name} family from labs/bench/lab.py",
         "answer_key": None,
         "model_code": None,
         "is_null": is_null,
@@ -139,13 +141,16 @@ def run_loop(
     run_id=None,
     verbose: bool = True,
     n_particles: int = 500,
+    timeout: float = 30.0,
 ) -> dict:
     """Run one experiment-selection loop against ``node``. Returns a summary dict."""
     if strategy not in ("eig", "random"):
         raise ValueError("strategy must be 'eig' or 'random'")
     started = time.time()
-    run_id = run_id or "r-" + time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:4]
-    client = BenchClient(node)
+    run_id = (
+        run_id or "r-" + time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:4]
+    )
+    client = BenchClient(node, timeout=timeout)
     lab = BenchLab(client, max_measurements=max_n)
     health = client.health()
     if health.get("fake"):
@@ -317,7 +322,11 @@ def run_loop(
             n_to_threshold = step + 1
             ev.emit(
                 "question.settled",
-                {"question_id": QUESTION_ID, "hypothesis_id": hyp_id(top), "posterior": top_p},
+                {
+                    "question_id": QUESTION_ID,
+                    "hypothesis_id": hyp_id(top),
+                    "posterior": top_p,
+                },
             )
             if tint_after is None:
                 break
@@ -381,7 +390,9 @@ def compare(node: str, seeds=range(10), max=12, quiet: bool = False) -> dict:
         runs[strategy] = counts
     means = {k: sum(v) / len(v) for k, v in runs.items()}
     if not quiet:
-        print(f"measurements to reach {THRESHOLD} posterior (max {max}, {len(seeds)} seeds)")
+        print(
+            f"measurements to reach {THRESHOLD} posterior (max {max}, {len(seeds)} seeds)"
+        )
         print(f"{'strategy':<10}{'mean':>8}{'never reached':>16}")
         for k in ("eig", "random"):
             missed = sum(1 for c in runs[k] if c >= max)
@@ -398,7 +409,9 @@ def main(argv=None) -> None:
     p.add_argument("--events", default=None, help="path of the events.jsonl to write")
     p.add_argument("--tint-after", type=int, default=None)
     p.add_argument("--tint", type=float, default=0.5)
-    p.add_argument("--compare", action="store_true", help="EIG vs random over seeds 0-9")
+    p.add_argument(
+        "--compare", action="store_true", help="EIG vs random over seeds 0-9"
+    )
     args = p.parse_args(argv)
     if args.compare:
         compare(args.node, seeds=range(10), max=args.max)
