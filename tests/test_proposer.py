@@ -53,14 +53,12 @@ def batch(fault=False):
 
 
 class Client:
-    def __init__(self, fault=False, expected=3, corrupt=False, omit_first=False):
+    def __init__(self, fault=False, expected=3, corrupt=False):
         self.batch = batch(fault)
         self.expected = expected
         self.calls = []
         self.ready = asyncio.Event()
         self.corrupt = corrupt
-        self.omit_first = omit_first
-        self.merge_calls = 0
 
     async def structured(self, role, schema, messages, n=1):
         if schema is ProposalBatch:
@@ -70,7 +68,6 @@ class Client:
             await asyncio.wait_for(self.ready.wait(), 2)
             return [self.batch.model_copy(deep=True)]
         data = json.loads(messages[1]["content"])
-        self.merge_calls += 1
         groups = []
         for index in range(2):
             sources = [source for source in data if source.endswith(f"q{index}")]
@@ -94,8 +91,6 @@ class Client:
                 )
         if self.corrupt:
             groups[0]["options"][0]["source_ids"].append("missing")
-        if self.omit_first and self.merge_calls == 1:
-            groups.pop()
         return [MergePlan.model_validate({"questions": groups})]
 
 
@@ -150,26 +145,6 @@ def test_invalid_merge_emits_no_partial_proposals(tmp_path):
                 config=RunConfig(),
             )
         assert len(bus.path.read_bytes().splitlines()) == 1
-
-    asyncio.run(scenario())
-
-
-def test_merge_retries_after_omitting_a_source(tmp_path):
-    async def scenario():
-        client = Client(omit_first=True)
-        bus = EventBus("retry", tmp_path)
-        await bus.emit("run.started", {})
-        result = await propose(
-            {},
-            [],
-            llm=client,
-            memory=FakeMemory(),
-            bus=bus,
-            config=RunConfig(),
-        )
-        assert client.merge_calls == 2
-        assert len(result.questions) == 2
-        assert sum(len(result.provenance[q.id]) for q in result.questions) == 6
 
     asyncio.run(scenario())
 
@@ -275,5 +250,41 @@ def test_merge_preserves_conflicting_answer_keys(tmp_path):
         assert len(hypotheses) == 4
         assert {h.answer_key for h in hypotheses} == {None, "alternative"}
         assert sum(h.prior for h in hypotheses) == pytest.approx(1)
+
+    asyncio.run(scenario())
+
+
+class OmittingClient(Client):
+    """A merge model that drops one question and lists another option twice."""
+
+    async def structured(self, role, schema, messages, n=1):
+        [result] = await super().structured(role, schema, messages, n)
+        if schema is MergePlan:
+            first, second = result.questions[0], result.questions[1]
+            # Repeat one of the second question's options in its other cluster.
+            second.options[1].source_ids.append(second.options[0].source_ids[0])
+            result.questions = [second, *result.questions[2:]]  # drop the first question
+            first_dropped = first.source_ids
+            self.dropped = first_dropped
+        return [result]
+
+
+def test_merge_omissions_are_kept_as_their_own_groups(tmp_path):
+    async def scenario():
+        bus = EventBus("omit", tmp_path)
+        await bus.emit("run.started", {})
+        client = OmittingClient()
+        result = await propose(
+            {}, [], llm=client, memory=FakeMemory(), bus=bus, config=RunConfig()
+        )
+        texts = [q.text for q in result.questions]
+        # Every dropped source survives as its own question; no option is lost.
+        assert texts.count("Which gene identifier format satisfies the contract?") == len(
+            client.dropped
+        )
+        assert "Are sample labels consistent with the profile?" in texts
+        real = [h for h in result.hypotheses if not h.is_null]
+        provenance = [s for h in real for s in result.provenance[h.id]]
+        assert len(provenance) == len(set(provenance)) == 12  # 3 roles x 2 questions x 2 options
 
     asyncio.run(scenario())

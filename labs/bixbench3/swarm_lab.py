@@ -15,6 +15,7 @@ Wraps ``Task9Lab`` (DU-13) without changing it:
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -26,6 +27,10 @@ if TYPE_CHECKING:
     from core.schemas import Artifact, EngineState, Evidence, Experiment, Observation
 
 Planner = Callable[..., Awaitable[list[tuple[str, str]]]]
+TASK9_PRICES: dict[str, tuple[float, float]] = {
+    "gpt-4.1-mini": (0.40, 1.60),
+    "gpt-5.5": (5.00, 30.00),
+}
 
 
 async def _no_planner(state: object) -> list[tuple[str, str]]:  # pragma: no cover
@@ -239,7 +244,13 @@ def build_task9_run(
     search: Any = None,
     memory: Any = None,
 ) -> tuple[SwarmTask9Lab, Any]:
-    """The lab and ``Deps`` for one real Task 9 run with the swarm's agents."""
+    """The lab and ``Deps`` for one real Task 9 run with the swarm's agents.
+
+    ``cfg.predictor == "tinker"`` swaps the sampled predictor for ``TinkerPredictor`` on the
+    sampler path in env ``CRUX_TINKER_PREDICTOR``, reading the lab's parsed profile; the
+    sampled predictor stays as its fallback. Library rows win as in the sampled predictor;
+    ``CRUX_TINKER_OVERRIDE_STATED=1`` lets the model replace the stated rows too.
+    """
     from agents.llm import LLM, STRONG_MODEL, LLMConfig
     from agents.predictor import SampledPredictor
     from agents.swarm import SwarmRoles
@@ -250,6 +261,10 @@ def build_task9_run(
         config = LLMConfig()
         # The delivery code is the deliverable, so it gets the strong model.
         config.role_models.setdefault("deliverer", STRONG_MODEL)
+        # $ per 1M tokens (input, output), so the run's $2 cap counts real spend.
+        # Public list prices as of Nov 2026.
+        for model, price in TASK9_PRICES.items():
+            config.prices_per_mtok.setdefault(model, price)
         llm = LLM(config)
     lab = build_task9_lab(
         llm=llm,
@@ -263,9 +278,27 @@ def build_task9_run(
     roles = SwarmRoles(
         llm, cfg, memory=memory, counts_path=counts, run_dir=lambda: lab.run_dir
     )
+    predictor: Any = SampledPredictor(llm, n=cfg.n_predictor_samples, eps=cfg.eps)
+    if getattr(cfg, "predictor", None) == "tinker":
+        from agents.tinker_predictor import TinkerPredictor, load_model_path
+
+        path = load_model_path()
+        if path is None:
+            raise ValueError(
+                'predictor="tinker" needs CRUX_TINKER_PREDICTOR (a tinker:// sampler path)'
+            )
+        # The sampled predictor stays as the fallback if Tinker errors mid-run.
+        predictor = TinkerPredictor(
+            path,
+            profile=lambda: lab.profile_facts,
+            eps=getattr(cfg, "eps", 0.1),
+            fallback=predictor,
+            # Opt in to let the model replace the library's stated rows.
+            use_stated_rows=os.environ.get("CRUX_TINKER_OVERRIDE_STATED") != "1",
+        )
     deps = Deps(
         agents=roles,
-        predictor=SampledPredictor(llm, n=cfg.n_predictor_samples, eps=cfg.eps),
+        predictor=predictor,
         memory=memory,
         search=search,
         llm=llm,

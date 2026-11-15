@@ -700,7 +700,13 @@ class _Run:
         """Normalise ids and hashes; drop spent, duplicate, bin-less and disallowed designs."""
         out: list[Experiment] = []
         seen: set[str] = set()
-        mode = {"sampled": "sampled", "exact_only": "exact", "jev": "jev", "stated": "stated"}
+        mode = {
+            "sampled": "sampled",
+            "exact_only": "exact",
+            "jev": "jev",
+            "stated": "stated",
+            "tinker": "tinker",
+        }
         for raw in proposals:
             exp = raw.model_copy(deep=True)
             qids = [q.id, *exp.question_ids]

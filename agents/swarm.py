@@ -106,6 +106,10 @@ class SwarmRoles:
         entries = library(brief) if library is not None else []
         self.rounds += 1
         cfg = self.config.model_copy(update={"null_hypothesis": False})
+        # The library's forks are pre-registered: fixed options, answer keys and
+        # diagnostics. On the first real Task 9 run the merge model folded five of them and
+        # unrelated questions into one 20-option question, so they skip the merge and are
+        # added as their own questions; the proposers' own questions are merged as before.
         result = await propose_fn(
             brief,
             list(evidence),
@@ -113,13 +117,44 @@ class SwarmRoles:
             memory=self.memory,
             bus=SilentBus(f"round{self.rounds}"),
             config=cfg,
-            library=entries,
+            library=[],
         )
+        questions = list(result.questions)
+        hypotheses = [h for h in result.hypotheses if not h.is_null]
         for exp in result.diagnostics:
             for qid in exp.question_ids:
                 self.diagnostics.setdefault(qid, []).append(exp)
-        hypotheses = [h for h in result.hypotheses if not h.is_null]
-        return list(result.questions), hypotheses
+        for entry in entries:
+            qid = f"library-{entry.key}"
+            questions.append(
+                Question(
+                    id=qid,
+                    text=entry.proposal.text,
+                    kind="categorical",
+                    impact=entry.proposal.impact,
+                    raised_by="library",
+                )
+            )
+            for i, option in enumerate(entry.proposal.options):
+                hypotheses.append(
+                    Hypothesis(
+                        id=f"{qid}-h{i}",
+                        question_id=qid,
+                        statement=option.statement,
+                        rationale=option.rationale,
+                        answer_key=option.answer_key,
+                        author="library",
+                        prior=1.0,
+                        posterior=1.0,
+                    )
+                )
+            for i, diagnostic in enumerate(entry.diagnostics):
+                self.diagnostics.setdefault(qid, []).append(
+                    diagnostic.model_copy(
+                        update={"id": f"{qid}-d{i}", "question_ids": [qid]}, deep=True
+                    )
+                )
+        return questions, hypotheses
 
     async def regenerate(
         self, question: Question, hypotheses: list[Hypothesis], history: list[Trial]
