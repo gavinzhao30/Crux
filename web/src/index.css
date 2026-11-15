@@ -99,3 +99,23 @@ body {
   .bar-fill { transition: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* SeqViz (One Letter view) on the dark panel. SeqViz sets its text colours
+   inline, so these need !important; per-base colours (bpColors) sit on the
+   tspans and still win. */
+.seqviz-dark text.la-vz-seq {
+  fill: var(--color-fg) !important;
+  font-weight: 500 !important;
+}
+.seqviz-dark .la-vz-index-tick-label {
+  fill: var(--color-mute) !important;
+}
+.seqviz-dark .la-vz-index-line,
+.seqviz-dark .la-vz-index-tick {
+  stroke: var(--color-line-strong) !important;
+}
+.seqviz-dark .la-vz-annotation-label,
+.seqviz-dark .la-vz-translation-amino-acid-label {
+  fill: #0b0e13 !important;
+  font-weight: 600 !important;
+}

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { RunState } from '../state/fold';
 import { elapsedSeconds } from '../state/selectors';
 import type { SourceInfo } from '../data/useRunStream';
@@ -74,7 +75,16 @@ function SourceBadge({ source }: { source: SourceInfo }) {
   );
 }
 
-export function Header({ state, source }: { state: RunState; source: SourceInfo }) {
+export function Header({
+  state,
+  source,
+  extra,
+}: {
+  state: RunState;
+  source: SourceInfo;
+  /** Optional badge under the status pill (the One Letter "recorded" badge). */
+  extra?: ReactNode;
+}) {
   const b = state.budget;
   const hasRun = state.status !== 'idle';
   return (
@@ -105,7 +115,14 @@ export function Header({ state, source }: { state: RunState; source: SourceInfo 
       <div className="flex shrink-0 items-center gap-[1.6rem]">
         <div className="flex flex-col items-end gap-[0.35rem]">
           <StatusPill state={state} />
-          <SourceBadge source={source} />
+          {extra === undefined ? (
+            <SourceBadge source={source} />
+          ) : (
+            <div className="flex items-center gap-[0.4rem]">
+              <SourceBadge source={source} />
+              {extra}
+            </div>
+          )}
         </div>
         <Metric label="Elapsed" value={clock(elapsedSeconds(state))} />
         <Metric label="Cost" value={usd(b?.costUsd ?? 0)} />

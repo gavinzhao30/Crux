@@ -193,6 +193,100 @@ export interface BudgetView {
   seconds: number;
 }
 
+/* One Letter (dna.* events) ---------------------------------------- */
+
+export interface DnaRequestView {
+  seq: number;
+  window: number;
+  reason: string;
+  eigBits: number | null;
+  replicate: boolean;
+  experimentId: string | null;
+  strip: number | null;
+}
+
+export interface DnaReadView {
+  seq: number;
+  experimentId: string;
+  window: number;
+  bases: string;
+  expected: Record<string, string>;
+  /** 0-based positions within the window, as the engine reported them. */
+  mismatchPositions: number[];
+  confidence: number[];
+  /** The hypothesis whose string the mismatches were measured against. */
+  closest: string | null;
+  replicate: boolean;
+  strip: number | null;
+}
+
+export interface DnaVariantView {
+  seq: number;
+  hypothesisId: string;
+  name: string;
+  hgvs: string;
+  legacy: string;
+  rsid: string;
+  codon: string;
+  aminoAcid: string;
+}
+
+export interface DnaVerdictView {
+  seq: number;
+  hypothesisId: string;
+  name: string;
+  posterior: number;
+  reads: number;
+  text: string;
+  author: string;
+  latencyMs: number | null;
+  pdbId: string;
+  residue: number;
+  legacy: string;
+  strip: number | null;
+}
+
+export interface DnaLessonView {
+  seq: number;
+  added: string[];
+  lessonsTotal: number;
+}
+
+export interface DnaState {
+  /** The latest request (pending or answered; see selectors.pendingRequest). */
+  request: DnaRequestView | null;
+  requests: number;
+  reads: DnaReadView[];
+  variantOrder: string[];
+  variants: Record<string, DnaVariantView>;
+  /** The latest verdict; earlier ones stay in `verdicts`. */
+  verdict: DnaVerdictView | null;
+  verdicts: DnaVerdictView[];
+  lesson: DnaLessonView | null;
+  /** The strip (sample) on the bench now; a watch run reopens the question per strip. */
+  strip: number | null;
+  /** Seq where the current strip began: reads after it are this strip's. */
+  stripSince: number;
+  /** Why the question was last reopened (a new sample), if it was. */
+  reopenReason: string | null;
+}
+
+export function initialDna(): DnaState {
+  return {
+    request: null,
+    requests: 0,
+    reads: [],
+    variantOrder: [],
+    variants: {},
+    verdict: null,
+    verdicts: [],
+    lesson: null,
+    strip: null,
+    stripSince: -1,
+    reopenReason: null,
+  };
+}
+
 export type RunStatus = 'idle' | 'running' | 'finished' | 'error';
 
 export interface RunState {
@@ -227,9 +321,12 @@ export interface RunState {
   surprises: number;
   report: Report | null;
   malformed: number;
+  /** One Letter lab state; stays empty for every other lab. */
+  dna: DnaState;
 }
 
 export const CONSOLE_LIMIT = 400;
+export const DNA_READS_LIMIT = 50;
 export const FEED_LIMIT = 80;
 
 export function initialState(): RunState {
@@ -265,6 +362,7 @@ export function initialState(): RunState {
     surprises: 0,
     report: null,
     malformed: 0,
+    dna: initialDna(),
   };
 }
 
@@ -310,6 +408,10 @@ function probMap(v: unknown): Record<string, number> {
     if (typeof p === 'number' && Number.isFinite(p)) out[k] = p;
   }
   return out;
+}
+/** A strip window number (1, 2, 3, ...), or null. */
+function windowNumber(v: unknown): number | null {
+  return typeof v === 'number' && Number.isInteger(v) && v >= 1 ? v : null;
 }
 function observedValue(v: unknown): string | number | null {
   if (typeof v === 'string' || (typeof v === 'number' && Number.isFinite(v))) return v;
@@ -538,15 +640,38 @@ const handlers: Record<string, Handler> = {
     const q = obj(p.question);
     const id = str(q.id);
     if (!id) return s;
-    const next = withQuestion(s, id, ev.seq, (cur) => ({
-      ...cur,
-      text: str(q.text, cur.text),
-      kind: (str(q.kind, cur.kind) as QuestionKind) || 'categorical',
-      impact: num(q.impact, cur.impact),
-      raisedBy: str(q.raised_by, cur.raisedBy),
-      status: (str(q.status, cur.status) as QuestionStatus) || 'open',
-      openedSeq: ev.seq,
-    }));
+    // A reopened question (One Letter watch mode: a new sample on the strip)
+    // drops its settlement and open surprise; the belief history stays.
+    const reopened = bool(p.reopened) && s.questions[id] !== undefined;
+    let next = withQuestion(s, id, ev.seq, (cur) => {
+      const opened: QuestionView = {
+        ...cur,
+        text: str(q.text, cur.text),
+        kind: (str(q.kind, cur.kind) as QuestionKind) || 'categorical',
+        impact: num(q.impact, cur.impact),
+        raisedBy: str(q.raised_by, cur.raisedBy),
+        status: (str(q.status, cur.status) as QuestionStatus) || 'open',
+        openedSeq: ev.seq,
+      };
+      if (!reopened) return opened;
+      const options: Record<string, OptionView> = {};
+      for (const [oid, o] of Object.entries(cur.options)) {
+        options[oid] = { ...o, regenerated: false, status: o.status === 'accepted' ? 'active' : o.status };
+      }
+      return { ...opened, settled: null, robust: null, unresolved: null, surprise: null, options };
+    });
+    const strip = numOrNull(p.strip);
+    if (reopened || strip !== null) {
+      next = {
+        ...next,
+        dna: {
+          ...next.dna,
+          strip: strip ?? (reopened ? (next.dna.strip ?? 1) + 1 : next.dna.strip),
+          stripSince: reopened ? ev.seq : next.dna.stripSince,
+          reopenReason: reopened ? strOrNull(p.reason) : next.dna.reopenReason,
+        },
+      };
+    }
     return pushFeed(next, {
       kind: 'question',
       seq: ev.seq,
@@ -590,9 +715,22 @@ const handlers: Record<string, Handler> = {
   'hypothesis.merged': (s, p, ev) => {
     const qid = str(p.question_id);
     const kept = str(p.kept);
-    if (!qid || !kept) return s;
-    const merged = strArr(p.merged).filter((m) => m !== kept);
+    if (!qid) return s;
     const priors = probMap(p.priors);
+    if (!kept) {
+      // Nothing merged, only fresh priors (One Letter, after options are
+      // (re)proposed). Set them; the history of measured beliefs is unchanged.
+      if (!Object.keys(priors).length || !s.questions[qid]) return s;
+      return withQuestion(s, qid, ev.seq, (q) => {
+        let next = q;
+        for (const [hid, pr] of Object.entries(priors)) {
+          if (!next.options[hid]) continue;
+          next = withOption(next, hid, ev.seq, (o) => ({ ...o, prior: pr, posterior: pr }));
+        }
+        return next;
+      });
+    }
+    const merged = strArr(p.merged).filter((m) => m !== kept);
     return withQuestion(s, qid, ev.seq, (q) => {
       let next = q;
       for (const m of merged) {
@@ -1038,6 +1176,118 @@ const handlers: Record<string, Handler> = {
       },
     );
   },
+
+  'dna.request': (s, p, ev) => {
+    const window = windowNumber(p.window);
+    if (window === null) return s;
+    return {
+      ...s,
+      dna: {
+        ...s.dna,
+        request: {
+          seq: ev.seq,
+          window,
+          reason: str(p.reason),
+          eigBits: numOrNull(p.eig_bits),
+          replicate: bool(p.replicate),
+          experimentId: strOrNull(p.experiment_id),
+          strip: numOrNull(p.strip),
+        },
+        requests: s.dna.requests + 1,
+        strip: s.dna.strip ?? numOrNull(p.strip),
+      },
+    };
+  },
+
+  'dna.read': (s, p, ev) => {
+    const window = windowNumber(p.window);
+    const bases = str(p.bases).toUpperCase();
+    if (window === null || !bases) return s;
+    const expected: Record<string, string> = {};
+    for (const [hid, b] of Object.entries(obj(p.expected))) {
+      if (typeof b === 'string') expected[hid] = b.toUpperCase();
+    }
+    const mismatchPositions = [
+      ...new Set(
+        arr(p.mismatch_positions).filter(
+          (x): x is number => Number.isInteger(x) && (x as number) >= 0 && (x as number) < bases.length,
+        ),
+      ),
+    ].sort((a, b) => a - b);
+    const read: DnaReadView = {
+      seq: ev.seq,
+      experimentId: str(p.experiment_id),
+      window,
+      bases,
+      expected,
+      mismatchPositions,
+      confidence: arr(p.confidence).map((x) => num(x, Number.NaN)),
+      closest: strOrNull(p.closest),
+      replicate: bool(p.replicate),
+      strip: numOrNull(p.strip),
+    };
+    const reads = [...s.dna.reads, read];
+    return {
+      ...s,
+      dna: {
+        ...s.dna,
+        reads: reads.length > DNA_READS_LIMIT ? reads.slice(-DNA_READS_LIMIT) : reads,
+        strip: s.dna.strip ?? read.strip,
+      },
+    };
+  },
+
+  'dna.variant': (s, p, ev) => {
+    const hid = str(p.hypothesis_id);
+    if (!hid) return s;
+    const prev = s.dna.variants[hid];
+    const variant: DnaVariantView = {
+      seq: ev.seq,
+      hypothesisId: hid,
+      name: str(p.name, prev?.name ?? hid),
+      hgvs: str(p.hgvs, prev?.hgvs ?? ''),
+      legacy: str(p.legacy, prev?.legacy ?? ''),
+      rsid: str(p.rsid, prev?.rsid ?? ''),
+      codon: str(p.codon, prev?.codon ?? '').toUpperCase(),
+      aminoAcid: str(p.amino_acid, prev?.aminoAcid ?? ''),
+    };
+    return {
+      ...s,
+      dna: {
+        ...s.dna,
+        variants: { ...s.dna.variants, [hid]: variant },
+        variantOrder: prev ? s.dna.variantOrder : [...s.dna.variantOrder, hid],
+      },
+    };
+  },
+
+  'dna.verdict': (s, p, ev) => {
+    const hid = str(p.hypothesis_id);
+    if (!hid) return s;
+    const verdict: DnaVerdictView = {
+      seq: ev.seq,
+      hypothesisId: hid,
+      name: str(p.name, s.dna.variants[hid]?.name ?? hid),
+      posterior: num(p.posterior),
+      reads: Math.max(0, Math.round(num(p.reads))),
+      text: str(p.text),
+      author: str(p.author, 'template'),
+      latencyMs: numOrNull(p.latency_ms),
+      pdbId: str(p.pdb_id).toUpperCase(),
+      residue: Math.round(num(p.residue, 6)),
+      legacy: str(p.legacy, s.dna.variants[hid]?.legacy ?? ''),
+      strip: numOrNull(p.strip),
+    };
+    return { ...s, dna: { ...s.dna, verdict, verdicts: [...s.dna.verdicts, verdict] } };
+  },
+
+  'dna.lesson': (s, p, ev) => ({
+    ...s,
+    dna: {
+      ...s.dna,
+      lesson: { seq: ev.seq, added: strArr(p.added), lessonsTotal: Math.max(0, Math.round(num(p.lessons_total))) },
+    },
+  }),
 
   'budget.tick': (s, p) => ({
     ...s,

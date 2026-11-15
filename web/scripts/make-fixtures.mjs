@@ -1420,6 +1420,9 @@ function failing() {
   return R;
 }
 
+// demo_oneletter.jsonl is not generated here: it is a copy of the engine's recorded
+// fake-reader run (runs/demo/oneletter_fake.jsonl from labs/oneletter), listed below.
+
 mkdirSync(OUT, { recursive: true });
 categorical();
 numeric();
@@ -1431,6 +1434,7 @@ writeFileSync(
       { name: 'demo_categorical', title: 'BixBench3 task 9 (categorical)' },
       { name: 'demo_numeric', title: 'Screen-to-camera bench (numeric)' },
       { name: 'demo_error', title: 'Failed run (sandbox out of memory)' },
+      { name: 'demo_oneletter', title: 'One Letter: HBB codon 6 (fake reader)' },
     ],
     null,
     2,
