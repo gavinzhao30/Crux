@@ -1,0 +1,2 @@
+# Archived agent programs are immutable experiment evidence, not maintained source.
+extend-exclude = ["**"]

@@ -152,3 +152,30 @@ def test_task9_metrics_preserve_usage_and_command_count(tmp_path):
     result = evidence_metrics(tmp_path)
     assert result["input_tokens"] == 10 and result["experiments"] == 1
     assert not result["usage_complete"]
+
+
+def test_all_task9_presets_resolve_and_numeric_capabilities_are_explicit(tmp_path):
+    from eval.run_suite import ARMS, BOXING_ARMS, resolved_config
+
+    configs = {arm: resolved_config(arm, 12, str(tmp_path), 420) for arm in ARMS if arm != "single_agent"}
+    assert configs["crux_random_selection"]["selection"] == "random"
+    assert not configs["crux_no_critic"]["critic"]
+    assert configs["crux_role_only_memory"]["memory"] == "local_role_only"
+    assert configs["crux"]["selection"] == "eig" and configs["crux"]["critic"]
+    assert set(ARMS) - set(BOXING_ARMS) == {"crux_no_critic", "crux_role_only_memory"}
+
+
+def test_download_preserves_empty_artifact_directories(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from modal.types import FileEntryType
+
+    from eval import run_suite as suite
+
+    class EmptyOutputs:
+        def iterdir(self, prefix, recursive):
+            return [SimpleNamespace(path="jobs/empty/artifacts", type=FileEntryType.DIRECTORY)]
+
+    monkeypatch.setattr(suite, "volume", EmptyOutputs())
+    suite._download_job({"job_id": "empty"}, tmp_path)
+    assert (tmp_path / "evidence/empty/artifacts").is_dir()

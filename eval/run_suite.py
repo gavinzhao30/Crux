@@ -305,10 +305,13 @@ def _download_job(job: dict, output: Path) -> None:
     """Copy persisted worker evidence into the local result directory."""
     prefix = f"/jobs/{job['job_id']}"
     for entry in volume.iterdir(prefix, recursive=True):
-        if entry.type != FileEntryType.FILE:
-            continue
         relative = Path(entry.path.lstrip("/")).relative_to(prefix.lstrip("/"))
         target = output / "evidence" / job["job_id"] / relative
+        if entry.type == FileEntryType.DIRECTORY:
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        if entry.type != FileEntryType.FILE:
+            continue
         target.parent.mkdir(parents=True, exist_ok=True)
         with target.open("wb") as stream:
             for chunk in volume.read_file(entry.path):
@@ -369,21 +372,31 @@ def fault_metrics(job, truth, evidence, *, cache=None, allow_model_calls=True):
         return {"fault_detected": False, "fault_handled": False, "fault_verdict": "missed_no_methods", "judge_cost_usd": 0}
     if not allow_model_calls:
         return {"fault_detected": None, "fault_handled": None, "fault_verdict": "needs_fault_judge"}
+    from openai import AsyncOpenAI
+
     from agents.llm import LLM, LLMConfig
     from eval.suites.task9.score_faults import judge
     from labs.bixbench3.swarm_lab import TASK9_PRICES
 
-    llm = LLM(LLMConfig(role_models={"default": job["model"]}, prices_per_mtok=TASK9_PRICES,
-                        cache=False, max_output_tokens=1024, max_retries=1))
+    config = LLMConfig(role_models={"default": job["model"]}, prices_per_mtok=TASK9_PRICES,
+                       cache=False, max_output_tokens=1024, max_retries=1)
+    llm = None
+
+    async def review():
+        nonlocal llm
+        async with AsyncOpenAI(max_retries=0, timeout=config.timeout_s) as client:
+            llm = LLM(config, client=client)
+            return await judge(llm, truth["fault"], truth["affected_samples"], methods.read_text(encoding="utf-8"))
+
     try:
-        verdict = asyncio.run(judge(llm, truth["fault"], truth["affected_samples"], methods.read_text(encoding="utf-8")))
+        verdict = asyncio.run(review())
         result = {"fault_detected": verdict.verdict in {"caught", "noticed"},
                   "fault_handled": verdict.verdict == "caught", "fault_verdict": verdict.verdict,
                   "fault_quote": verdict.quote, "fault_reason": verdict.reason,
                   "judge_cost_usd": llm.usage_totals()["cost_usd"], "judge_usage": llm.usage_totals()}
     except Exception as exc:  # noqa: BLE001
         result = {"fault_detected": None, "fault_verdict": "judge_error", "judge_error": str(exc)[:1000],
-                  "judge_cost_usd": llm.usage_totals()["cost_usd"]}
+                  "judge_cost_usd": llm.usage_totals()["cost_usd"] if llm is not None else 0}
     if cache is not None:
         atomic_json(cache, result)
     return result
@@ -433,13 +446,12 @@ def recover(args: argparse.Namespace) -> None:
     for job in manifest["jobs"]:
         saved = args.output / "jobs" / f"{job['job_id']}.json"
         if (saved.is_file() and json.loads(saved.read_text()).get("state") == "complete"
-                and json.loads(saved.read_text()).get("grade_status") not in {"needs_evaluator", "grader_error"}):
+                and json.loads(saved.read_text()).get("grade_status") not in {"needs_evaluator", "grader_error", "missing_artifacts"}):
             row = json.loads(saved.read_text(encoding="utf-8"))
         else:
             try:
                 raw = b"".join(volume.read_file(f"/jobs/{job['job_id']}/result.json"))
                 result = json.loads(raw)
-                _download_job(job, args.output)
             except (OSError, ValueError, modal.exception.Error) as exc:
                 result = {"state": "missing", "status": "interrupted", "failure": "MissingCheckpoint",
                           "failure_detail": str(exc)[:1000]}

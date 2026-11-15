@@ -1,3 +1,4 @@
 web/fixtures/*.jsonl text eol=lf
 runs/demo/**/events.jsonl text eol=lf
 runs/demo/**/artifacts/** -text
+eval/results/**/evidence/** -text
