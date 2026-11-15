@@ -1,0 +1,16 @@
+{
+  "fault_detected": true,
+  "fault_handled": true,
+  "fault_quote": "Duplicate library pair detected: S10 and S13 identical; dropped S13.",
+  "fault_reason": "The planted fault was that one library's counts were copied over its replicate, creating a duplicated library under two names (S13). The methods explicitly state that a duplicate library pair (S10 and S13 identical) was detected and that S13 was dropped, indicating the fault was identified and handled by excluding the affected sample.",
+  "fault_verdict": "caught",
+  "judge_cost_usd": 0.00034,
+  "judge_usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.00034,
+    "input_tokens": 478,
+    "output_tokens": 93,
+    "unpriced_calls": 0
+  }
+}

@@ -1,0 +1,1 @@
+RESULT: {"flagged_samples": [], "group_scores": ["HEK293:D10=0.368", "HEK293:E6=0.266", "T98G:C10=0.214", "T98G:D4=0.349", "T98G:F7=0.374", "T98G:G2=0.330"], "mean_cross_corr": 0.316668, "min_cross_corr": 0.190257, "n_pairs": 8, "worst_group": "T98G:C10", "worst_group_max_corr": 0.2382, "worst_group_score": 0.214229}

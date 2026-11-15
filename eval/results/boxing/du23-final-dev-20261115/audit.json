@@ -1,0 +1,11 @@
+{
+  "suite": "boxing",
+  "requested": 10,
+  "recorded": 10,
+  "separate_grades_reconciled": 10,
+  "failures_retained": 0,
+  "paired_seeds": "pass",
+  "summary_matches_job_and_grader": "pass",
+  "under_20_minutes": true,
+  "wall_seconds": 520.3899999996647
+}

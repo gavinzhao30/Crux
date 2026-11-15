@@ -1,0 +1,36 @@
+{
+  "arm": "single_agent",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-final-dev-20261115\\evidence\\e3522e3c-task9-case-06-single_agent-r00",
+  "case_id": "case-06",
+  "config": null,
+  "cost_usd": 0.0257216,
+  "experiments": 3,
+  "fault": "duplicate_library",
+  "fault_detected": false,
+  "fault_handled": false,
+  "fault_verdict": "missed_no_methods",
+  "fraction_at_least_0_80": 0.0,
+  "grade_status": "graded",
+  "input_manifest_data": {
+    "bundle_id": "a607845ad638c49710418b96a5862b28e46e9fd9ecbcc90fc8ce6301d2c2e56c",
+    "files": {
+      "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+      "tagseq_featurecounts_matrix.tsv": "5ebbc95d3353c4775b7315b63cd0f32e183dcbd2de90dab3b76dba141552333e"
+    }
+  },
+  "input_tokens": 28232,
+  "job_id": "e3522e3c-task9-case-06-single_agent-r00",
+  "judge_cost_usd": 0,
+  "model": "gpt-4.1-mini",
+  "model_calls": 4,
+  "output_tokens": 9018,
+  "repeat": 0,
+  "score": 0.0,
+  "seconds": 110.811795523,
+  "seed": 0,
+  "state": "complete",
+  "status": "finished",
+  "suite": "task9",
+  "timeout": 300,
+  "usage_complete": true
+}

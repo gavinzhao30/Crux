@@ -1,0 +1,45 @@
+{
+  "arm": "single_agent",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-final-dev-20261115\\evidence\\e3522e3c-task9-case-09-single_agent-r00",
+  "case_id": "case-09",
+  "config": null,
+  "cost_usd": 0.0801056,
+  "experiments": 17,
+  "fault": "gene_version",
+  "fault_detected": true,
+  "fault_handled": true,
+  "fault_quote": "Removed version suffix from Ensembl IDs and aggregated duplicated genes by summing counts.",
+  "fault_reason": "The planted fault involved mixed Ensembl ID versions due to suffixes being stripped or added inconsistently. The methods explicitly state that version suffixes were removed from Ensembl IDs and duplicated genes were aggregated, indicating that the agent identified and handled the issue of mixed ID versions by standardizing the IDs before analysis.",
+  "fault_verdict": "caught",
+  "grade_status": "failed",
+  "input_manifest_data": {
+    "bundle_id": "1b1e3dc0aad9d29907aaa0a581549055ba4e4216ed53a9b044aad7e2635c77e5",
+    "files": {
+      "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+      "tagseq_featurecounts_matrix.tsv": "f342b2472bcb35e4b904263dcd52bd8665270b036c775b212fe1ef7a4965f747"
+    }
+  },
+  "input_tokens": 148708,
+  "job_id": "e3522e3c-task9-case-09-single_agent-r00",
+  "judge_cost_usd": 0.00032,
+  "judge_usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.00032,
+    "input_tokens": 444,
+    "output_tokens": 89,
+    "unpriced_calls": 0
+  },
+  "model": "gpt-4.1-mini",
+  "model_calls": 17,
+  "output_tokens": 12889,
+  "repeat": 0,
+  "score": 0.0,
+  "seconds": 306.078462873,
+  "seed": 0,
+  "state": "complete",
+  "status": "execution_limit",
+  "suite": "task9",
+  "timeout": 300,
+  "usage_complete": true
+}

@@ -1,0 +1,126 @@
+{
+  "arm": "crux",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\boxing\\du23-final-dev-20261115\\evidence\\ca3bf345-boxing-1001-crux-r00",
+  "case_id": "1001",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": 329.62631670234094,
+      "score": 0.0030245626239737244,
+      "status": "graded"
+    },
+    {
+      "budget": 10,
+      "mse": 10.651828211622067,
+      "score": 0.08582344176706572,
+      "status": "graded"
+    },
+    {
+      "budget": 20,
+      "mse": 10.651973007929174,
+      "score": 0.08582237525949464,
+      "status": "graded"
+    }
+  ],
+  "config": null,
+  "cost_usd": 0.0,
+  "experiments": 20,
+  "failure": null,
+  "grade_status": "graded",
+  "heldout_predictions": {
+    "5": [
+      47.71905637201958,
+      7.480829830292588,
+      3.653379654835786,
+      3.472163537694662,
+      6.703633858375496,
+      17.587724698535958,
+      2.6877679669400285,
+      7.22524142323414,
+      10.735608386986776,
+      37.22789952418388
+    ],
+    "10": [
+      2.785628788176094,
+      2.2152290801296752,
+      1.005605122800173,
+      0.901154163421071,
+      2.2566396683558736,
+      1.0332074340932806,
+      0.8847840819974144,
+      3.0751177360500024,
+      2.6640784976390597,
+      2.381732858219485
+    ],
+    "20": [
+      2.785588011095144,
+      2.215182795166302,
+      1.0055761727692438,
+      0.9011182100223222,
+      2.256593460794417,
+      1.0331774108554914,
+      0.8847676503405132,
+      3.075105845997552,
+      2.6640532544603572,
+      2.3816953089695745
+    ]
+  },
+  "input_tokens": 0,
+  "job_id": "ca3bf345-boxing-1001-crux-r00",
+  "model": "gpt-4.1-mini",
+  "model_calls": 0,
+  "mse": null,
+  "output_tokens": 0,
+  "proposal_attempts": [
+    {
+      "error": null,
+      "family": 0,
+      "proposal": {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 3\n    intensities = params[:, 2::3]\n    x_sources = params[:, 0::3]\n    y_sources = params[:, 1::3]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - x_sources[:, i:i+1]\n        dy = designs_y[None, :] - y_sources[:, i:i+1]\n        dist_sq = dx**2 + dy**2 + 1.0  # avoid div by zero\n        results += intensities[:, i:i+1] / dist_sq\n    return results\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    pos = rng.uniform(-2, 2, size=(n, n_sources*2))\n    intensities = rng.uniform(0, 10, size=(n, n_sources))\n    params = np.empty((n, n_sources*3))\n    params[:, 0::3] = pos[:, 0::2]\n    params[:, 1::3] = pos[:, 1::2]\n    params[:, 2::3] = intensities\n    return params",
+        "statement": "Model 1: Each source has parameters (x,y,intensity). Prior: positions uniform in [-2,2]^2, intensities uniform in [0,10]. predict sums intensities divided by squared distances plus 1 (to avoid division by zero)."
+      },
+      "repair": 0
+    },
+    {
+      "error": null,
+      "family": 1,
+      "proposal": {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 2\n    x_sources = params[:, 0::2]\n    y_sources = params[:, 1::2]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    intensity = 5.0\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - x_sources[:, i:i+1]\n        dy = designs_y[None, :] - y_sources[:, i:i+1]\n        dist_sq = dx**2 + dy**2 + 0.1  # avoid div by zero\n        results += intensity / dist_sq\n    return results\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    params = rng.uniform(-2, 2, size=(n, n_sources*2))\n    return params",
+        "statement": "Model 2: Each source has parameters (x,y), fixed equal intensity 5. Prior: positions uniform in [-2,2]^2. predict sums fixed intensity divided by squared distances plus 0.1 (to avoid division by zero)."
+      },
+      "repair": 0
+    }
+  ],
+  "proposal_error": null,
+  "proposals": [
+    {
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 3\n    intensities = params[:, 2::3]\n    x_sources = params[:, 0::3]\n    y_sources = params[:, 1::3]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - x_sources[:, i:i+1]\n        dy = designs_y[None, :] - y_sources[:, i:i+1]\n        dist_sq = dx**2 + dy**2 + 1.0  # avoid div by zero\n        results += intensities[:, i:i+1] / dist_sq\n    return results\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    pos = rng.uniform(-2, 2, size=(n, n_sources*2))\n    intensities = rng.uniform(0, 10, size=(n, n_sources))\n    params = np.empty((n, n_sources*3))\n    params[:, 0::3] = pos[:, 0::2]\n    params[:, 1::3] = pos[:, 1::2]\n    params[:, 2::3] = intensities\n    return params",
+      "statement": "Model 1: Each source has parameters (x,y,intensity). Prior: positions uniform in [-2,2]^2, intensities uniform in [0,10]. predict sums intensities divided by squared distances plus 1 (to avoid division by zero)."
+    },
+    {
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 2\n    x_sources = params[:, 0::2]\n    y_sources = params[:, 1::2]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    intensity = 5.0\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - x_sources[:, i:i+1]\n        dy = designs_y[None, :] - y_sources[:, i:i+1]\n        dist_sq = dx**2 + dy**2 + 0.1  # avoid div by zero\n        results += intensity / dist_sq\n    return results\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    params = rng.uniform(-2, 2, size=(n, n_sources*2))\n    return params",
+      "statement": "Model 2: Each source has parameters (x,y), fixed equal intensity 5. Prior: positions uniform in [-2,2]^2. predict sums fixed intensity divided by squared distances plus 0.1 (to avoid division by zero)."
+    }
+  ],
+  "raw_mse": 10.651973007929174,
+  "repeat": 0,
+  "score": 0.08582237525949464,
+  "seconds": 116.197288093,
+  "seed": 1001,
+  "shared_proposal_cost_usd": 0.001214,
+  "shared_proposal_input_tokens": 239,
+  "shared_proposal_output_tokens": 699,
+  "state": "complete",
+  "status": "finished",
+  "suite": "boxing",
+  "timeout": 420,
+  "usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.001214,
+    "input_tokens": 239,
+    "output_tokens": 699,
+    "unpriced_calls": 0
+  },
+  "usage_complete": true
+}

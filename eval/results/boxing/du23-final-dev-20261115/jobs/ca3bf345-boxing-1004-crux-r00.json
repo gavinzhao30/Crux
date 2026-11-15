@@ -1,0 +1,126 @@
+{
+  "arm": "crux",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\boxing\\du23-final-dev-20261115\\evidence\\ca3bf345-boxing-1004-crux-r00",
+  "case_id": "1004",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": 2.144571703878264,
+      "score": 0.3180083312352775,
+      "status": "graded"
+    },
+    {
+      "budget": 10,
+      "mse": 2.2046519475043893,
+      "score": 0.3120463677120213,
+      "status": "graded"
+    },
+    {
+      "budget": 20,
+      "mse": 2.1070189385615166,
+      "score": 0.32185191650713874,
+      "status": "graded"
+    }
+  ],
+  "config": null,
+  "cost_usd": 0.0,
+  "experiments": 20,
+  "failure": null,
+  "grade_status": "graded",
+  "heldout_predictions": {
+    "5": [
+      1.1316338517218865,
+      2.5677308002369443,
+      2.355290707514763,
+      1.4745314717779419,
+      3.15016494025073,
+      1.4500538539966625,
+      3.661061420875629,
+      1.2100752142690954,
+      1.934068972164161,
+      1.9431471673564569
+    ],
+    "10": [
+      1.464528830824458,
+      1.8509062130877352,
+      3.0553737702822104,
+      2.549735580353292,
+      2.444547049706981,
+      1.7521494894612735,
+      2.1520261014685254,
+      1.1961889422694014,
+      1.7980048239557742,
+      1.8415238181887998
+    ],
+    "20": [
+      1.1643068391006266,
+      2.5034142373767994,
+      2.432457038784985,
+      1.565998895171888,
+      3.0877727302701587,
+      1.4771802220661376,
+      3.5143760375836757,
+      1.207755712161281,
+      1.9312593383506447,
+      1.9318044380531678
+    ]
+  },
+  "input_tokens": 0,
+  "job_id": "ca3bf345-boxing-1004-crux-r00",
+  "model": "gpt-4.1-mini",
+  "model_calls": 0,
+  "mse": null,
+  "output_tokens": 0,
+  "proposal_attempts": [
+    {
+      "error": null,
+      "family": 0,
+      "proposal": {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    sigma = 0.3\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        x = params[:, i*3 + 0][:, None]\n        y = params[:, i*3 + 1][:, None]\n        amp = params[:, i*3 + 2][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        signals += amp * np.exp(-(dx**2 + dy**2) / (2 * sigma**2))\n    return signals\n\ndef sample_prior(rng, n):\n    # For 3 sources, each with x,y in [-2,2] and amplitude in [0.5,1.5]\n    locs = rng.uniform(-2, 2, size=(n, 3*2))\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.hstack([locs[:, :2], amps[:, :1], locs[:, 2:4], amps[:, 1:2], locs[:, 4:6], amps[:, 2:3]])",
+        "statement": "Model 1: Each source is parameterized by (x, y, amplitude). The signal at a design point is the sum of Gaussian kernels from each source with fixed standard deviation sigma=0.3. The predict function computes the sum of these Gaussian contributions from all sources at each design point. The sample_prior samples uniform source locations in [-2,2]^2 and amplitudes in [0.5,1.5]."
+      },
+      "repair": 0
+    },
+    {
+      "error": null,
+      "family": 1,
+      "proposal": {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    epsilon = 0.1\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        x = params[:, i*2 + 0][:, None]\n        y = params[:, i*2 + 1][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        dist = np.sqrt(dx**2 + dy**2) + epsilon\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))",
+        "statement": "Model 2: Each source is parameterized by (x, y) with fixed amplitude 1. The signal at a design point is the sum of inverse distance kernels with epsilon=0.1 to avoid singularities. The predict function sums 1 / (distance + epsilon). The sample_prior samples uniform source locations in [-2,2]^2 only."
+      },
+      "repair": 0
+    }
+  ],
+  "proposal_error": null,
+  "proposals": [
+    {
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    sigma = 0.3\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        x = params[:, i*3 + 0][:, None]\n        y = params[:, i*3 + 1][:, None]\n        amp = params[:, i*3 + 2][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        signals += amp * np.exp(-(dx**2 + dy**2) / (2 * sigma**2))\n    return signals\n\ndef sample_prior(rng, n):\n    # For 3 sources, each with x,y in [-2,2] and amplitude in [0.5,1.5]\n    locs = rng.uniform(-2, 2, size=(n, 3*2))\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.hstack([locs[:, :2], amps[:, :1], locs[:, 2:4], amps[:, 1:2], locs[:, 4:6], amps[:, 2:3]])",
+      "statement": "Model 1: Each source is parameterized by (x, y, amplitude). The signal at a design point is the sum of Gaussian kernels from each source with fixed standard deviation sigma=0.3. The predict function computes the sum of these Gaussian contributions from all sources at each design point. The sample_prior samples uniform source locations in [-2,2]^2 and amplitudes in [0.5,1.5]."
+    },
+    {
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    epsilon = 0.1\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        x = params[:, i*2 + 0][:, None]\n        y = params[:, i*2 + 1][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        dist = np.sqrt(dx**2 + dy**2) + epsilon\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))",
+      "statement": "Model 2: Each source is parameterized by (x, y) with fixed amplitude 1. The signal at a design point is the sum of inverse distance kernels with epsilon=0.1 to avoid singularities. The predict function sums 1 / (distance + epsilon). The sample_prior samples uniform source locations in [-2,2]^2 only."
+    }
+  ],
+  "raw_mse": 2.1070189385615166,
+  "repeat": 0,
+  "score": 0.32185191650713874,
+  "seconds": 217.439593473,
+  "seed": 1004,
+  "shared_proposal_cost_usd": 0.0012012000000000001,
+  "shared_proposal_input_tokens": 239,
+  "shared_proposal_output_tokens": 691,
+  "state": "complete",
+  "status": "finished",
+  "suite": "boxing",
+  "timeout": 420,
+  "usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.0012012000000000001,
+    "input_tokens": 239,
+    "output_tokens": 691,
+    "unpriced_calls": 0
+  },
+  "usage_complete": true
+}

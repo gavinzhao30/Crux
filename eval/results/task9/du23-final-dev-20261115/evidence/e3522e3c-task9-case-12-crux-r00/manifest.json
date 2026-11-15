@@ -1,0 +1,571 @@
+{
+  "artifacts": [],
+  "budget": {
+    "cost_usd": 0.0255808,
+    "llm_calls": 12,
+    "seconds": 305.749424,
+    "tokens_in": 42424,
+    "tokens_out": 5382
+  },
+  "config": {
+    "cost_lambda": 0.2,
+    "critic": true,
+    "eps": 0.1,
+    "lessons": false,
+    "llm": {
+      "cache": false,
+      "cache_dir": "runs/.cache/llm",
+      "max_concurrency": 8,
+      "max_output_tokens": null,
+      "max_retries": 3,
+      "prices_per_mtok": {
+        "gpt-4.1-mini": [
+          0.4,
+          1.6
+        ],
+        "gpt-5.5": [
+          5.0,
+          30.0
+        ]
+      },
+      "role_models": {
+        "default": "gpt-4.1-mini"
+      },
+      "role_temperature": {
+        "default": 0.2,
+        "predictor": 0.8,
+        "proposer": 0.7
+      },
+      "timeout_s": 120.0
+    },
+    "max_critic_rounds": 2,
+    "max_experiments_per_question": 4,
+    "max_llm_calls": 40,
+    "max_regenerations": 2,
+    "max_seconds": 300.0,
+    "max_usd": 2.0,
+    "memory": "pastdev",
+    "min_eig_bits": 0.05,
+    "n_predictor_samples": 8,
+    "name": "default",
+    "null_hypothesis": true,
+    "null_prior": 0.15,
+    "numeric_eig_goal": "family",
+    "numeric_move_steps": 0,
+    "numeric_particles": 500,
+    "numeric_simulations": 64,
+    "numeric_stop_on_settle": true,
+    "predictor": "sampled",
+    "proposers": 3,
+    "reject_below": 0.02,
+    "runs_dir": "/checkpoints/jobs",
+    "search": true,
+    "seed": 0,
+    "selection": "eig",
+    "settle": 0.9
+  },
+  "diagnostics": [
+    {
+      "experiment_id": "library-sample_labels-d1",
+      "recorded_at": "2026-11-15T10:06:44.581368+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "every nearest neighbour shares the condition",
+            "id": "consistent",
+            "rule": "n_misplaced == 0"
+          },
+          {
+            "description": "misplaced libraries, fixed by one label exchange",
+            "id": "swap_pattern",
+            "rule": "n_misplaced > 0 and swap_resolves"
+          },
+          {
+            "description": "misplaced libraries that no single exchange fixes",
+            "id": "other",
+            "rule": "n_misplaced > 0 and not swap_resolves"
+          }
+        ],
+        "code": "\"\"\"Sample labels, check 2: does every library's nearest neighbour share its condition?\n\nWithin each cell line (assigned from the data), expressed genes are centred per gene and\nlibraries are compared by Spearman correlation. A library is misplaced when its nearest\nneighbour carries a different condition label. ``swap_resolves`` is true when exchanging\nthe labels of one pair of libraries (same line, different conditions) leaves no library\nmisplaced, the signature of two swapped samples.\n\nLibraries below a tenth of the median depth are left out (``skipped_samples``), and a\nlibrary with no remaining replicate in its line is not judged (``unjudged_samples``).\n\"\"\"\n\nimport numpy as np\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nMIN_MEAN_CPM = 10.0\n\n\ndef misplaced(neighbour, judged, conditions):\n    return [k for k in judged if conditions[neighbour[k]] != conditions[k]]\n\n\ndef judged_libraries(neighbour, lines, conditions):\n    \"\"\"Libraries with a nearest neighbour and at least one replicate in their line.\"\"\"\n    return [\n        k\n        for k in range(len(conditions))\n        if neighbour[k] >= 0\n        and any(\n            j != k and neighbour[j] >= 0 and lines[j] == lines[k] and conditions[j] == conditions[k]\n            for j in range(len(conditions))\n        )\n    ]\n\n\ndef main():\n    inputs = load_inputs()\n    lines, _, _ = assign_cell_lines(inputs)\n    cpm = to_cpm(inputs.counts)\n    use = ~shallow_libraries(inputs.counts)\n    neighbour = np.full(len(inputs.sample_ids), -1)\n    for line in sorted(set(lines)):\n        idx = np.flatnonzero((lines == line) & use)\n        if len(idx) < 2:\n            continue\n        sub = cpm[:, idx]\n        values = log_cpm(sub[sub.mean(axis=1) >= MIN_MEAN_CPM])\n        values = values - values.mean(axis=1, keepdims=True)\n        corr = correlation(column_ranks(values))\n        np.fill_diagonal(corr, -np.inf)\n        neighbour[idx] = idx[np.argmax(corr, axis=1)]\n    conditions = list(inputs.conditions)\n    judged = judged_libraries(neighbour, lines, conditions)\n    wrong = misplaced(neighbour, judged, conditions)\n    resolving = []\n    if wrong:\n        n = len(conditions)\n        for a in range(n):\n            for b in range(a + 1, n):\n                if (\n                    neighbour[a] < 0\n                    or neighbour[b] < 0\n                    or lines[a] != lines[b]\n                    or conditions[a] == conditions[b]\n                ):\n                    continue\n                trial = list(conditions)\n                trial[a], trial[b] = trial[b], trial[a]\n                if not misplaced(neighbour, judged_libraries(neighbour, lines, trial), trial):\n                    resolving.append(f\"{inputs.sample_ids[a]}|{inputs.sample_ids[b]}\")\n    ids = inputs.sample_ids\n    return {\n        \"n_misplaced\": len(wrong),\n        \"misplaced_samples\": [ids[k] for k in wrong],\n        \"swap_resolves\": bool(resolving),\n        \"resolving_swaps\": resolving,\n        \"nearest_neighbours\": [f\"{ids[k]}>{ids[nn]}\" for k, nn in enumerate(neighbour) if nn >= 0],\n        \"skipped_samples\": [ids[k] for k in np.flatnonzero(~use)],\n        \"unjudged_samples\": [ids[k] for k in range(len(ids)) if use[k] and k not in judged],\n        \"flagged_samples\": [ids[k] for k in wrong] if resolving else [],\n    }\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "labels_nearest_neighbour",
+          "library": "sample_labels",
+          "stated": {
+            "as_given": {
+              "consistent": 0.8,
+              "other": 0.15,
+              "swap_pattern": 0.05
+            },
+            "two_swapped": {
+              "consistent": 0.02,
+              "other": 0.08,
+              "swap_pattern": 0.9
+            }
+          }
+        },
+        "query": null
+      },
+      "spec_hash": "69b0e23bfd443bdeeb74851cc0a3660457f974a404cf2eaa01719cf7fd413ca9"
+    },
+    {
+      "experiment_id": "library-duplicates-d0",
+      "recorded_at": "2026-11-15T10:07:00.855179+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "no identical pair",
+            "id": "none",
+            "rule": "n_duplicate_pairs == 0"
+          },
+          {
+            "description": "at least one identical pair",
+            "id": "duplicate",
+            "rule": "n_duplicate_pairs >= 1"
+          }
+        ],
+        "code": "\"\"\"Duplicates, check 1: count columns that are identical gene by gene.\n\nTwo independent libraries never agree on every gene. A pair is a duplicate when at least\n99% of the genes with a count in either library carry the same count in both.\n\"\"\"\n\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nIDENTICAL_FRACTION = 0.99\n\n\ndef main():\n    inputs = load_inputs()\n    counts = inputs.counts\n    n = counts.shape[1]\n    pairs, best, best_pair = [], 0.0, []\n    for i in range(n):\n        for j in range(i + 1, n):\n            either = (counts[:, i] > 0) | (counts[:, j] > 0)\n            if not either.any():\n                continue\n            same = float((counts[either, i] == counts[either, j]).mean())\n            if same > best:\n                best, best_pair = same, [inputs.sample_ids[i], inputs.sample_ids[j]]\n            if same >= IDENTICAL_FRACTION:\n                pairs.append((inputs.sample_ids[i], inputs.sample_ids[j]))\n    flagged = sorted({s for pair in pairs for s in pair})\n    return {\n        \"n_duplicate_pairs\": len(pairs),\n        \"duplicate_pairs\": [f\"{a}|{b}\" for a, b in pairs],\n        \"max_identical_fraction\": best,\n        \"closest_pair\": best_pair,\n        \"flagged_samples\": flagged,\n        # Keep the first library of each pair; the copy cannot be told from the source.\n        \"suggested_exclusions\": sorted({b for _, b in pairs}),\n    }\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "duplicates_identical",
+          "exact": {
+            "duplicate_library": {
+              "duplicate": 1.0,
+              "none": 0.0
+            },
+            "none": {
+              "duplicate": 0.0,
+              "none": 1.0
+            }
+          },
+          "library": "duplicates"
+        },
+        "query": null
+      },
+      "spec_hash": "a5a97346a40237767755a051435e6e565b9ce398bd47b79bd9ea42f236fc2cf0"
+    },
+    {
+      "experiment_id": "library-sample_quality-d0",
+      "recorded_at": "2026-11-15T10:07:16.922532+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "no library flagged",
+            "id": "all_usable",
+            "rule": "n_flagged == 0"
+          },
+          {
+            "description": "at least one library flagged",
+            "id": "degraded",
+            "rule": "n_flagged >= 1"
+          }
+        ],
+        "code": "\"\"\"Sample quality, check 1: sequencing depth and detected genes per library.\n\nA library is degraded when its total count is below a tenth of the median library, or it\ndetects fewer than half the median number of genes. Ordinary library-size spread in one\nexperiment is two- to four-fold; a failed or heavily down-sampled library is far outside it.\n\"\"\"\n\nimport numpy as np\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nMIN_DEPTH_RATIO = 0.1\nMIN_DETECTED_RATIO = 0.5\n\n\ndef main():\n    inputs = load_inputs()\n    sizes = library_sizes(inputs.counts)\n    detected = (inputs.counts > 0).sum(axis=0).astype(float)\n    depth_ratio = sizes / max(float(np.median(sizes)), 1.0)\n    detected_ratio = detected / max(float(np.median(detected)), 1.0)\n    low = (depth_ratio < MIN_DEPTH_RATIO) | (detected_ratio < MIN_DETECTED_RATIO)\n    flagged = [s for s, bad in zip(inputs.sample_ids, low) if bad]\n    return {\n        \"n_flagged\": len(flagged),\n        \"flagged_samples\": flagged,\n        \"min_depth_ratio\": float(depth_ratio.min()),\n        \"min_detected_ratio\": float(detected_ratio.min()),\n        \"median_library_size\": float(np.median(sizes)),\n        \"samples\": inputs.sample_ids,\n        \"library_sizes\": sizes.tolist(),\n        \"depth_ratio\": depth_ratio.tolist(),\n        \"detected_genes\": detected.tolist(),\n    }\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "quality_depth",
+          "exact": {
+            "all_usable": {
+              "all_usable": 1.0,
+              "degraded": 0.0
+            },
+            "degraded_library": {
+              "all_usable": 0.0,
+              "degraded": 1.0
+            }
+          },
+          "library": "sample_quality"
+        },
+        "query": null
+      },
+      "spec_hash": "ebc78d5d60953fee1cfe1a90c542fff8178cd2bf4248aae06482c65a604b7a34"
+    },
+    {
+      "experiment_id": "library-cell_line-d0",
+      "recorded_at": "2026-11-15T10:07:33.183814+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "every library is nearest its own line",
+            "id": "as_given",
+            "rule": "n_mismatched == 0"
+          },
+          {
+            "description": "a library is nearer another line",
+            "id": "mislabelled",
+            "rule": "n_mismatched >= 1"
+          }
+        ],
+        "code": "\"\"\"Cell line, check 1: leave-one-out nearest centroid against the cell_line column.\n\nEach library is compared (log2 CPM, top variable genes, centred) with the centroid of every\nlabelled cell line computed without it. A library that sits closer to another line's\ncentroid than to its own is mislabelled. Distinct cell lines differ in thousands of genes,\nso one or two wrong labels barely move the centroids.\n\"\"\"\n\nimport numpy as np\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\n\ndef main():\n    inputs = load_inputs()\n    assigned, own, other = assign_cell_lines(inputs)\n    wrong = [k for k in range(len(assigned)) if assigned[k] != inputs.lines[k]]\n    margin = own - other\n    return {\n        \"n_mismatched\": len(wrong),\n        \"mismatched_samples\": [inputs.sample_ids[k] for k in wrong],\n        \"flagged_samples\": [inputs.sample_ids[k] for k in wrong],\n        \"suggested_cell_lines\": [f\"{inputs.sample_ids[k]}:{assigned[k]}\" for k in wrong],\n        \"min_margin\": float(margin.min()),\n        \"median_margin\": float(np.median(margin)),\n    }\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "cell_line_centroid",
+          "exact": {
+            "as_given": {
+              "as_given": 1.0,
+              "mislabelled": 0.0
+            },
+            "mislabelled": {
+              "as_given": 0.0,
+              "mislabelled": 1.0
+            }
+          },
+          "library": "cell_line"
+        },
+        "query": null
+      },
+      "spec_hash": "763f50d314d2f7fcef5fb90aa1e66d45632b4b7a6f598dded21099071706a572"
+    },
+    {
+      "experiment_id": "library-gene_ids-d1",
+      "recorded_at": "2026-11-15T10:07:49.574553+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "every ID or no ID changes, no collisions",
+            "id": "uniform",
+            "rule": "n_minority == 0 and n_collisions == 0"
+          },
+          {
+            "description": "some IDs change and some do not, no collisions",
+            "id": "mixed",
+            "rule": "n_minority > 0 and n_collisions == 0"
+          },
+          {
+            "description": "one form, but stripping creates duplicate IDs",
+            "id": "uniform_collisions",
+            "rule": "n_minority == 0 and n_collisions > 0"
+          },
+          {
+            "description": "mixed forms and duplicate IDs after stripping",
+            "id": "mixed_collisions",
+            "rule": "n_minority > 0 and n_collisions > 0"
+          }
+        ],
+        "code": "\"\"\"Gene IDs, check 2: what stripping version suffixes would change.\n\nStrips a trailing ``.N`` version (keeping ``_PAR_Y`` style tails) from every ID. Reports how\nmany IDs change and how many do not, among IDs that look like stable gene IDs, and how many\nstripped IDs collide with another row. One namespace means either every ID changes or none\ndoes; collisions mean the matrix holds two rows for one gene.\n\"\"\"\n\nimport re\n\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nSTABLE_ID = re.compile(r\"^[A-Za-z]+\\d{5,}\")\nVERSION = re.compile(r\"\\.\\d+(?=$|_)\")\n\n\ndef main():\n    frame = read_matrix()\n    genes = frame[gene_column(frame)].astype(str).str.strip().tolist()\n    stable = [g for g in genes if STABLE_ID.match(g)]\n    stripped = [VERSION.sub(\"\", g, count=1) for g in stable]\n    changed = sum(a != b for a, b in zip(stable, stripped))\n    unchanged = len(stable) - changed\n    collisions = len(stripped) - len(set(stripped))\n    seen, colliding = set(), []\n    for g in stripped:\n        if g in seen and len(colliding) < 5:\n            colliding.append(g)\n        seen.add(g)\n    return {\n        \"n_stable_ids\": len(stable),\n        \"n_changed\": changed,\n        \"n_unchanged\": unchanged,\n        \"n_minority\": min(changed, unchanged),\n        \"n_collisions\": collisions,\n        \"collision_examples\": colliding,\n        \"flagged_samples\": [],\n    }\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "gene_strip_check",
+          "exact": {
+            "as_given": {
+              "mixed": 0.0,
+              "mixed_collisions": 0.0,
+              "uniform": 1.0,
+              "uniform_collisions": 0.0
+            },
+            "mixed_versions": {
+              "mixed": 1.0,
+              "mixed_collisions": 0.0,
+              "uniform": 0.0,
+              "uniform_collisions": 0.0
+            }
+          },
+          "library": "gene_ids"
+        },
+        "query": null
+      },
+      "spec_hash": "d45f3ef4659b55fb77a6a45bc491c48c2e763ec659163bcaba46fa1c7d89f4e6"
+    },
+    {
+      "experiment_id": "library-group_direction-d0",
+      "recorded_at": "2026-11-15T10:08:07.168766+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "every cross-line correlation is positive",
+            "id": "consistent",
+            "rule": "min_cross_corr > 0.0 and mean_cross_corr >= 0.1"
+          },
+          {
+            "description": "one group anti-correlates with the other line",
+            "id": "inverted",
+            "rule": "min_cross_corr < 0.0 and worst_group_max_corr < -0.05 and worst_group_score <= -0.1"
+          },
+          {
+            "description": "no decisive shared signature",
+            "id": "unclear",
+            "rule": "not (min_cross_corr > 0.0 and mean_cross_corr >= 0.1) and not (min_cross_corr < 0.0 and worst_group_max_corr < -0.05 and worst_group_score <= -0.1)"
+          }
+        ],
+        "code": "\"\"\"Group direction, check 1: does each treated group share the other line's treatment signature?\n\nWithin each cell line (assigned from the data), every treated group's log fold change over\nthe line's control group is computed on genes expressed in both lines. Each treated group of\none line is correlated with each treated group of the other. When control and treated\nlabels are right and the treatments share biology across lines (the same knockout), every\ncross-line correlation is positive. If one line's control and one treated group are\nexchanged, that group's correlations with the other line all turn negative.\n\nThis is best effort: when the treatments share little biology across lines the\ncorrelations sit near zero and the check reports unclear rather than guessing.\n\"\"\"\n\nimport numpy as np\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nMIN_MEAN_CPM = 10.0\nN_GENES = 1000\nINVERTED_MAX_CORR = -0.05\nINVERTED_SCORE = -0.1\n\n\ndef main():\n    inputs = load_inputs()\n    lines, _, _ = assign_cell_lines(inputs)\n    cpm = to_cpm(inputs.counts)\n    logx = log_cpm(cpm)\n    names = sorted(set(lines))\n    result = {\n        \"mean_cross_corr\": 0.0,\n        \"min_cross_corr\": 0.0,\n        \"worst_group\": \"\",\n        \"worst_group_score\": 0.0,\n        \"worst_group_max_corr\": 0.0,\n        \"n_pairs\": 0,\n        \"group_scores\": [],\n        \"flagged_samples\": [],\n    }\n    if len(names) != 2:\n        return result\n    keep = np.ones(cpm.shape[0], dtype=bool)\n    fold, members = {}, {}\n    for line in names:\n        idx = np.flatnonzero(lines == line)\n        keep &= cpm[:, idx].mean(axis=1) >= MIN_MEAN_CPM\n        ctrl = [k for k in idx if inputs.conditions[k] == CONTROL]\n        if not ctrl:\n            return result\n        for condition in sorted({inputs.conditions[k] for k in idx} - {CONTROL}):\n            group = [k for k in idx if inputs.conditions[k] == condition]\n            fold[line, condition] = logx[:, group].mean(axis=1) - logx[:, ctrl].mean(axis=1)\n            members[line, condition] = group + ctrl\n    keys = list(fold)\n    left = [k for k in keys if k[0] == names[0]]\n    right = [k for k in keys if k[0] == names[1]]\n    if not left or not right or keep.sum() < 10:\n        return result\n    matrix = np.column_stack([fold[k][keep] for k in keys])\n    corr = correlation(matrix[top_magnitude(matrix, N_GENES)])\n    pos = {k: i for i, k in enumerate(keys)}\n    cross = np.array([[corr[pos[a], pos[b]] for b in right] for a in left])\n    entries = {a: cross[i, :] for i, a in enumerate(left)}\n    entries.update({b: cross[:, j] for j, b in enumerate(right)})\n    scores = {k: float(v.mean()) for k, v in entries.items()}\n    worst = min(scores, key=scores.get)\n    worst_max = float(entries[worst].max())\n    inverted = worst_max < INVERTED_MAX_CORR and scores[worst] <= INVERTED_SCORE\n    result.update(\n        mean_cross_corr=float(cross.mean()),\n        min_cross_corr=float(cross.min()),\n        worst_group=f\"{worst[0]}:{worst[1]}\",\n        worst_group_score=scores[worst],\n        worst_group_max_corr=worst_max,\n        n_pairs=int(cross.size),\n        group_scores=[f\"{k[0]}:{k[1]}={scores[k]:.3f}\" for k in keys],\n        flagged_samples=sorted(inputs.sample_ids[k] for k in members[worst]) if inverted else [],\n    )\n    return result\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "direction_signature",
+          "library": "group_direction",
+          "stated": {
+            "as_given": {
+              "consistent": 0.55,
+              "inverted": 0.05,
+              "unclear": 0.4
+            },
+            "ctrl_inverted": {
+              "consistent": 0.05,
+              "inverted": 0.55,
+              "unclear": 0.4
+            }
+          }
+        },
+        "query": null
+      },
+      "spec_hash": "1e82ffe953a9f97a53117d05b25e1e8a0c987563894d1df8254a9454cfa2431c"
+    },
+    {
+      "experiment_id": "library-group_direction-d1",
+      "recorded_at": "2026-11-15T10:08:21.554236+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "markers stay on in the control of every line",
+            "id": "consistent",
+            "rule": "n_ctrl_markers >= 1 and n_discordant_markers == 0"
+          },
+          {
+            "description": "markers stay on in a treated group of one line",
+            "id": "inverted",
+            "rule": "n_discordant_markers >= 1 and n_ctrl_markers == 0"
+          },
+          {
+            "description": "no markers, or markers that disagree",
+            "id": "unclear",
+            "rule": "not (n_ctrl_markers >= 1 and n_discordant_markers == 0) and not (n_discordant_markers >= 1 and n_ctrl_markers == 0)"
+          }
+        ],
+        "code": "\"\"\"Group direction, check 2: which group keeps the gene that every other group lost?\n\nA knockout removes (or sharply reduces) its target's transcript in every knocked-out group.\nFor each gene and cell line (assigned from the data), find the group with the highest mean\nlog2 CPM. A marker is a gene where, in every line, that top group is expressed (10 CPM or\nmore), at least 4-fold above every other group on average, and each of its libraries is at\nleast 2-fold above every library of the other groups. Markers whose top group is the\ncontrol in every line support the labels; markers whose top group is the control in all\nlines but one point to that line's control and top group being exchanged.\n\nThis is best effort: with no such marker (no shared knockout target, or a transcript that\nsurvives the knockout) the check reports unclear.\n\"\"\"\n\nimport numpy as np\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nMIN_TOP_CPM = 10.0\nMIN_GAP_LOG2 = 2.0\nMIN_SAMPLE_GAP_LOG2 = 1.0\n\n\ndef main():\n    inputs = load_inputs()\n    lines, _, _ = assign_cell_lines(inputs)\n    cpm = to_cpm(inputs.counts)\n    logx = log_cpm(cpm)\n    names = sorted(set(lines))\n    candidate = np.ones(cpm.shape[0], dtype=bool)\n    top_group = {}\n    for line in names:\n        idx = np.flatnonzero(lines == line)\n        conditions = sorted({inputs.conditions[k] for k in idx})\n        if len(conditions) < 2 or CONTROL not in conditions:\n            candidate[:] = False\n            break\n        members = [[k for k in idx if inputs.conditions[k] == c] for c in conditions]\n        means = np.column_stack([logx[:, m].mean(axis=1) for m in members])\n        top = np.argmax(means, axis=1)\n        ordered = np.sort(means, axis=1)\n        # Every library of the top group must sit above every library of the other groups.\n        rows = np.arange(len(top))\n        lowest = np.column_stack([logx[:, m].min(axis=1) for m in members])\n        highest = np.column_stack([logx[:, m].max(axis=1) for m in members])\n        lowest_top = lowest[rows, top]\n        highest[rows, top] = -np.inf\n        highest_rest = highest.max(axis=1)\n        candidate &= (\n            (ordered[:, -1] - ordered[:, -2] >= MIN_GAP_LOG2)\n            & (ordered[:, -1] >= np.log2(MIN_TOP_CPM + 1))\n            & (lowest_top - highest_rest >= MIN_SAMPLE_GAP_LOG2)\n        )\n        top_group[line] = np.array(conditions, dtype=object)[top]\n    concordant, discordant, votes = [], [], {}\n    if len(names) >= 2:\n        for g in np.flatnonzero(candidate):\n            off = [line for line in names if top_group[line][g] != CONTROL]\n            if not off:\n                concordant.append(int(g))\n            elif len(off) == 1:\n                discordant.append(int(g))\n                key = (off[0], top_group[off[0]][g])\n                votes[key] = votes.get(key, 0) + 1\n    flagged, suspect = [], \"\"\n    if discordant and not concordant:\n        line, group = max(votes, key=votes.get)\n        suspect = f\"{line}:{group}\"\n        flagged = sorted(\n            inputs.sample_ids[k]\n            for k in range(len(lines))\n            if lines[k] == line and inputs.conditions[k] in (group, CONTROL)\n        )\n    genes = inputs.genes\n    return {\n        \"n_ctrl_markers\": len(concordant),\n        \"n_discordant_markers\": len(discordant),\n        \"ctrl_markers\": [genes.iloc[g] for g in concordant[:5]],\n        \"discordant_markers\": [genes.iloc[g] for g in discordant[:5]],\n        \"suspect_group\": suspect,\n        \"flagged_samples\": flagged,\n    }\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "direction_marker",
+          "library": "group_direction",
+          "stated": {
+            "as_given": {
+              "consistent": 0.5,
+              "inverted": 0.05,
+              "unclear": 0.45
+            },
+            "ctrl_inverted": {
+              "consistent": 0.05,
+              "inverted": 0.5,
+              "unclear": 0.45
+            }
+          }
+        },
+        "query": null
+      },
+      "spec_hash": "e1b5fb9c22edade61bfbf2de5ce7dbe84a4afb0c3fee1ef3722abef3c47f466f"
+    },
+    {
+      "experiment_id": "library-sample_labels-d0",
+      "recorded_at": "2026-11-15T10:08:35.431693+00:00",
+      "spec": {
+        "bins": [
+          {
+            "description": "no exchange helps (swap_ratio < 0.5)",
+            "id": "as_given",
+            "rule": "swap_ratio < 0.5 and min_line_gap >= 0.1"
+          },
+          {
+            "description": "one exchange restores replicate structure",
+            "id": "swapped",
+            "rule": "swap_ratio >= 1.0 and candidate_gap >= 0.1"
+          },
+          {
+            "description": "a weak candidate, or too little structure to judge",
+            "id": "unclear",
+            "rule": "not (swap_ratio < 0.5 and min_line_gap >= 0.1) and not (swap_ratio >= 1.0 and candidate_gap >= 0.1)"
+          }
+        ],
+        "code": "\"\"\"Sample labels, check 1: search for the one label exchange that best explains the data.\n\nWithin each cell line (assigned from the data), log2 CPM of expressed genes is centred per\ngene and the top variable genes give a library-by-library correlation matrix. For every\npair of libraries with different condition labels, ``gain`` is how much exchanging their\nlabels raises the correlation of each with its replicates. ``gap`` is the line's typical\nreplicate correlation minus its typical between-condition correlation, measured on\nwhichever labelling (as given or exchanged) is more coherent. ``swap_ratio = gain / gap``\nis about 2 for a real exchange between distinct groups and near or below 0 when the labels\nare right. A line whose ``gap`` is under 0.1 has too little structure to judge.\n\nLibraries below a tenth of the median depth are left out (``skipped_samples``): they are\ntoo noisy to place, and the quality fork deals with them.\n\nWith two replicates per group, exchanging (a, b) and exchanging their partners (a', b')\nexplain the data equally well: one restores the labels, the other leaves both groups\ninverted. Both are reported; ``preferred_pair`` breaks the tie when the other cell line's\ntreatment signature clearly favours one (correlation margin above 0.05), else it is empty.\n\"\"\"\n\nimport numpy as np\n\"\"\"Shared input loading and helpers for the DE-from-counts diagnostics.\n\n``library.py`` inlines this file in place of each script's ``from _common import ...`` line,\nso every diagnostic runs as one self-contained file in the sandbox. Run a script directly\n(``python scripts/duplicates.py``) and the import resolves to this file instead.\n\nInputs follow the Task 9 layout: ``samples.tsv`` (``sample_id``, ``cell_line``,\n``condition`` and an optional ``count_column``) and ``tagseq_featurecounts_matrix.tsv``\n(gene IDs in ``Geneid`` or the first column, ``#`` comment lines allowed). Only pandas and\nnumpy are used. Each script prints exactly one ``RESULT: {json}`` line with flat values.\n\"\"\"\n\nimport json\nimport math\nimport os\nimport pathlib\n\nimport numpy as np\nimport pandas as pd\n\nDATA_DIR = pathlib.Path(os.environ.get(\"CRUX_DATA_DIR\", \"/data\"))\nSAMPLES_FILE = \"samples.tsv\"\nCOUNTS_FILE = \"tagseq_featurecounts_matrix.tsv\"\nCONTROL = \"Ctrl\"\n\n\nclass Inputs:\n    \"\"\"The sample sheet and count matrix, aligned column by column.\"\"\"\n\n    def __init__(self, sample_ids, lines, conditions, genes, counts):\n        self.sample_ids = sample_ids  # list[str], sample sheet order\n        self.lines = lines  # np.ndarray[str], labelled cell line per sample\n        self.conditions = conditions  # np.ndarray[str], labelled condition per sample\n        self.genes = genes  # pd.Series[str], one ID per matrix row\n        self.counts = counts  # np.ndarray[float], genes x samples\n\n\ndef load_samples():\n    samples = pd.read_csv(DATA_DIR / SAMPLES_FILE, sep=\"\\t\", dtype=str, keep_default_na=False)\n    samples.columns = [str(c).strip() for c in samples.columns]\n    for column in samples.columns:\n        samples[column] = samples[column].astype(str).str.strip()\n    missing = {\"sample_id\", \"cell_line\", \"condition\"} - set(samples.columns)\n    if missing:\n        raise ValueError(f\"Sample sheet lacks columns: {sorted(missing)}\")\n    use_count_column = \"count_column\" in samples.columns and bool(\n        (samples[\"count_column\"] != \"\").all()\n    )\n    field = \"count_column\" if use_count_column else \"sample_id\"\n    if samples[\"sample_id\"].duplicated().any() or samples[field].duplicated().any():\n        raise ValueError(\"Sample IDs and count columns must be unique\")\n    return samples, field\n\n\ndef read_matrix(usecols=None):\n    return pd.read_csv(\n        DATA_DIR / COUNTS_FILE, sep=\"\\t\", comment=\"#\", low_memory=False, usecols=usecols\n    )\n\n\ndef gene_column(frame):\n    return \"Geneid\" if \"Geneid\" in frame.columns else frame.columns[0]\n\n\ndef load_inputs():\n    samples, field = load_samples()\n    columns = samples[field].tolist()\n    frame = read_matrix()\n    absent = [c for c in columns if c not in frame.columns]\n    if absent:\n        raise ValueError(f\"Count matrix lacks sample columns: {absent[:5]}\")\n    counts = frame[columns].apply(pd.to_numeric, errors=\"coerce\").to_numpy(dtype=float)\n    if not np.isfinite(counts).all() or (counts < 0).any():\n        raise ValueError(\"Counts must be finite and non-negative\")\n    return Inputs(\n        sample_ids=samples[\"sample_id\"].tolist(),\n        lines=samples[\"cell_line\"].to_numpy(dtype=str),\n        conditions=samples[\"condition\"].to_numpy(dtype=str),\n        genes=frame[gene_column(frame)].astype(str),\n        counts=counts,\n    )\n\n\ndef library_sizes(counts):\n    return counts.sum(axis=0)\n\n\ndef shallow_libraries(counts, min_ratio=0.1):\n    \"\"\"Boolean mask of libraries below ``min_ratio`` of the median library size.\"\"\"\n    sizes = library_sizes(counts)\n    return sizes < min_ratio * max(float(np.median(sizes)), 1.0)\n\n\ndef to_cpm(counts):\n    sizes = library_sizes(counts)\n    return counts / np.where(sizes > 0, sizes, 1.0) * 1e6\n\n\ndef log_cpm(cpm, prior=1.0):\n    return np.log2(cpm + prior)\n\n\ndef correlation(matrix):\n    \"\"\"Pearson correlation between the columns of a genes x samples matrix.\"\"\"\n    centred = matrix - matrix.mean(axis=0, keepdims=True)\n    norms = np.sqrt((centred**2).sum(axis=0))\n    norms = np.where(norms > 0, norms, 1.0)\n    unit = centred / norms\n    return np.clip(unit.T @ unit, -1.0, 1.0)\n\n\ndef column_ranks(matrix):\n    \"\"\"Ranks within each column (ties broken by order), for Spearman correlation.\"\"\"\n    order = np.argsort(matrix, axis=0, kind=\"mergesort\")\n    ranks = np.empty_like(order, dtype=float)\n    rows = np.arange(matrix.shape[0], dtype=float)\n    for j in range(matrix.shape[1]):\n        ranks[order[:, j], j] = rows\n    return ranks\n\n\ndef top_variable(matrix, n):\n    \"\"\"Row indices of the ``n`` most variable rows.\"\"\"\n    variance = matrix.var(axis=1)\n    return np.argsort(-variance, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef top_magnitude(matrix, n):\n    \"\"\"Row indices of the ``n`` rows with the largest mean square.\n\n    Unlike variance across columns, this does not favour rows where the columns disagree, so\n    selecting genes this way does not bias the sign of correlations between the columns.\n    \"\"\"\n    power = (matrix**2).mean(axis=1)\n    return np.argsort(-power, kind=\"mergesort\")[: min(n, matrix.shape[0])]\n\n\ndef assign_cell_lines(inputs, n_genes=2000):\n    \"\"\"Leave-one-out nearest-centroid cell line for every sample.\n\n    Profiles are log2 CPM on well-expressed genes (mean CPM 10 or more), centred per gene. Each sample is compared with\n    the centroid of every labelled cell line computed without that sample, so one or two\n    mislabelled samples barely move the centroids. Returns the assigned line per sample,\n    the correlation with the sample's labelled line and with its best other line.\n    \"\"\"\n    cpm = to_cpm(inputs.counts)\n    keep = cpm.mean(axis=1) >= 10.0\n    values = log_cpm(cpm[keep])\n    values = values[top_variable(values, n_genes)]\n    values = values - values.mean(axis=1, keepdims=True)\n    names = sorted(set(inputs.lines))\n    assigned, own, other = [], [], []\n    for j in range(values.shape[1]):\n        scores = {}\n        for name in names:\n            members = [k for k in range(values.shape[1]) if inputs.lines[k] == name and k != j]\n            if members:\n                centroid = values[:, members].mean(axis=1)\n                scores[name] = float(correlation(np.column_stack([values[:, j], centroid]))[0, 1])\n        best = max(scores, key=scores.get)\n        labelled = scores.get(inputs.lines[j], -1.0)\n        rest = [v for k, v in scores.items() if k != inputs.lines[j]]\n        assigned.append(best)\n        own.append(labelled)\n        other.append(max(rest) if rest else -1.0)\n    return np.array(assigned, dtype=str), np.array(own), np.array(other)\n\n\ndef groups_of(keys):\n    \"\"\"Map each distinct key to the indices that carry it, in first-seen order.\"\"\"\n    out = {}\n    for index, key in enumerate(keys):\n        out.setdefault(key, []).append(index)\n    return out\n\n\ndef _plain(value):\n    if isinstance(value, dict):\n        return {str(k): _plain(v) for k, v in value.items()}\n    if isinstance(value, (list, tuple, np.ndarray)):\n        return [_plain(v) for v in value]\n    if isinstance(value, (bool, np.bool_)):\n        return bool(value)\n    if isinstance(value, (int, np.integer)):\n        return int(value)\n    if isinstance(value, (float, np.floating)):\n        value = float(value)\n        return round(value, 6) if math.isfinite(value) else None\n    return value if value is None or isinstance(value, str) else str(value)\n\n\ndef emit(result):\n    print(\"RESULT: \" + json.dumps(_plain(result), allow_nan=False, sort_keys=True))\n\n\nMIN_MEAN_CPM = 10.0\nN_GENES = 1000\nSWAP_RATIO = 1.0\nPREFERENCE_MARGIN = 0.05\n\n\ndef line_correlation(cpm, idx):\n    sub = cpm[:, idx]\n    values = log_cpm(sub[sub.mean(axis=1) >= MIN_MEAN_CPM])\n    values = values - values.mean(axis=1, keepdims=True)\n    return correlation(values[top_variable(values, N_GENES)])\n\n\ndef gap(corr, conditions):\n    within = []\n    for members in groups_of(conditions).values():\n        pairs = [corr[a, b] for i, a in enumerate(members) for b in members[i + 1 :]]\n        if pairs:\n            within.append(float(np.mean(pairs)))\n    n = len(conditions)\n    between = [\n        corr[a, b] for a in range(n) for b in range(a + 1, n) if conditions[a] != conditions[b]\n    ]\n    if not within or not between:\n        return 0.0\n    return float(np.median(within) - np.median(between))\n\n\ndef best_exchange(corr, conditions):\n    groups = groups_of(conditions)\n    best = None\n    for a in range(len(conditions)):\n        for b in range(a + 1, len(conditions)):\n            if conditions[a] == conditions[b]:\n                continue\n            rest_a = [k for k in groups[conditions[a]] if k != a]\n            rest_b = [k for k in groups[conditions[b]] if k != b]\n            if not rest_a or not rest_b:\n                continue\n            gain = float(\n                corr[a, rest_b].mean()\n                + corr[b, rest_a].mean()\n                - corr[a, rest_a].mean()\n                - corr[b, rest_b].mean()\n            )\n            if best is None or gain > best[0] + 1e-12:\n                partner = (rest_a[0], rest_b[0]) if len(rest_a) == len(rest_b) == 1 else None\n                best = (gain, a, b, partner)\n    return best\n\n\ndef treatment_signature(logx, use, lines, conditions, line):\n    \"\"\"Mean log fold change of a line's treated groups over its control, or None.\"\"\"\n    idx = [k for k in np.flatnonzero(lines == line) if use[k]]\n    ctrl = [k for k in idx if conditions[k] == CONTROL]\n    treated = sorted({conditions[k] for k in idx} - {CONTROL})\n    if not ctrl or not treated:\n        return None\n    base = logx[:, ctrl].mean(axis=1)\n    return np.mean(\n        [logx[:, [k for k in idx if conditions[k] == c]].mean(axis=1) - base for c in treated],\n        axis=0,\n    )\n\n\ndef direction_score(logx, cpm, use, lines, conditions, line, other):\n    \"\"\"Correlation of a line's treatment signature with another line's, or None.\"\"\"\n    mine = treatment_signature(logx, use, lines, conditions, line)\n    theirs = treatment_signature(logx, use, lines, conditions, other)\n    if mine is None or theirs is None:\n        return None\n    keep = (cpm[:, lines == line].mean(axis=1) >= MIN_MEAN_CPM) & (\n        cpm[:, lines == other].mean(axis=1) >= MIN_MEAN_CPM\n    )\n    both = np.column_stack([mine[keep], theirs[keep]])\n    return float(correlation(both[top_magnitude(both, N_GENES)])[0, 1])\n\n\ndef main():\n    inputs = load_inputs()\n    lines, _, _ = assign_cell_lines(inputs)\n    cpm = to_cpm(inputs.counts)\n    use = ~shallow_libraries(inputs.counts)\n    names = sorted(set(lines))\n    ids = inputs.sample_ids\n    gaps, candidate = {}, None\n    for line in names:\n        idx = np.flatnonzero((lines == line) & use)\n        conditions = [inputs.conditions[k] for k in idx]\n        if len(idx) < 4 or len(set(conditions)) < 2:\n            continue\n        corr = line_correlation(cpm, idx)\n        found = best_exchange(corr, conditions)\n        if found is None:\n            continue\n        gain, a, b, partner = found\n        coherent = list(conditions)\n        if gain > 0:\n            coherent[a], coherent[b] = coherent[b], coherent[a]\n        gaps[line] = gap(corr, coherent)\n        ratio = float(np.clip(gain / gaps[line], -10.0, 10.0)) if gaps[line] > 0 else 0.0\n        if candidate is None or ratio > candidate[\"ratio\"]:\n            candidate = {\n                \"ratio\": ratio,\n                \"gain\": gain,\n                \"line\": line,\n                \"pair\": [int(idx[a]), int(idx[b])],\n                \"alternative\": [int(idx[k]) for k in partner] if partner else [],\n            }\n    result = {\n        \"swap_ratio\": 0.0,\n        \"swap_gain\": 0.0,\n        \"candidate_gap\": 0.0,\n        \"min_line_gap\": min(gaps.values()) if gaps else 0.0,\n        \"candidate_line\": \"\",\n        \"candidate_pair\": [],\n        \"alternative_pair\": [],\n        \"candidate_conditions\": [],\n        \"preferred_pair\": [],\n        \"skipped_samples\": [ids[k] for k in np.flatnonzero(~use)],\n        \"flagged_samples\": [],\n    }\n    if candidate is None:\n        return result\n    pair, alternative = candidate[\"pair\"], candidate[\"alternative\"]\n    preferred = []\n    others = [n for n in names if n != candidate[\"line\"]]\n    if alternative and others and CONTROL in {inputs.conditions[k] for k in pair}:\n        logx = log_cpm(cpm)\n        scores = []\n        for option in (pair, alternative):\n            labels = inputs.conditions.copy()\n            labels[option[0]], labels[option[1]] = labels[option[1]], labels[option[0]]\n            scores.append(\n                direction_score(logx, cpm, use, lines, labels, candidate[\"line\"], others[0])\n            )\n        if None not in scores and abs(scores[0] - scores[1]) > PREFERENCE_MARGIN:\n            preferred = pair if scores[0] > scores[1] else alternative\n    result.update(\n        swap_ratio=candidate[\"ratio\"],\n        swap_gain=candidate[\"gain\"],\n        candidate_gap=gaps[candidate[\"line\"]],\n        candidate_line=candidate[\"line\"],\n        candidate_pair=[ids[k] for k in pair],\n        alternative_pair=[ids[k] for k in alternative],\n        candidate_conditions=[inputs.conditions[k] for k in pair],\n        preferred_pair=[ids[k] for k in preferred],\n        flagged_samples=sorted(ids[k] for k in pair + alternative)\n        if candidate[\"ratio\"] >= SWAP_RATIO\n        else [],\n    )\n    return result\n\n\nif __name__ == \"__main__\":\n    emit(main())\n",
+        "design": {
+          "diagnostic": "labels_swap_search",
+          "library": "sample_labels",
+          "stated": {
+            "as_given": {
+              "as_given": 0.85,
+              "swapped": 0.03,
+              "unclear": 0.12
+            },
+            "two_swapped": {
+              "as_given": 0.05,
+              "swapped": 0.85,
+              "unclear": 0.1
+            }
+          }
+        },
+        "query": null
+      },
+      "spec_hash": "6633ba0cb344e3a705590116a6617c4c6177936736e582f8f076c2009c64507c"
+    }
+  ],
+  "ended_at": "2026-11-15T10:08:45.894447+00:00",
+  "execution_backend": "ModalExecutor",
+  "git_commit": null,
+  "git_dirty": false,
+  "grader_commit": "d0e0bbb41222335b1b8878f533a58466a3a782dc",
+  "grader_integration_commit": null,
+  "input_bundle_id": "3298bc2fac9079f3ab85b6e61347b7379633d211754dcb946414e1a27774c164",
+  "input_hashes": {
+    "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+    "tagseq_featurecounts_matrix.tsv": "9959334ebda670e7cc304eba6fec2373c3dcc892fda86ccbbbf3ed619fa306bd"
+  },
+  "lab": "bixbench3",
+  "model_ids": {
+    "default": "gpt-4.1-mini"
+  },
+  "observed_model_ids": {
+    "proposer": "gpt-4.1-mini",
+    "referee": "gpt-4.1-mini"
+  },
+  "prompt_hashes": {
+    "agents/prompts/bioinformatician.md": "1791da788cffdbe741dad414868f1136014bfb97123e70f97a782d382be7305d",
+    "agents/prompts/critic.md": "6b4f6f4ef7ed0975cda344fd437e1cc5354c140f1fde3b897b92b652f30bd265",
+    "agents/prompts/merge.md": "60d5930b8f6e3ce314385b52aeca8b8eff5a7540a51029a665e3f56f9fa2cb32",
+    "agents/prompts/referee.md": "4beb960e0431470878e11ce97f730fa551de63457bc7475a41951abfc9d0fb7a",
+    "agents/prompts/reporter.md": "0ecaf12c4540ea6d4f799991184e1b8837cc8368241280bc8b4ea8f368ce69b2",
+    "agents/prompts/sceptic.md": "0aed208acc2b03150dc01edf7de1df4d3355469aea85e499ad624e146d2940cf",
+    "agents/prompts/statistician.md": "f3477e178e870cc927b6d05441b76fcb57fd4c8b1c2f59360448f5d5704df93b"
+  },
+  "run_id": "e3522e3c-task9-case-12-crux-r00",
+  "sandbox_id": "sb-01M7FAK9G9QBVZGNERB2GQ8GBX",
+  "sandbox_image_id": "im-nme8lrq6U4lVYfxkA9fG0y",
+  "sandbox_image_recipe_sha256": "a89dbe618631f5b9c0825d89dd20125fcbb404157ef654afe7080ac7dae2e3b4",
+  "schema_version": 1,
+  "seeds": {
+    "orchestrator": 0,
+    "particles": 0
+  },
+  "started_at": "2026-11-15T10:03:40.145127+00:00",
+  "status": "budget_exhausted",
+  "tools_connected": {
+    "memory": null,
+    "search": null
+  },
+  "total_cost_usd": 0.0255808,
+  "total_tokens": 47806,
+  "traces": [
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "0ef456fa1f176150ab8ebbdd82e929d71481484621e06a36934b3385ab97c7df",
+      "role": "proposer",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "propose",
+      "trace_id": "4ced4236d9d24aeaa4328c1ee3eeeae0",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "33d3cf13e0f0a72a56b073d82f878f423571791fa0b836bf11b772f4f0051933",
+      "role": "proposer",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "propose",
+      "trace_id": "35a8e89e4861470685208853f5fa2c09",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "0dab1589ada54df98b0165edf1de936c3a715c46dc9696d68cd10b92f22c63a9",
+      "role": "proposer",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "propose",
+      "trace_id": "c29ee8fa94784ff9b1178a27eabb40ef",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "782b2c2d52da71ceb6e4bd87c50d4ab14aabf9a3fba5bd97af8a4742b0cee747",
+      "role": "proposer",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "propose",
+      "trace_id": "6af0b20f5f8e4e9c8284fe76cf60bc8b",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "d3dfbf943512873818f6b29bd08893e645e5dc12986ddcf57d52ef7af5d1c2cf",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-sample_labels-d1",
+      "trace_id": "fb24c2f8345f4082bf680c96018dad41",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "dd8217f55ad9d60d87f326ee0e4f155e6c492b394e7f2df71a1d5c0be5b4ee08",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-duplicates-d0",
+      "trace_id": "7b9737e80e5348ea9539ed26c95310ec",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "dea2a0d89c63d364b2adfd66e432300a79b9afb9ed210be05f0503e16aba23c4",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-sample_quality-d0",
+      "trace_id": "62296d0b3d3e489a968fee1628198193",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "4a3c42bd4f34d6148b7d02ebaf121e6309da2fcb3fd433cebcb13d08d2551dd4",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-cell_line-d0",
+      "trace_id": "86f907461cc8479287fbb647f08568bd",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "303dedf762b594b00f86abc98a379ebc5c0125f4d8ed83498ff3158d56175887",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-gene_ids-d1",
+      "trace_id": "40823c148bef4051b52121b2a64f1257",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "2d62dac61aa0dea3cfd39237adf25996bb9dbff499213f6a4c5bf9c4a578bd87",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-group_direction-d0",
+      "trace_id": "a788021be98c459eaf175710525e8a07",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "2626009c5af151d44fa2af16430ee64d9b9cc53d6f6a57de5559c0da0ec7d7d1",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-group_direction-d1",
+      "trace_id": "b886860f74994d80a8179db7be98c5e3",
+      "url": null
+    },
+    {
+      "cached": false,
+      "model": "gpt-4.1-mini",
+      "prompt_sha256": "7dd2bdd5d681eee4edeff7a25f7f00e07277ab9d473b41d1129752a1af883cb7",
+      "role": "referee",
+      "run_id": "e3522e3c-task9-case-12-crux-r00",
+      "step": "referee:library-sample_labels-d0",
+      "trace_id": "a98088b783784f728ad41c02697667f9",
+      "url": null
+    }
+  ],
+  "tracing": {
+    "dropped": 0,
+    "errors": [],
+    "pending": 0
+  },
+  "usage": {
+    "calls": 12,
+    "cost_usd": 0.0255808,
+    "input_tokens": 42424,
+    "known_cost_usd": 0.0255808,
+    "output_tokens": 5382,
+    "unpriced_calls": 0
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "job": {
+    "arm": "crux",
+    "case_id": "1003",
+    "config": null,
+    "job_id": "ca3bf345-boxing-1003-crux-r00",
+    "model": "gpt-4.1-mini",
+    "proposal_attempts": [
+      {
+        "error": null,
+        "family": 0,
+        "proposal": {
+          "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources * (x,y,A)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 9)\n\n    # Extract source parameters\n    src1 = params_exp[:, :, 0:3]  # (n_particles, 1, 3) -> x,y,A\n    src2 = params_exp[:, :, 3:6]\n    src3 = params_exp[:, :, 6:9]\n\n    def gaussian_source(src):\n        x0 = src[:, :, 0:1]  # (n_particles,1,1)\n        y0 = src[:, :, 1:2]\n        A = src[:, :, 2:3]\n        x = designs_exp[:, :, 0:1]  # (1,n_designs,1)\n        y = designs_exp[:, :, 1:2]\n        dist_sq = (x - x0)**2 + (y - y0)**2  # (n_particles,n_designs,1)\n        sigma = 0.3\n        return A * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles,n_designs,1)\n\n    s1 = gaussian_source(src1).squeeze(-1)  # (n_particles,n_designs)\n    s2 = gaussian_source(src2).squeeze(-1)\n    s3 = gaussian_source(src3).squeeze(-1)\n\n    return s1 + s2 + s3\n\n\ndef sample_prior(rng, n):\n    # Sample 3 sources with x,y in [-2,2], amplitude in [0.5,1.5]\n    locs = rng.uniform(-2, 2, size=(n, 6))  # (n, 3*2)\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))  # (n,3)\n    params = np.concatenate([locs[:, 0:2], amps[:, 0:1],\n                             locs[:, 2:4], amps[:, 1:2],\n                             locs[:, 4:6], amps[:, 2:3]], axis=1)  # (n,9)\n    return params\n",
+          "statement": "Model 1: Each source is defined by 2D location (x,y) and amplitude A. Parameters shape: (n_particles, 9) representing 3 sources each with (x,y,A). The predict function sums Gaussian-shaped signals from each source at given design points. The prior samples uniform locations in [-2,2] and amplitudes in [0.5,1.5]."
+        },
+        "repair": 0
+      },
+      {
+        "error": null,
+        "family": 1,
+        "proposal": {
+          "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources * (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 6)\n\n    src1 = params_exp[:, :, 0:2]  # (n_particles, 1, 2)\n    src2 = params_exp[:, :, 2:4]\n    src3 = params_exp[:, :, 4:6]\n\n    def inverse_distance(src):\n        x0 = src[:, :, 0:1]  # (n_particles,1,1)\n        y0 = src[:, :, 1:2]\n        x = designs_exp[:, :, 0:1]  # (1,n_designs,1)\n        y = designs_exp[:, :, 1:2]\n        dist = np.sqrt((x - x0)**2 + (y - y0)**2)  # (n_particles,n_designs,1)\n        eps = 0.1\n        return 1.0 / (dist + eps)  # (n_particles,n_designs,1)\n\n    s1 = inverse_distance(src1).squeeze(-1)  # (n_particles,n_designs)\n    s2 = inverse_distance(src2).squeeze(-1)\n    s3 = inverse_distance(src3).squeeze(-1)\n\n    return s1 + s2 + s3\n\n\ndef sample_prior(rng, n):\n    # Sample 3 sources with x,y in [-2,2]\n    params = rng.uniform(-2, 2, size=(n, 6))\n    return params\n",
+          "statement": "Model 2: Each source is defined by 2D location (x,y) only with fixed amplitude 1. Parameters shape: (n_particles, 6) for 3 sources. Predict sums inverse distance contributions (no singularity) from each source. Prior samples uniform locations in [-2,2]."
+        },
+        "repair": 0
+      }
+    ],
+    "proposal_error": null,
+    "proposals": [
+      {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources * (x,y,A)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 9)\n\n    # Extract source parameters\n    src1 = params_exp[:, :, 0:3]  # (n_particles, 1, 3) -> x,y,A\n    src2 = params_exp[:, :, 3:6]\n    src3 = params_exp[:, :, 6:9]\n\n    def gaussian_source(src):\n        x0 = src[:, :, 0:1]  # (n_particles,1,1)\n        y0 = src[:, :, 1:2]\n        A = src[:, :, 2:3]\n        x = designs_exp[:, :, 0:1]  # (1,n_designs,1)\n        y = designs_exp[:, :, 1:2]\n        dist_sq = (x - x0)**2 + (y - y0)**2  # (n_particles,n_designs,1)\n        sigma = 0.3\n        return A * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles,n_designs,1)\n\n    s1 = gaussian_source(src1).squeeze(-1)  # (n_particles,n_designs)\n    s2 = gaussian_source(src2).squeeze(-1)\n    s3 = gaussian_source(src3).squeeze(-1)\n\n    return s1 + s2 + s3\n\n\ndef sample_prior(rng, n):\n    # Sample 3 sources with x,y in [-2,2], amplitude in [0.5,1.5]\n    locs = rng.uniform(-2, 2, size=(n, 6))  # (n, 3*2)\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))  # (n,3)\n    params = np.concatenate([locs[:, 0:2], amps[:, 0:1],\n                             locs[:, 2:4], amps[:, 1:2],\n                             locs[:, 4:6], amps[:, 2:3]], axis=1)  # (n,9)\n    return params\n",
+        "statement": "Model 1: Each source is defined by 2D location (x,y) and amplitude A. Parameters shape: (n_particles, 9) representing 3 sources each with (x,y,A). The predict function sums Gaussian-shaped signals from each source at given design points. The prior samples uniform locations in [-2,2] and amplitudes in [0.5,1.5]."
+      },
+      {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources * (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 6)\n\n    src1 = params_exp[:, :, 0:2]  # (n_particles, 1, 2)\n    src2 = params_exp[:, :, 2:4]\n    src3 = params_exp[:, :, 4:6]\n\n    def inverse_distance(src):\n        x0 = src[:, :, 0:1]  # (n_particles,1,1)\n        y0 = src[:, :, 1:2]\n        x = designs_exp[:, :, 0:1]  # (1,n_designs,1)\n        y = designs_exp[:, :, 1:2]\n        dist = np.sqrt((x - x0)**2 + (y - y0)**2)  # (n_particles,n_designs,1)\n        eps = 0.1\n        return 1.0 / (dist + eps)  # (n_particles,n_designs,1)\n\n    s1 = inverse_distance(src1).squeeze(-1)  # (n_particles,n_designs)\n    s2 = inverse_distance(src2).squeeze(-1)\n    s3 = inverse_distance(src3).squeeze(-1)\n\n    return s1 + s2 + s3\n\n\ndef sample_prior(rng, n):\n    # Sample 3 sources with x,y in [-2,2]\n    params = rng.uniform(-2, 2, size=(n, 6))\n    return params\n",
+        "statement": "Model 2: Each source is defined by 2D location (x,y) only with fixed amplitude 1. Parameters shape: (n_particles, 6) for 3 sources. Predict sums inverse distance contributions (no singularity) from each source. Prior samples uniform locations in [-2,2]."
+      }
+    ],
+    "repeat": 0,
+    "seed": 1003,
+    "suite": "boxing",
+    "timeout": 420,
+    "usage": {
+      "cached_calls": 0,
+      "calls": 1,
+      "cost_usd": 0.0019436,
+      "input_tokens": 239,
+      "output_tokens": 1155,
+      "unpriced_calls": 0
+    }
+  },
+  "state": "complete"
+}

@@ -1,4 +1,7 @@
-# DU-23 local handoff
+# DU-23 original local handoff (historical)
+
+Superseded by [DU-23-COMPLETION.md](DU-23-COMPLETION.md). The notes below describe
+the original handoff, not the current branch or validation state.
 
 This checkout is on local branch `gavingzhao/du-23-eval-harness`. The work is committed locally as Gavin Zhao, but has not been pushed or changed in Linear. The next chat can inspect the commit, push the branch, and update DU-23 only after reviewing the remaining validation below. Do not add an AI co-author or contributor.
 

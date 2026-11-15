@@ -1,0 +1,7 @@
+{
+  "bundle_id": "1b1e3dc0aad9d29907aaa0a581549055ba4e4216ed53a9b044aad7e2635c77e5",
+  "files": {
+    "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+    "tagseq_featurecounts_matrix.tsv": "f342b2472bcb35e4b904263dcd52bd8665270b036c775b212fe1ef7a4965f747"
+  }
+}

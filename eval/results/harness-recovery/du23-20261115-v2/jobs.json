@@ -1,0 +1,22 @@
+{
+  "fixture_only": true,
+  "jobs": [
+    {
+      "arm": "fixture",
+      "case_id": "1000",
+      "job_id": "du23-recovery-20261115-v2-crash",
+      "repeat": 0,
+      "seed": 1000,
+      "suite": "boxing"
+    },
+    {
+      "arm": "fixture",
+      "case_id": "1000",
+      "job_id": "du23-recovery-20261115-v2-complete",
+      "repeat": 0,
+      "seed": 1000,
+      "suite": "boxing"
+    }
+  ],
+  "suite": "boxing"
+}

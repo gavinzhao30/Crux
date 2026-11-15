@@ -1,0 +1,16 @@
+{
+  "fault_detected": false,
+  "fault_handled": false,
+  "fault_quote": "",
+  "fault_reason": "The METHODS.md describes the data loading, filtering, and differential expression analysis steps but does not mention any detection or handling of swapped count columns or samples S15 and S10. There is no indication that the agent identified or addressed the swapped samples fault.",
+  "fault_verdict": "missed",
+  "judge_cost_usd": 0.0002704,
+  "judge_usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.0002704,
+    "input_tokens": 424,
+    "output_tokens": 63,
+    "unpriced_calls": 0
+  }
+}

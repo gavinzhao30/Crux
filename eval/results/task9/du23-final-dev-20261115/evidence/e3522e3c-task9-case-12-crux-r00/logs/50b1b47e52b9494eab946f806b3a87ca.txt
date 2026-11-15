@@ -1,0 +1,1 @@
+RESULT: {"ctrl_markers": [], "discordant_markers": [], "flagged_samples": [], "n_ctrl_markers": 0, "n_discordant_markers": 0, "suspect_group": ""}
