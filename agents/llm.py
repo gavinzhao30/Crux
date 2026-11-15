@@ -127,6 +127,7 @@ class LLMConfig(BaseModel):
     max_concurrency: int = Field(8, ge=1)
     max_retries: int = Field(3, ge=0)
     timeout_s: float = Field(120.0, gt=0)
+    max_output_tokens: int | None = Field(None, ge=1)
 
     @model_validator(mode="after")
     def _require_default_model(self) -> LLMConfig:
@@ -437,6 +438,8 @@ class LLM:
     ) -> Any:
         client = self._ensure_client()
         kwargs: dict[str, Any] = {"model": model}
+        if self.config.max_output_tokens is not None:
+            kwargs["max_output_tokens" if self._api == "responses" else "max_completion_tokens"] = self.config.max_output_tokens
         if temperature is not None:
             kwargs["temperature"] = temperature
         if metadata:

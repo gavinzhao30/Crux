@@ -386,6 +386,22 @@ class ParticleBelief:
         """Mixture predictive mean at one design."""
         return self.predictive(design)[0]
 
+    def predict_means(self, designs: Any) -> np.ndarray:
+        """Batch predictive means; sandboxed models execute once per family."""
+        designs = as_designs(designs)
+        numerator = np.zeros(len(designs))
+        denominator = np.zeros(len(designs))
+        for k in range(len(self._families)):
+            predictions = self._predict(k, designs)
+            valid = np.isfinite(predictions)
+            weights = np.exp(self._log_w[k])[:, None] * valid
+            totals = weights.sum(axis=0)
+            means = (weights * np.where(valid, predictions, 0)).sum(axis=0) / np.maximum(totals, 1e-300)
+            mass = np.exp(self._log_pi[k]) * (totals > 0)
+            numerator += mass * means
+            denominator += mass
+        return numerator / np.maximum(denominator, 1e-300)
+
     # ------------------------------------------------------------------ design scoring
 
     def expected_information_gain(self, candidates: Any, goal: Goal = "family") -> np.ndarray:
