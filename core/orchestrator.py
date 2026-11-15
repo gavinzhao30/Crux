@@ -339,6 +339,8 @@ class _Run:
             raise ValueError(f"unknown event type {type_!r}")
         async with self._emit_lock:
             await self._drain_ticks()
+            if type_ == E.PROFILE_DONE:
+                self.manifest.refresh_execution(self.lab, self.deps)
             if type_ == E.EXPERIMENT_STARTED:
                 exp = self.state.experiments[payload["experiment_id"]]
                 # Durable spec precedes both the event and lab.run().
@@ -769,6 +771,7 @@ class _Run:
             "exact_only": "exact",
             "jev": "jev",
             "stated": "stated",
+            "tinker": "tinker",
         }
         for raw in proposals:
             exp = raw.model_copy(deep=True)

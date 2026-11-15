@@ -113,6 +113,19 @@ class RunManifest:
     def now(self):
         return datetime.fromtimestamp(self.clock(), tz=UTC).isoformat()
 
+    def refresh_execution(self, lab, deps):
+        executor = getattr(lab, "executor", None) or deps.executor
+        inputs = getattr(executor, "inputs", None)
+        sandbox = getattr(lab, "sandbox_id", None)
+        self.data.update(input_hashes=dict(getattr(inputs, "files", {})),
+                         input_bundle_id=getattr(inputs, "bundle_id", None),
+                         sandbox_id=sandbox,
+                         sandbox_image_id=getattr(executor, "image_ids", {}).get(sandbox))
+        if deps.llm is not None and hasattr(deps.llm, "config"):
+            self.data["model_ids"] = dict(deps.llm.config.role_models)
+            self.data["config"]["llm"] = deps.llm.config.model_dump(mode="json")
+        self.write()
+
     def write(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, name = tempfile.mkstemp(prefix=".manifest-", dir=self.path.parent)

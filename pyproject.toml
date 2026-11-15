@@ -19,6 +19,9 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest", "ruff"]
+tinker = [
+    "tinker>=0.39",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

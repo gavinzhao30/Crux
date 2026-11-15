@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import secrets
 from collections.abc import Coroutine
 from datetime import datetime
@@ -49,6 +50,23 @@ FAKE_LABS: dict[str, str] = {
     "fake-numeric": "FakeNumericLab",
 }
 
+# Real labs: lab name -> builder. ``bixbench3`` runs one Task 9 case with the swarm's agents;
+# the request names it with ``overrides.case`` (a key from ``task9_cases()``).
+REAL_LABS = ("bixbench3",)
+CASES_ENV = "CRUX_TASK9_CASES"
+
+
+def task9_cases() -> dict[str, dict]:
+    """Task 9 cases under ``$CRUX_TASK9_CASES`` (local folders or Modal staging manifests)."""
+    from labs.bixbench3.swarm_lab import discover_cases
+
+    root = os.environ.get(CASES_ENV)
+    return discover_cases(Path(root)) if root else {}
+
+
+def known_labs() -> list[str]:
+    return sorted([*FAKE_LABS, *REAL_LABS])
+
 
 class DefaultLauncher:
     """Runs ``core.orchestrator.run`` as an asyncio task inside the server process."""
@@ -58,8 +76,8 @@ class DefaultLauncher:
         self._tasks: set[asyncio.Task] = set()  # keep references so tasks are not collected
 
     async def start(self, lab: str, config: str, seed: int, overrides: dict, run_id: str) -> None:
-        if lab not in FAKE_LABS:
-            raise UnknownLab(f"unknown lab {lab!r}; known: {', '.join(sorted(FAKE_LABS))}")
+        if lab not in FAKE_LABS and lab not in REAL_LABS:
+            raise UnknownLab(f"unknown lab {lab!r}; known: {', '.join(known_labs())}")
         coro = self._engine_coroutine(lab, config, seed, overrides, run_id)
         (self.runs_dir / run_id).mkdir(parents=True, exist_ok=True)
         task = asyncio.create_task(coro, name=f"run-{run_id}")
@@ -85,15 +103,39 @@ class DefaultLauncher:
         except ImportError as exc:  # engine not written yet, or a dependency is missing
             raise LauncherUnavailable(f"engine is not importable: {exc}") from exc
 
+        overrides = dict(overrides)
+        case = overrides.pop("case", None)
         try:
             cfg = core_config.load_config(
                 config, overrides=overrides, seed=seed, runs_dir=str(self.runs_dir)
             )
         except (KeyError, ValueError, TypeError) as exc:  # unknown preset or bad override
             raise InvalidRunRequest(f"invalid config: {exc}") from exc
+        if lab in REAL_LABS:
+            return self._task9_coroutine(cfg, case, run_id)
         try:
             lab_obj = getattr(fakes_engine, FAKE_LABS[lab])(seed=seed)
             deps = fakes_engine.fake_deps(lab_obj, seed=seed)
         except (AttributeError, TypeError) as exc:
             raise LauncherUnavailable(f"engine API mismatch: {exc}") from exc
+        return orchestrator.run(lab_obj, cfg, deps, run_id=run_id)
+
+    def _task9_coroutine(self, cfg: Any, case: Any, run_id: str) -> Coroutine[Any, Any, Any]:
+        from core import orchestrator
+
+        cases = task9_cases()
+        if not cases:
+            raise InvalidRunRequest(f"no Task 9 cases: set {CASES_ENV} to a cases folder")
+        if case not in cases:
+            known = ", ".join(sorted(cases))
+            raise InvalidRunRequest(f"unknown case {case!r}; pass overrides.case, one of: {known}")
+        try:
+            from labs.bixbench3.swarm_lab import build_task9_run
+        except ImportError as exc:
+            raise LauncherUnavailable(f"Task 9 lab is not importable: {exc}") from exc
+        info = cases[case]
+        where = {"case_dir": Path(info["path"])} if info["kind"] == "local" else {
+            "manifest": Path(info["path"])
+        }
+        lab_obj, deps = build_task9_run(cfg, **where)
         return orchestrator.run(lab_obj, cfg, deps, run_id=run_id)

@@ -1,0 +1,44 @@
+import asyncio
+import json
+from types import SimpleNamespace
+
+import pytest
+
+from core.events import EventBus
+from core.tracing import TraceSession, current_run
+from scripts import run_proposers
+
+
+@pytest.mark.parametrize("failure", [None, RuntimeError, asyncio.CancelledError])
+def test_standalone_session_flushes_and_resets(tmp_path, monkeypatch, failure):
+    source = tmp_path / "input.json"
+    source.write_text(json.dumps({"brief": {"goal": "test"}, "profile": []}))
+    flushed = []
+    original = TraceSession.flush
+
+    async def flush(self):
+        flushed.append(self.run_id)
+        await original(self)
+
+    async def propose(*args, **kwargs):
+        session = current_run.get()
+        assert session is not None and session.run_id == "standalone"
+        session.record(role="proposer", model="test", prompt_sha256="a" * 64,
+                       messages=[], output={}, usage={})
+        if failure:
+            raise failure()
+        return SimpleNamespace(model_dump_json=lambda **kw: "{}")
+
+    monkeypatch.setattr(run_proposers, "EventBus", lambda rid: EventBus(rid, tmp_path))
+    monkeypatch.setattr(run_proposers, "LLM", lambda cfg: None)
+    monkeypatch.setattr(run_proposers, "propose", propose)
+    monkeypatch.setattr(TraceSession, "flush", flush)
+    args = SimpleNamespace(input=source, run_id="standalone")
+    if failure:
+        with pytest.raises(failure):
+            asyncio.run(run_proposers.run(args))
+    else:
+        asyncio.run(run_proposers.run(args))
+    assert flushed == ["standalone"]
+    assert current_run.get() is None
+    assert len(json.loads((tmp_path / "standalone/traces.json").read_text())["traces"]) == 1

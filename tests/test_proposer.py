@@ -252,3 +252,39 @@ def test_merge_preserves_conflicting_answer_keys(tmp_path):
         assert sum(h.prior for h in hypotheses) == pytest.approx(1)
 
     asyncio.run(scenario())
+
+
+class OmittingClient(Client):
+    """A merge model that drops one question and lists another option twice."""
+
+    async def structured(self, role, schema, messages, n=1):
+        [result] = await super().structured(role, schema, messages, n)
+        if schema is MergePlan:
+            first, second = result.questions[0], result.questions[1]
+            # Repeat one of the second question's options in its other cluster.
+            second.options[1].source_ids.append(second.options[0].source_ids[0])
+            result.questions = [second, *result.questions[2:]]  # drop the first question
+            first_dropped = first.source_ids
+            self.dropped = first_dropped
+        return [result]
+
+
+def test_merge_omissions_are_kept_as_their_own_groups(tmp_path):
+    async def scenario():
+        bus = EventBus("omit", tmp_path)
+        await bus.emit("run.started", {})
+        client = OmittingClient()
+        result = await propose(
+            {}, [], llm=client, memory=FakeMemory(), bus=bus, config=RunConfig()
+        )
+        texts = [q.text for q in result.questions]
+        # Every dropped source survives as its own question; no option is lost.
+        assert texts.count("Which gene identifier format satisfies the contract?") == len(
+            client.dropped
+        )
+        assert "Are sample labels consistent with the profile?" in texts
+        real = [h for h in result.hypotheses if not h.is_null]
+        provenance = [s for h in real for s in result.provenance[h.id]]
+        assert len(provenance) == len(set(provenance)) == 12  # 3 roles x 2 questions x 2 options
+
+    asyncio.run(scenario())

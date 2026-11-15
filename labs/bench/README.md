@@ -54,6 +54,18 @@ python -m labs.bench.run_bench --node http://<jetson>:8765 --compare --max 12   
 
 It prints one line per measurement (level, value, family posteriors, z-score) and stops when one family reaches 0.95 or at `--max`. On a fake node `--compare` is the number to quote: mean measurements to reach 0.95 for EIG against random over seeds 0-9.
 
+## Live view (aim the camera, show the demo)
+
+`cam_stream.py` serves the Jetson's camera to any device on the same network, for aiming the camera at the screen and for showing the rig during the demo:
+
+```
+python3 cam_stream.py --camera 0 --port 8080      # on the Jetson
+```
+
+Open `http://<jetson>:8080/` for the live view and board status (frame rate, SoC temperatures). `/snapshot.jpg` gives a single frame. Stop it before running `node.py` on the real camera, since both open the same device.
+
+With `--screen :1` it mirrors an X desktop instead of the camera. That needs a logged-in desktop session and its `XAUTHORITY`; the login screen belongs to the display manager and can't be read without root.
+
 ## 5. The tint moment
 
 Run with `--tint-after 6 --tint 0.5`. On the fake node the script scales the gain after 6 measurements. On the real rig, cover the lens with a film (or sunglasses lens) at that moment instead; the observed values drop, the loop prints `SURPRISE`, and a `surprise.raised` event is written.

@@ -1,9 +1,12 @@
-"""Run the offline fakes end to end.
+"""Run a lab end to end: the offline fakes, or one BixBench3 Task 9 case with the swarm.
 
     python -m core.cli --lab fake|fake-surprise|fake-numeric --config default --seed 0 --runs-dir runs
+    python -m core.cli --lab bixbench3 --manifest case-manifest.json   # Modal sandbox
+    python -m core.cli --lab bixbench3 --case path/to/case             # this machine, dev only
 
 Prints the run id, the number of events, which questions settled (or ended robust or
-unresolved) and the path of the events file. No network access and no API key are needed.
+unresolved) and the path of the events file. The fakes need no network access and no API
+key; ``bixbench3`` calls the models (OPENAI_API_KEY) and, with ``--manifest``, Modal.
 """
 
 from __future__ import annotations
@@ -30,7 +33,7 @@ FAKE_LABS: dict[str, type[FakeLab | FakeNumericLab]] = {
     "fake-surprise": FakeSurpriseLab,
     "fake-numeric": FakeNumericLab,
 }
-LABS = tuple(FAKE_LABS)
+LABS = (*FAKE_LABS, "bixbench3")
 
 
 def make_lab(name: str, seed: int = 0, latency_s: float = 0.0) -> FakeLab | FakeNumericLab:
@@ -71,11 +74,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--fake-clock", action="store_true", help="use a deterministic clock (reproducible files)"
     )
+    where = parser.add_mutually_exclusive_group()
+    where.add_argument("--manifest", type=Path, help="bixbench3: staged case manifest (Modal)")
+    where.add_argument(
+        "--case", type=Path, help="bixbench3: case folder run on this machine (dev only)"
+    )
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config, seed=args.seed, runs_dir=args.runs_dir)
-    lab = make_lab(args.lab, seed=args.seed)
-    deps = fake_deps(lab, seed=args.seed, clock=FakeClock() if args.fake_clock else time.time)
+    if args.lab == "bixbench3":
+        if args.manifest is None and args.case is None:
+            parser.error("--lab bixbench3 needs --manifest or --case")
+        from labs.bixbench3.swarm_lab import build_task9_run
+
+        lab, deps = build_task9_run(cfg, case_dir=args.case, manifest=args.manifest)
+    else:
+        lab = make_lab(args.lab, seed=args.seed)
+        deps = fake_deps(lab, seed=args.seed, clock=FakeClock() if args.fake_clock else time.time)
     report = asyncio.run(run(lab, cfg, deps, run_id=args.run_id))
 
     events_path = Path(args.runs_dir) / report.run_id / "events.jsonl"
@@ -85,7 +100,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"events:     {n_events}")
     for key in ("settled", "robust", "unresolved"):
         print(f"{key + ':':<11} {'; '.join(outcome[key]) or '-'}")
-    print(f"cost:       ${report.cost_usd:.4f} (fake)")
+    fake = " (fake)" if args.lab in FAKE_LABS else ""
+    print(f"cost:       ${report.cost_usd:.4f}{fake}")
+    if report.artifacts:
+        print(f"artifacts:  {', '.join(a.name for a in report.artifacts)}")
     print(f"events at:  {events_path.as_posix()}")
     return 0
 
