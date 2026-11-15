@@ -91,6 +91,9 @@ class _Output:
         return "\n".join([*self.head, *self.tail])
 
 
+MAX_DIAGNOSTIC_TIMEOUT_S = 120
+
+
 class ModalExecutor:
     def __init__(
         self,
@@ -99,8 +102,12 @@ class ModalExecutor:
         *,
         app_name: str = "crux-task9",
         minimal_image: bool = False,
+        diagnostic_timeout_s: int = MAX_DIAGNOSTIC_TIMEOUT_S,
         on_event: Callable[[str, dict], None] | None = None,
     ):
+        if not 1 <= diagnostic_timeout_s <= MAX_DIAGNOSTIC_TIMEOUT_S:
+            raise ValueError("Diagnostic timeout must be between 1 and 120 seconds")
+        self.diagnostic_timeout_s = diagnostic_timeout_s
         self.inputs = inputs
         self.runs_dir = runs_dir
         self.app_name = app_name

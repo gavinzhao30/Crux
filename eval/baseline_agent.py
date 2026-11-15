@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Literal
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from execution.sandbox import ModalExecutor
+from execution.sandbox import MAX_DIAGNOSTIC_TIMEOUT_S, ModalExecutor
 from execution.staging import Task9Inputs
 from labs.bixbench3.task9_contract import PROTOCOL, load_contract, load_prompt
 
@@ -150,17 +150,23 @@ async def run_baseline(
                 if remaining_seconds <= 0:
                     status = "execution_limit"
                     break
+                timeout = min(
+                    remaining_seconds,
+                    max(1, action.timeout_seconds or executor.diagnostic_timeout_s),
+                    executor.diagnostic_timeout_s,
+                )
                 feedback = await executor.run_code(
                     sandbox_id,
                     action.action,
                     action.content,
                     require_result=False,
-                    timeout_s=min(remaining_seconds, max(1, action.timeout_seconds or 120), 600),
+                    timeout_s=timeout,
                 )
                 execution_log.append(
                     {
                         "language": action.action,
                         "seconds": feedback["seconds"],
+                        "timeout_s": timeout,
                         "valid": feedback["valid"],
                         "log_ref": feedback["log_ref"],
                     }
@@ -193,6 +199,7 @@ async def run_baseline(
             "max_calls": max_calls,
             "usd_cap": str(usd_cap),
             "execution_seconds": execution_seconds,
+            "diagnostic_timeout_s": executor.diagnostic_timeout_s,
             "max_output_tokens": max_output_tokens,
             "input_usd_per_million": str(input_usd_per_million),
             "output_usd_per_million": str(output_usd_per_million),
@@ -207,7 +214,11 @@ async def run_baseline(
 
 
 async def _run(args: argparse.Namespace) -> None:
-    executor = ModalExecutor(Task9Inputs.load(args.manifest), minimal_image=args.minimal)
+    executor = ModalExecutor(
+        Task9Inputs.load(args.manifest),
+        minimal_image=args.minimal,
+        diagnostic_timeout_s=args.diagnostic_timeout,
+    )
     prompt, source = load_prompt(args.prompt)
     async with AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=0) as client:
         report = await run_baseline(
@@ -232,6 +243,12 @@ def main() -> None:
     parser.add_argument("--prompt", type=Path)
     parser.add_argument("--input-rate", type=Decimal, required=True, help="USD per million tokens")
     parser.add_argument("--output-rate", type=Decimal, required=True, help="USD per million tokens")
+    parser.add_argument(
+        "--diagnostic-timeout",
+        type=int,
+        default=MAX_DIAGNOSTIC_TIMEOUT_S,
+        help="Shared baseline/swarm diagnostic timeout in seconds, at most 120",
+    )
     parser.add_argument("--minimal", action="store_true")
     asyncio.run(_run(parser.parse_args()))
 
