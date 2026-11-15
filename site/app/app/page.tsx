@@ -10,6 +10,7 @@ import { Scoreboard } from "@/components/scoreboard";
 import { Chip } from "@/components/verdict-chip";
 import { LIBRARY_PAPER } from "@/lib/claim-library";
 import { dateTime, fileSize, plural } from "@/lib/format";
+import { paperDisplayTitle } from "@/lib/paper-display";
 import { requireUser } from "@/lib/server/auth";
 import { listPapers, type PaperSummary } from "@/lib/server/papers";
 
@@ -18,8 +19,8 @@ export const metadata: Metadata = { title: "Home" };
 function StatusChip({ paper }: { paper: PaperSummary }) {
   if (paper.status === "extracted") {
     return (
-      <Chip className={paper.checkableCount > 0 ? "border-v-holds/40 bg-v-holds/10 text-v-holds" : undefined}>
-        {paper.checkableCount} of {plural(paper.claimCount, "claim")} checkable
+      <Chip>
+        {plural(paper.claimCount, "claim")} extracted
       </Chip>
     );
   }
@@ -213,8 +214,7 @@ export default async function HomePage() {
             <div>
               <p className="text-lg font-medium">No papers yet</p>
               <p className="mt-2 max-w-md leading-relaxed text-muted-foreground">
-                Start with a PDF that has selectable text. Its claims are listed by kind, and the ones that match the
-                curated library can be audited straight away.
+                Start with a text-based PDF. Explore its extracted claims alongside their supporting passages.
               </p>
             </div>
             <UploadDropzone />
@@ -229,7 +229,7 @@ export default async function HomePage() {
                 >
                   <FileTextIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <div className="min-w-0 flex-1 basis-56">
-                    <p className="truncate font-medium">{p.title || p.filename}</p>
+                    <p className="truncate font-medium">{paperDisplayTitle(p.title, p.filename)}</p>
                     <p className="mt-0.5 truncate text-sm text-muted-foreground">
                       {p.title ? `${p.filename} · ` : ""}
                       {plural(p.pages, "page")} · {fileSize(p.size)} · {dateTime(p.createdAt)}

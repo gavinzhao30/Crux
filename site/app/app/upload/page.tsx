@@ -8,24 +8,24 @@ export const metadata: Metadata = { title: "Upload a paper" };
 
 const FACTS = [
   {
-    term: "Where it goes",
-    body: "The file is kept on this server under your account. Nobody else can list or open it.",
+    term: "Your paper, your workspace",
+    body: "Your PDF is saved privately under your account, ready to return to.",
   },
   {
-    term: "What is sent out",
-    body: "Nothing on upload. Extracting claims sends the paper's text to the model provider.",
+    term: "From text to claims",
+    body: "Choose Extract claims to send the paper's text to the model and identify its scientific statements.",
   },
   {
-    term: "What can be checked",
-    body: "Claims that match the four curated ones. The rest are listed as not yet checkable.",
+    term: "Evidence at every step",
+    body: "Inspect each extracted claim alongside its supporting passage from the paper.",
   },
 ];
 
 export default function UploadPage() {
   return (
     <div className="space-y-10">
-      <PageHeader title="Upload a paper">
-        One PDF at a time. Text is extracted on the server; scanned pages without a text layer can&apos;t be read yet.
+      <PageHeader eyebrow="Paper workspace" title="Start with a paper.">
+        Bring the research. Crux brings the questions. Upload a text-based PDF to begin extracting its claims.
       </PageHeader>
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">

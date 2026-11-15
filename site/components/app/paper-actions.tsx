@@ -51,13 +51,13 @@ export function ExtractButton({
   );
 }
 
-export function DeletePaperButton({ paperId, name }: { paperId: string; name: string }) {
+export function DeletePaperButton({ paperId, name, disabled }: { paperId: string; name: string; disabled?: boolean }) {
   const [pending, start] = useTransition();
   return (
     <Dialog>
       <DialogTrigger
         render={
-          <Button size="lg" variant="ghost" aria-label="Delete this paper">
+          <Button size="lg" variant="ghost" aria-label="Delete this paper" disabled={disabled}>
             <Trash2Icon data-icon="inline-start" />
             Delete
           </Button>

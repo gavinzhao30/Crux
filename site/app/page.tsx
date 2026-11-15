@@ -138,39 +138,14 @@ const LOOPS = [
 
 const CAVEATS = [
   {
-    title: "Three single-agent runs scored 0, and they count.",
-    body: "One decided the mounted data folder was empty; two hit the $2 cap with no outputs. Leaving out all three cases, which can only favour the single agent, gives +0.104 (+0.057 to +0.154) on 49 cases.",
+    title: "A focused pilot.",
+    body: "One task, 52 cases across four suites, one run per approach, and checks for six known fault types. All three zero-score single-agent runs count; one suite is inconclusive on its own. Published-count results are not comparable to the full raw-read benchmark.",
     path: BATCH05,
   },
   {
-    title: "One of the four suites is not significant on its own.",
-    body: "Per suite the difference was +0.203, +0.123, +0.147 and +0.112; the last one's interval (−0.010 to +0.276) includes zero.",
-    path: BATCH05,
-  },
-  {
-    title: "We do not compare to the 0.523 record.",
-    body: "The BixBench3 record covers all 20 tasks from raw reads. Ours is task 9 from the published counts, so the numbers are not comparable.",
-    path: "eval/results/task9_runs.md",
-  },
-  {
-    title: "On the reused seed-43 suite, scores were tied.",
-    body: "Pre-registered, the paired difference was −0.064 (−0.242 to 0.080); with three crashed swarm runs repeated, +0.068 (−0.013 to 0.167).",
+    title: "The selection advantage is still open.",
+    body: "Earlier Task 9 comparisons were inconclusive, and random diagnostic selection matched information gain. BoxingGym also showed no EIG advantage. General-purpose auditing and detection of unknown fault types remain unproven.",
     path: BATCH03,
-  },
-  {
-    title: "Random experiment choice did as well there.",
-    body: "A swarm that picked its checks at random matched information-gain selection on score and cost. A BoxingGym study found no EIG advantage either.",
-    path: BATCH03,
-  },
-  {
-    title: "The checks match the planted faults.",
-    body: "The library holds diagnostics for exactly the six fault types the suites plant. This shows the checks catch what they were written for, not unknown faults.",
-    path: BATCH05,
-  },
-  {
-    title: "One task, small samples.",
-    body: "BixBench3 task 9 of 20, from published counts, one run per arm per case.",
-    path: BATCH05,
   },
 ];
 
@@ -405,15 +380,16 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="mt-16">
-              <h3 className="font-display text-3xl">What it does not show</h3>
-              <ul className="mt-8 grid gap-x-12 gap-y-0 md:grid-cols-2">
+            <div className="mt-8 max-w-4xl border-t pt-4">
+              <h3 className="text-xs font-medium text-muted-foreground">What it does not show</h3>
+              <ul className="mt-3 grid gap-x-8 gap-y-3 md:grid-cols-2">
                 {CAVEATS.map((c) => (
-                  <li key={c.title} className="border-t py-6">
-                    <p className="font-medium">{c.title}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{c.body}</p>
-                    <p className="mt-3">
-                      <Source path={c.path} />
+                  <li key={c.title} className="text-xs leading-relaxed text-muted-foreground">
+                    <p><span className="font-medium text-foreground/80">{c.title}</span> {c.body}</p>
+                    <p className="mt-1">
+                      <a href={repoFile(c.path)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[0.7rem] underline decoration-border underline-offset-4 hover:text-foreground">
+                        Full report <ArrowUpRightIcon className="size-3" aria-hidden="true" />
+                      </a>
                     </p>
                   </li>
                 ))}
