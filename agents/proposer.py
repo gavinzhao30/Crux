@@ -72,6 +72,46 @@ class Proposals(BaseModel):
     provenance: dict[str, list[str]] = Field(default_factory=dict)
 
 
+def _complete_plan(plan: MergePlan, sources: dict, options: dict) -> MergePlan:
+    """Keep the merge model's grouping, but never lose a source.
+
+    Real merge calls sometimes leave out a question or an option, or list one twice (the
+    first real Task 9 run failed on exactly this). A repeated reference keeps its first
+    place. A question left out becomes its own group; an option left out becomes its own
+    cluster in its question's group. References to unknown sources, or to another
+    question's options, are kept so that ``propose`` still rejects them.
+    """
+    seen_questions: set[str] = set()
+    seen_options: set[str] = set()
+    groups: list[tuple[list[str], list[OptionGroup]]] = []
+    for group in plan.questions:
+        question_ids = [s for s in group.source_ids if s not in seen_questions]
+        if not question_ids:
+            continue
+        seen_questions.update(question_ids)
+        clusters = []
+        for cluster in group.options:
+            option_ids = [o for o in cluster.source_ids if o not in seen_options]
+            if option_ids:
+                seen_options.update(option_ids)
+                clusters.append(OptionGroup(source_ids=option_ids))
+        groups.append((question_ids, clusters))
+    for source in sources:
+        if source not in seen_questions:
+            groups.append(([source], []))
+            seen_questions.add(source)
+    owner = {q: i for i, (question_ids, _) in enumerate(groups) for q in question_ids}
+    for option_id, (source, _role, _option) in options.items():
+        if option_id not in seen_options:
+            groups[owner[source]][1].append(OptionGroup(source_ids=[option_id]))
+            seen_options.add(option_id)
+    return MergePlan.model_construct(
+        questions=[
+            QuestionGroup.model_construct(source_ids=q, options=c) for q, c in groups
+        ]
+    )
+
+
 async def propose(
     brief: dict,
     profile: list[Evidence],
@@ -150,7 +190,7 @@ async def propose(
             {"role": "user", "content": json.dumps(data)},
         ],
     )
-    plan = MergePlan.model_validate(raw_plan)
+    plan = _complete_plan(MergePlan.model_validate(raw_plan), sources, options)
     used_questions, used_options = [], []
     for group in plan.questions:
         if any(source not in sources for source in group.source_ids):
