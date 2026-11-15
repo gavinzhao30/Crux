@@ -82,7 +82,7 @@ def _variants(counts, samples, rng):
 def _apply(fault, indices, genes, counts, samples, rng):
     ids = samples.loc[indices, "sample_id"].tolist()
     if fault == "sample_swap":
-        counts.loc[:, ids] = counts[ids[::-1]].to_numpy()
+        counts.loc[:, ids] = counts[ids[::-1]].to_numpy(copy=True)
     elif fault == "label_inversion":
         samples.loc[indices, "condition"] = samples.loc[
             indices[2:] + indices[:2], "condition"
