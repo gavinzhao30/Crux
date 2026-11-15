@@ -67,11 +67,13 @@ class BoxingLab:
     sigma = .5
     max_measurements = 20
 
-    def __init__(self, seed, budgets):
+    def __init__(self, seed, budgets, defer_grading=False):
         self.env = LocationFinding(seed)
         self.budgets = budgets
         self.max_measurements = max(budgets)
         self.scores = {}
+        self.predictions = {}
+        self.defer_grading = defer_grading
         self.diagnostics = {}
 
     def brief(self):
@@ -94,7 +96,10 @@ class BoxingLab:
         self.diagnostics[step] = belief_diagnostics(belief)
         if step in self.budgets:
             predictions = belief.predict_means(self.env.evaluation_points())
-            self.scores[step] = self.env.score(predictions)
+            if self.defer_grading:
+                self.predictions[step] = np.asarray(predictions).tolist()
+            else:
+                self.scores[step] = self.env.score(predictions)
 
     async def deliver(self, state):
         return []
@@ -130,19 +135,21 @@ def belief_diagnostics(belief):
                               for name in belief.family_names}}
 
 
-async def run_episode(arm, seed, budgets, directory, llm, proposals=None, particles=256, simulations=16):
+async def run_episode(arm, seed, budgets, directory, llm, proposals=None, particles=256, simulations=16,
+                      defer_grading=False):
     started = time.monotonic()
     env = LocationFinding(seed)
     rng = np.random.default_rng(np.random.SeedSequence([seed, 410]))
     scores, failure, target, history = {}, None, None, []
     lab = None
     diagnostics = {}
+    heldout_predictions = {}
     initial = llm.usage_totals()
     session = TraceSession(directory.name, lambda: arm)
     token = current_run.set(session)
     try:
         if arm in {"crux_random", "crux_eig"}:
-            lab = BoxingLab(seed, budgets)
+            lab = BoxingLab(seed, budgets, defer_grading=defer_grading)
             cfg = load_config(runs_dir=str(directory.parent), seed=seed, critic=False,
                               null_hypothesis=False, numeric_eig_goal="total",
                               numeric_stop_on_settle=False, numeric_particles=particles,
@@ -164,7 +171,10 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
             for step, observations in snapshots.items():
                 predictions = await ask(llm, Predictions, {"task": "Predict intensities at these points",
                     "observations": observations, "points": env.evaluation_points().tolist()})
-                scores[step] = env.score(predictions.values)
+                if defer_grading:
+                    heldout_predictions[step] = predictions.values
+                else:
+                    scores[step] = env.score(predictions.values)
         else:
             family = ModelFamily("sources", predict_sources, source_prior)
             belief = ParticleBelief([family], .5, n_particles=particles, n_sim=simulations,
@@ -183,7 +193,11 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
                 belief.update(point, observation)
                 diagnostics[step] = belief_diagnostics(belief)
                 if step in budgets:
-                    scores[step] = env.score(belief.predict_means(env.evaluation_points()))
+                    prediction = belief.predict_means(env.evaluation_points())
+                    if defer_grading:
+                        heldout_predictions[step] = np.asarray(prediction).tolist()
+                    else:
+                        scores[step] = env.score(prediction)
         for step in sorted(scores):
             if scores[step] <= TARGET_ERROR and target is None:
                 target = step
@@ -193,13 +207,17 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
         if lab is not None:
             scores, history = lab.scores, lab.env.history
             diagnostics = lab.diagnostics
+            heldout_predictions = lab.predictions
         await session.flush()
         current_run.reset(token)
     target = next((step for step in sorted(scores) if scores[step] <= TARGET_ERROR), None)
     totals = llm.usage_totals()
     usage = {k: totals[k] - initial[k] for k in totals}
-    rows = [{"arm": arm, "seed": seed, "budget": b, "status": "ok" if b in scores else "failed",
-             "mse": scores.get(b, FAILURE_ERROR), "failure": (failure or "NoPrediction") if b not in scores else None}
+    rows = [{"arm": arm, "seed": seed, "budget": b,
+             "status": "pending_grade" if defer_grading and b in heldout_predictions else
+                       "ok" if b in scores else "failed",
+             "mse": scores.get(b, None if defer_grading else FAILURE_ERROR),
+             "failure": (failure or "NoPrediction") if b not in scores and b not in heldout_predictions else None}
             for b in budgets]
     record = {"rows": rows, "seed": seed, "arm": arm, "history": history, "usage": usage,
               "seconds": time.monotonic() - started, "target_reached_at_checkpoint": target,
@@ -207,6 +225,8 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
               "sources_sha256": fingerprint(env._sources), "traces": session.refs,
               "particles": particles, "simulations": simulations}
     record["belief_diagnostics"] = diagnostics
+    if defer_grading:
+        record["heldout_predictions"] = heldout_predictions
     directory.mkdir(parents=True, exist_ok=True)
     temp = directory / "episode.tmp"
     temp.write_text(json.dumps(jsonable(record), indent=2) + "\n")

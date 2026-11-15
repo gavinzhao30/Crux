@@ -1,0 +1,15 @@
+{
+  "job": {
+    "arm": "crux",
+    "case_id": "1001",
+    "config": null,
+    "job_id": "boxing-1001-crux-r00",
+    "model": "gpt-4.1-mini",
+    "proposal_error": "ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\n  File \"<string>\", line 77, in <module>\n  File \"<string>\", line 64, in main\n  File \"<model>\", line 8, in predict\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)",
+    "repeat": 0,
+    "seed": 1001,
+    "suite": "boxing",
+    "timeout": 600
+  },
+  "state": "failed"
+}
