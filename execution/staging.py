@@ -46,7 +46,8 @@ class Task9Inputs:
         )
 
 
-def stage(volume: modal.Volume, counts: Path, samples: Path, metadata: Path | None) -> Task9Inputs:
+def stage(volume: modal.Volume, counts: Path, samples: Path, metadata: Path | None,
+          *, temp_dir: Path | None = None) -> Task9Inputs:
     if counts.name != COUNTS:
         raise ValueError(f"Supply the published Task 9 matrix named {COUNTS}")
     sources = {COUNTS: counts, SAMPLES: samples}
@@ -54,7 +55,7 @@ def stage(volume: modal.Volume, counts: Path, samples: Path, metadata: Path | No
         if metadata.name != METADATA:
             raise ValueError(f"Supply only the task's {METADATA} as optional metadata")
         sources[METADATA] = metadata
-    with TemporaryDirectory() as directory:
+    with TemporaryDirectory(dir=temp_dir) as directory:
         snapshot = Path(directory)
         digests = {}
         for name, path in sources.items():

@@ -1,0 +1,392 @@
+{
+  "artifacts": [],
+  "budget": {
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "seconds": 37.923762,
+    "tokens_in": 0,
+    "tokens_out": 0
+  },
+  "config": {
+    "cost_lambda": 0.2,
+    "critic": false,
+    "eps": 0.1,
+    "lessons": false,
+    "llm": {
+      "cache": false,
+      "cache_dir": "runs\\.cache\\llm",
+      "max_concurrency": 8,
+      "max_output_tokens": 2048,
+      "max_retries": 1,
+      "prices_per_mtok": {
+        "gpt-4.1-mini": [
+          0.4,
+          1.6
+        ]
+      },
+      "role_models": {
+        "default": "gpt-4.1-mini"
+      },
+      "role_temperature": {
+        "default": 0.2,
+        "predictor": 0.8,
+        "proposer": 0.7
+      },
+      "timeout_s": 60.0
+    },
+    "max_critic_rounds": 2,
+    "max_experiments_per_question": 4,
+    "max_llm_calls": 40,
+    "max_regenerations": 2,
+    "max_seconds": 1800.0,
+    "max_usd": 2.0,
+    "memory": "pastdev",
+    "min_eig_bits": 0.05,
+    "n_predictor_samples": 8,
+    "name": "default",
+    "null_hypothesis": false,
+    "null_prior": 0.15,
+    "numeric_eig_goal": "total",
+    "numeric_move_steps": 4,
+    "numeric_particles": 512,
+    "numeric_simulations": 64,
+    "numeric_stop_on_settle": false,
+    "predictor": "sampled",
+    "proposers": 3,
+    "reject_below": 0.02,
+    "runs_dir": "eval\\results\\boxing\\repair-main-20261115",
+    "search": true,
+    "seed": 4015,
+    "selection": "random",
+    "settle": 0.9
+  },
+  "diagnostics": [
+    {
+      "experiment_id": "m1:x=1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:00.388705+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "b463ffa3172e74f632887101d3935d2dc55958f8caa98c5edbba08a337c48be9"
+    },
+    {
+      "experiment_id": "m2:x=0.666667,y=-1.33333",
+      "recorded_at": "2026-11-15T09:04:02.046349+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": -1.3333333333333335
+        },
+        "query": null
+      },
+      "spec_hash": "552aa51c85dd3d8d9fa57be95652e2ecd0b164a370f59dbb4b708fd8529b4cc0"
+    },
+    {
+      "experiment_id": "m3:x=-0.666667,y=1.33333",
+      "recorded_at": "2026-11-15T09:04:06.150243+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "c6d639e5ae60547cd859461ea931697babcb6627e3e78b038d42e3cb198e5dde"
+    },
+    {
+      "experiment_id": "m4:x=-2,y=-1.33333",
+      "recorded_at": "2026-11-15T09:04:07.694407+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -2.0,
+          "y": -1.3333333333333335
+        },
+        "query": null
+      },
+      "spec_hash": "a4fb78d1e147e36c3ff1cef3cf980d4930fff77ec6cfd8b6ee18244f586a2312"
+    },
+    {
+      "experiment_id": "m5:x=-1.33333,y=0.666667",
+      "recorded_at": "2026-11-15T09:04:10.363820+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "dc6a90455b0ef3021e788e32c2935e7102f09984e9694fdc51c09cc81de283c7"
+    },
+    {
+      "experiment_id": "m6:x=0,y=-1.33333",
+      "recorded_at": "2026-11-15T09:04:13.661312+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": -1.3333333333333335
+        },
+        "query": null
+      },
+      "spec_hash": "5d4dbb3833361c51dc0e02e88716eb67b6e8a73837361b83770a31bdf5b8a889"
+    },
+    {
+      "experiment_id": "m7:x=0,y=0.666667",
+      "recorded_at": "2026-11-15T09:04:16.469265+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "d9277f11bade98a6ae3d416b3173e240ab53f43e8e786a6363ea682ce673c3fd"
+    },
+    {
+      "experiment_id": "m8:x=-2,y=0",
+      "recorded_at": "2026-11-15T09:04:19.032898+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -2.0,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "d029205bf5461c166be7740aa9d54a04d4992e227bd53c90c9783d11c130e0ea"
+    },
+    {
+      "experiment_id": "m9:x=-1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:20.210258+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "9190911410f1d5c705dee17c280140a95c16812013fd047ae5d0bca0340b66f6"
+    },
+    {
+      "experiment_id": "m10:x=-1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:21.937420+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "9190911410f1d5c705dee17c280140a95c16812013fd047ae5d0bca0340b66f6"
+    },
+    {
+      "experiment_id": "m11:x=1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:23.636072+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "b463ffa3172e74f632887101d3935d2dc55958f8caa98c5edbba08a337c48be9"
+    },
+    {
+      "experiment_id": "m12:x=0,y=-0.666667",
+      "recorded_at": "2026-11-15T09:04:25.361457+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "6edafc8e9dbf6a3fe1da41f29aa9b1593f471a5308adb2ccdfe2378e61dfa81d"
+    },
+    {
+      "experiment_id": "m13:x=2,y=0",
+      "recorded_at": "2026-11-15T09:04:27.541635+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 2.0,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "306e175fbada3f5fd588d33081d6bd4781c335a15d84ec63d876e4805525dd98"
+    },
+    {
+      "experiment_id": "m14:x=1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:28.653587+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "b463ffa3172e74f632887101d3935d2dc55958f8caa98c5edbba08a337c48be9"
+    },
+    {
+      "experiment_id": "m15:x=0,y=0",
+      "recorded_at": "2026-11-15T09:04:29.803746+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "4ac25deb8f9ef759373cadf257b6321bc3c766ae105713c90b4270e3b66ca2b6"
+    },
+    {
+      "experiment_id": "m16:x=2,y=0",
+      "recorded_at": "2026-11-15T09:04:32.229390+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 2.0,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "306e175fbada3f5fd588d33081d6bd4781c335a15d84ec63d876e4805525dd98"
+    },
+    {
+      "experiment_id": "m17:x=-1.33333,y=2",
+      "recorded_at": "2026-11-15T09:04:33.057827+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 2.0
+        },
+        "query": null
+      },
+      "spec_hash": "e19daa496c6963b61e3a5485302e275e5ebb380c25ab0766f433d512adc5cf40"
+    },
+    {
+      "experiment_id": "m18:x=-1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:33.979073+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "9190911410f1d5c705dee17c280140a95c16812013fd047ae5d0bca0340b66f6"
+    },
+    {
+      "experiment_id": "m19:x=-1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:35.415423+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "9190911410f1d5c705dee17c280140a95c16812013fd047ae5d0bca0340b66f6"
+    },
+    {
+      "experiment_id": "m20:x=1.33333,y=0",
+      "recorded_at": "2026-11-15T09:04:36.252224+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "b463ffa3172e74f632887101d3935d2dc55958f8caa98c5edbba08a337c48be9"
+    }
+  ],
+  "ended_at": "2026-11-15T09:04:37.279115+00:00",
+  "execution_backend": "BoxingLab",
+  "git_commit": "ed8cda3bd4c774117f3bb4b1de4225cc28634411",
+  "git_dirty": true,
+  "grader_commit": "ed8cda3bd4c774117f3bb4b1de4225cc28634411",
+  "input_bundle_id": null,
+  "input_hashes": {},
+  "lab": "boxing",
+  "model_ids": {
+    "default": "gpt-4.1-mini"
+  },
+  "prompt_hashes": {
+    "agents/prompts/bioinformatician.md": "1791da788cffdbe741dad414868f1136014bfb97123e70f97a782d382be7305d",
+    "agents/prompts/critic.md": "6b4f6f4ef7ed0975cda344fd437e1cc5354c140f1fde3b897b92b652f30bd265",
+    "agents/prompts/merge.md": "60d5930b8f6e3ce314385b52aeca8b8eff5a7540a51029a665e3f56f9fa2cb32",
+    "agents/prompts/referee.md": "4beb960e0431470878e11ce97f730fa551de63457bc7475a41951abfc9d0fb7a",
+    "agents/prompts/reporter.md": "0ecaf12c4540ea6d4f799991184e1b8837cc8368241280bc8b4ea8f368ce69b2",
+    "agents/prompts/sceptic.md": "0aed208acc2b03150dc01edf7de1df4d3355469aea85e499ad624e146d2940cf",
+    "agents/prompts/statistician.md": "f3477e178e870cc927b6d05441b76fcb57fd4c8b1c2f59360448f5d5704df93b"
+  },
+  "run_id": "repair-main-20261115-crux_random-4015",
+  "sandbox_id": null,
+  "sandbox_image_id": null,
+  "sandbox_image_recipe_sha256": "a89dbe618631f5b9c0825d89dd20125fcbb404157ef654afe7080ac7dae2e3b4",
+  "schema_version": 1,
+  "seeds": {
+    "orchestrator": 4015,
+    "particles": 4015
+  },
+  "started_at": "2026-11-15T09:03:59.355353+00:00",
+  "status": "ok",
+  "total_cost_usd": 0.0,
+  "total_tokens": 0,
+  "traces": [],
+  "tracing": {
+    "dropped": 0,
+    "errors": [],
+    "pending": 0
+  },
+  "usage": {
+    "calls": 0,
+    "cost_usd": 0.0,
+    "input_tokens": 0,
+    "known_cost_usd": 0.0,
+    "output_tokens": 0,
+    "unpriced_calls": 0
+  }
+}

@@ -1,0 +1,1 @@
+RESULT: {"alternative_pair": ["S16", "S15"], "candidate_conditions": ["C10", "Ctrl"], "candidate_gap": 1.230273, "candidate_line": "T98G", "candidate_pair": ["S02", "S09"], "flagged_samples": [], "min_line_gap": 1.121954, "preferred_pair": ["S16", "S15"], "skipped_samples": [], "swap_gain": -1.354255, "swap_ratio": -1.100776}

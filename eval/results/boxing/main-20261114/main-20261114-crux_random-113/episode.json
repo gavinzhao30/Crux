@@ -1,0 +1,55 @@
+{
+  "rows": [
+    {
+      "arm": "crux_random",
+      "seed": 113,
+      "budget": 5,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ValueError"
+    },
+    {
+      "arm": "crux_random",
+      "seed": 113,
+      "budget": 10,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ValueError"
+    },
+    {
+      "arm": "crux_random",
+      "seed": 113,
+      "budget": 20,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ValueError"
+    }
+  ],
+  "seed": 113,
+  "arm": "crux_random",
+  "history": [],
+  "usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "seconds": 1.4220000002533197,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "0b4cc78c76aa761eeeb280ed5b9ff03285fc4fe94ccca91e801990d533d15b15",
+  "sources_sha256": "6bba11ff703643768aa8597f2edac08347cc354814f0f58149fda5d7b2764412",
+  "traces": [],
+  "particles": 256,
+  "simulations": 16,
+  "belief_diagnostics": {},
+  "paired_proposal_usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 890,
+    "cost_usd": 0.0015108000000000066,
+    "unpriced_calls": 0
+  }
+}

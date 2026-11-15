@@ -1,0 +1,192 @@
+{
+  "rows": [
+    {
+      "arm": "oracle",
+      "seed": 3000,
+      "budget": 3,
+      "status": "ok",
+      "mse": 54.720827957993684,
+      "failure": null
+    },
+    {
+      "arm": "oracle",
+      "seed": 3000,
+      "budget": 5,
+      "status": "ok",
+      "mse": 55.560625062610896,
+      "failure": null
+    }
+  ],
+  "seed": 3000,
+  "arm": "oracle",
+  "history": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      1.38
+    ],
+    [
+      [
+        0.6666666666666665,
+        1.333333333333333
+      ],
+      1.38
+    ],
+    [
+      [
+        -0.6666666666666667,
+        1.333333333333333
+      ],
+      31.68
+    ],
+    [
+      [
+        -2.0,
+        -0.6666666666666667
+      ],
+      0.94
+    ],
+    [
+      [
+        0.6666666666666665,
+        -1.3333333333333335
+      ],
+      1.29
+    ]
+  ],
+  "usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "seconds": 0.1869999999180436,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "0b9c90d518858f3d3465fa4eeb59b513c03b8c87646a68f8cf2842c8f26d7792",
+  "sources_sha256": "5524030ffcb6a2a34b65e1389c3efcedfbf747f1daeafe59c0b00cb5d9aa7c63",
+  "traces": [],
+  "particles": 512,
+  "simulations": 64,
+  "move_steps": 4,
+  "belief_diagnostics": {
+    "1": {
+      "moves": {
+        "sources": {
+          "ess_before": 13.96343471469661,
+          "accepted": 65,
+          "proposed": 2048,
+          "unique_particles": 72
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          1.198182823423554,
+          1.2285726668372823,
+          1.2105806244531863,
+          1.1897185607081169,
+          1.1894611592953814,
+          1.264720303482739
+        ]
+      }
+    },
+    "2": {
+      "moves": {
+        "sources": {
+          "ess_before": 13.96343471469661,
+          "accepted": 65,
+          "proposed": 2048,
+          "unique_particles": 72
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 266.72479325402435
+      },
+      "parameter_std": {
+        "sources": [
+          1.198182823423554,
+          1.2285726668372823,
+          1.2105806244531863,
+          1.1897185607081169,
+          1.1894611592953814,
+          1.264720303482739
+        ]
+      }
+    },
+    "3": {
+      "moves": {
+        "sources": {
+          "ess_before": 13.96343471469661,
+          "accepted": 65,
+          "proposed": 2048,
+          "unique_particles": 72
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          0.7504423653363523,
+          1.3463845978612183,
+          1.3777258625968367,
+          0.4371659086764749,
+          1.8553600204225775,
+          0.18251157425355768
+        ]
+      }
+    },
+    "4": {
+      "moves": {
+        "sources": {
+          "ess_before": 13.96343471469661,
+          "accepted": 65,
+          "proposed": 2048,
+          "unique_particles": 72
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          0.3263879301348168,
+          0.4953130295913716,
+          0.29288887671650243,
+          0.39178593467532974,
+          0.48650440480116397,
+          0.3526222634766455
+        ]
+      }
+    },
+    "5": {
+      "moves": {
+        "sources": {
+          "ess_before": 13.96343471469661,
+          "accepted": 65,
+          "proposed": 2048,
+          "unique_particles": 72
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          0.3798967122625264,
+          0.7401933310694256,
+          1.0150781878422295,
+          1.4130789656560956,
+          0.9043937833837484,
+          0.23879046432808837
+        ]
+      }
+    }
+  }
+}

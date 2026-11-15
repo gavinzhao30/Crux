@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Gaussian Mixture Model with three sources. Each source has location (x,y) uniform in [-2,2], and equal amplitude 1. The predict function sums three Gaussian blobs with fixed width (sigma=0.3). The sample_prior samples source locations uniformly.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources * 2 coords each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # shapes broadcast to (n_particles, n_designs, 3, 2)\n    diff = diff.transpose(0,1,2,3)  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    gaussians = np.exp(-dist_sq/(2*sigma**2))\n    signals = np.sum(gaussians, axis=2)  # sum over sources (n_particles, n_designs)\n    return signals\n\ndef sample_prior(rng, n):\n    # Uniform locations in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coordinates each\n"
+    },
+    {
+      "statement": "Model 2: Sum of three radial basis functions with exponential decay, each source location uniform in [-2,2]^2, decay rate fixed at 1. The predict sums three exp(-distance) terms.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    signals = np.sum(np.exp(-dist), axis=2)  # sum over sources (n_particles, n_designs)\n    return signals\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coordinates each\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 674,
+    "cost_usd": 0.0011652000000000001,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "dd9370cf226d4e67a11165a00ed907af",
+      "run_id": "agent-preflight-03-proposals-0",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/dd9370cf226d4e67a11165a00ed907af"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Gaussian Mixture Model with three sources. Each source has location (x,y) uniform in [-2,2], and equal amplitude 1. The predict function sums three Gaussian blobs with fixed width (sigma=0.3). The sample_prior samples source locations uniformly.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources * 2 coords each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # shapes broadcast to (n_particles, n_designs, 3, 2)\n    diff = diff.transpose(0,1,2,3)  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    gaussians = np.exp(-dist_sq/(2*sigma**2))\n    signals = np.sum(gaussians, axis=2)  # sum over sources (n_particles, n_designs)\n    return signals\n\ndef sample_prior(rng, n):\n    # Uniform locations in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coordinates each\n"
+      },
+      {
+        "statement": "Model 2: Sum of three radial basis functions with exponential decay, each source location uniform in [-2,2]^2, decay rate fixed at 1. The predict sums three exp(-distance) terms.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    signals = np.sum(np.exp(-dist), axis=2)  # sum over sources (n_particles, n_designs)\n    return signals\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coordinates each\n"
+      }
+    ]
+  }
+}

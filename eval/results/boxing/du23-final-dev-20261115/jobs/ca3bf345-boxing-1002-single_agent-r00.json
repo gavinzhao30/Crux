@@ -1,0 +1,83 @@
+{
+  "arm": "single_agent",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\boxing\\du23-final-dev-20261115\\evidence\\ca3bf345-boxing-1002-single_agent-r00",
+  "case_id": "1002",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": 1.6268698917176594,
+      "score": 0.3806812066151169,
+      "status": "graded"
+    },
+    {
+      "budget": 10,
+      "mse": 0.5855094061029608,
+      "score": 0.6307121207548746,
+      "status": "graded"
+    },
+    {
+      "budget": 20,
+      "mse": 0.7932510636582981,
+      "score": 0.5576464000305474,
+      "status": "graded"
+    }
+  ],
+  "config": null,
+  "cost_usd": 0.0033884,
+  "experiments": 20,
+  "failure": null,
+  "grade_status": "graded",
+  "heldout_predictions": {
+    "5": [
+      6.45,
+      2.87,
+      1.23,
+      6.1,
+      6.3,
+      2.95,
+      0.75,
+      1.15,
+      1.85,
+      5.8
+    ],
+    "10": [
+      5.75,
+      1.95,
+      0.91,
+      4.8,
+      5.6,
+      2.1,
+      0.2,
+      0.1,
+      0.4,
+      4.3
+    ],
+    "20": [
+      6.2,
+      1.5,
+      0.3,
+      4.8,
+      5.9,
+      1.6,
+      0.1,
+      0.0,
+      0.2,
+      5.0
+    ]
+  },
+  "input_tokens": 6839,
+  "job_id": "ca3bf345-boxing-1002-single_agent-r00",
+  "model": "gpt-4.1-mini",
+  "model_calls": 23,
+  "mse": null,
+  "output_tokens": 408,
+  "raw_mse": 0.7932510636582981,
+  "repeat": 0,
+  "score": 0.5576464000305474,
+  "seconds": 14.479274310000008,
+  "seed": 1002,
+  "state": "complete",
+  "status": "finished",
+  "suite": "boxing",
+  "timeout": 420
+}

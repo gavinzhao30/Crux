@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Gaussian Mixture Model with three sources having independent 2D Gaussian priors for locations within [-2,2]^2 and uniform prior for strength in [0.8,1.2]. The predict function sums the Gaussian contributions of each source at given designs. The sample_prior function samples source locations uniformly in [-2,2] and strengths uniformly in [0.8,1.2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources * (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 9)\n    # Extract source params\n    x = params_exp[:, :, 0::3]  # (n_particles, 1, 3)\n    y = params_exp[:, :, 1::3]  # (n_particles, 1, 3)\n    s = params_exp[:, :, 2::3]  # (n_particles, 1, 3)\n    # Compute distances squared from designs to sources\n    dx = designs_exp[:, :, 0][:, :, None] - x  # (n_particles, n_designs, 3)\n    dy = designs_exp[:, :, 1][:, :, None] - y\n    dist_sq = dx**2 + dy**2\n    # Gaussian kernel with fixed bandwidth\n    bandwidth = 0.3\n    contributions = s * np.exp(-dist_sq/(2*bandwidth**2))\n    # Sum contributions from three sources\n    signal = contributions.sum(axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample uniformly locations in [-2,2]^2 and strength in [0.8,1.2]\n    locs = rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords\n    strengths = rng.uniform(0.8, 1.2, size=(n, 3))\n    params = np.empty((n, 9))\n    params[:, 0::3] = locs[:, 0::2]  # x coords\n    params[:, 1::3] = locs[:, 1::2]  # y coords\n    params[:, 2::3] = strengths\n    return params"
+    },
+    {
+      "statement": "Model 2: Radial Basis Function model with three sources having independent uniform priors for locations in [-2,2]^2 and fixed strength 1. The predict sums RBF contributions with exponential kernel at designs. The sample_prior samples source locations uniformly in [-2,2]^2 with fixed strength 1.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources * (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 6)\n    x = params_exp[:, :, 0::2]  # (n_particles, 1, 3)\n    y = params_exp[:, :, 1::2]  # (n_particles, 1, 3)\n    dx = designs_exp[:, :, 0][:, :, None] - x  # (n_particles, n_designs, 3)\n    dy = designs_exp[:, :, 1][:, :, None] - y\n    dist = np.sqrt(dx**2 + dy**2)\n    # Exponential kernel with fixed length scale\n    length_scale = 0.4\n    contributions = np.exp(-dist/length_scale)  # fixed strength=1\n    signal = contributions.sum(axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample uniformly locations in [-2,2]^2\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    return locs"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 975,
+    "cost_usd": 0.0016468000000000003,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "92c07cba7dc24c6d890e96bdd5e4b09e",
+      "run_id": "main-20261114-proposals-104",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/92c07cba7dc24c6d890e96bdd5e4b09e"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Gaussian Mixture Model with three sources having independent 2D Gaussian priors for locations within [-2,2]^2 and uniform prior for strength in [0.8,1.2]. The predict function sums the Gaussian contributions of each source at given designs. The sample_prior function samples source locations uniformly in [-2,2] and strengths uniformly in [0.8,1.2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources * (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 9)\n    # Extract source params\n    x = params_exp[:, :, 0::3]  # (n_particles, 1, 3)\n    y = params_exp[:, :, 1::3]  # (n_particles, 1, 3)\n    s = params_exp[:, :, 2::3]  # (n_particles, 1, 3)\n    # Compute distances squared from designs to sources\n    dx = designs_exp[:, :, 0][:, :, None] - x  # (n_particles, n_designs, 3)\n    dy = designs_exp[:, :, 1][:, :, None] - y\n    dist_sq = dx**2 + dy**2\n    # Gaussian kernel with fixed bandwidth\n    bandwidth = 0.3\n    contributions = s * np.exp(-dist_sq/(2*bandwidth**2))\n    # Sum contributions from three sources\n    signal = contributions.sum(axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample uniformly locations in [-2,2]^2 and strength in [0.8,1.2]\n    locs = rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords\n    strengths = rng.uniform(0.8, 1.2, size=(n, 3))\n    params = np.empty((n, 9))\n    params[:, 0::3] = locs[:, 0::2]  # x coords\n    params[:, 1::3] = locs[:, 1::2]  # y coords\n    params[:, 2::3] = strengths\n    return params"
+      },
+      {
+        "statement": "Model 2: Radial Basis Function model with three sources having independent uniform priors for locations in [-2,2]^2 and fixed strength 1. The predict sums RBF contributions with exponential kernel at designs. The sample_prior samples source locations uniformly in [-2,2]^2 with fixed strength 1.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources * (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 6)\n    x = params_exp[:, :, 0::2]  # (n_particles, 1, 3)\n    y = params_exp[:, :, 1::2]  # (n_particles, 1, 3)\n    dx = designs_exp[:, :, 0][:, :, None] - x  # (n_particles, n_designs, 3)\n    dy = designs_exp[:, :, 1][:, :, None] - y\n    dist = np.sqrt(dx**2 + dy**2)\n    # Exponential kernel with fixed length scale\n    length_scale = 0.4\n    contributions = np.exp(-dist/length_scale)  # fixed strength=1\n    signal = contributions.sum(axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample uniformly locations in [-2,2]^2\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    return locs"
+      }
+    ]
+  }
+}

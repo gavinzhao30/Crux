@@ -1,0 +1,1 @@
+RESULT: {"closest_pair": ["S03", "S04"], "duplicate_pairs": [], "flagged_samples": [], "max_identical_fraction": 0.087827, "n_duplicate_pairs": 0, "suggested_exclusions": []}

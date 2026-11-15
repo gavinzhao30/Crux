@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Three sources with Gaussian intensity profiles, each with parameters (amplitude, x0, y0, sigma). The parameter vector is [x0_1,y0_1,x0_2,y0_2,x0_3,y0_3]. Amplitude=1 and sigma=0.5 fixed. predict sums three Gaussian functions at each design point, sample_prior samples source centers uniformly in [-2,2]^2.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x0,y0) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    amplitude = 1.0\n    sigma = 0.5\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x0 = params[:, 2*i]\n        y0 = params[:, 2*i + 1]\n        dx = designs[:, 0][None, :] - x0[:, None]\n        dy = designs[:, 1][None, :] - y0[:, None]\n        predictions += amplitude * np.exp(-(dx**2 + dy**2) / (2 * sigma**2))\n    return predictions\n\ndef sample_prior(rng, n):\n    # Sample uniformly in [-2,2]^2 for each source center (x0,y0) for 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    },
+    {
+      "statement": "Three sources as Laplacian (exponential) radial profiles with fixed amplitude=1 and scale=0.5. Parameter vector is [x0_1,y0_1,x0_2,y0_2,x0_3,y0_3]. Predict sums three Laplacians at each design, sample centers uniformly in [-2,2]^2.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    amplitude = 1.0\n    scale = 0.5\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x0 = params[:, 2*i]\n        y0 = params[:, 2*i + 1]\n        dx = designs[:, 0][None, :] - x0[:, None]\n        dy = designs[:, 1][None, :] - y0[:, None]\n        r = np.sqrt(dx**2 + dy**2)\n        predictions += amplitude * np.exp(-r / scale)\n    return predictions\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Three sources with Gaussian intensity profiles, each with parameters (amplitude, x0, y0, sigma). The parameter vector is [x0_1,y0_1,x0_2,y0_2,x0_3,y0_3]. Amplitude=1 and sigma=0.5 fixed. predict sums three Gaussian functions at each design point, sample_prior samples source centers uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x0,y0) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    amplitude = 1.0\n    sigma = 0.5\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x0 = params[:, 2*i]\n        y0 = params[:, 2*i + 1]\n        dx = designs[:, 0][None, :] - x0[:, None]\n        dy = designs[:, 1][None, :] - y0[:, None]\n        predictions += amplitude * np.exp(-(dx**2 + dy**2) / (2 * sigma**2))\n    return predictions\n\ndef sample_prior(rng, n):\n    # Sample uniformly in [-2,2]^2 for each source center (x0,y0) for 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Three sources as Laplacian (exponential) radial profiles with fixed amplitude=1 and scale=0.5. Parameter vector is [x0_1,y0_1,x0_2,y0_2,x0_3,y0_3]. Predict sums three Laplacians at each design, sample centers uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    amplitude = 1.0\n    scale = 0.5\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x0 = params[:, 2*i]\n        y0 = params[:, 2*i + 1]\n        dx = designs[:, 0][None, :] - x0[:, None]\n        dy = designs[:, 1][None, :] - y0[:, None]\n        r = np.sqrt(dx**2 + dy**2)\n        predictions += amplitude * np.exp(-r / scale)\n    return predictions\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 626,
+    "cost_usd": 0.0010971999999999996,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "62c3df7de9cd4e41ba0df34f6aa46262",
+      "run_id": "repair-main-20261115-proposals-4009",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/62c3df7de9cd4e41ba0df34f6aa46262"
+    }
+  ]
+}

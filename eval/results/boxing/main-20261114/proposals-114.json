@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Gaussian Mixture Model with 3 sources at unknown locations and equal amplitudes. Prior: uniform source locations in [-2,2]^2, amplitudes fixed to 1. Noise SD fixed to 0.5. Predict sums of 3 Gaussian peaks.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) - three (x,y) locations\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    # Compute squared distances to each source\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    # Gaussian kernel with sigma=0.2\n    sigma = 0.2\n    amplitudes = 1.0\n    gauss = amplitudes * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles, n_designs, 3)\n    signal = np.sum(gauss, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample three (x,y) locations uniformly in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords each\n"
+    },
+    {
+      "statement": "Model 2: Three equal-strength point sources with unknown locations, signal is sum of inverse distances plus small Gaussian width for smoothness. Prior: uniform source positions in [-2,2]. Noise SD fixed to 0.5.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) - three (x,y) locations\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    # Avoid division by zero\n    dist = np.maximum(dist, 0.1)\n    amplitudes = 1.0\n    signal = np.sum(amplitudes / dist, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample three (x,y) locations uniformly in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords each\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 743,
+    "cost_usd": 0.0012756000000000017,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "ff8161753b3b4a17a2574ba191b903d9",
+      "run_id": "main-20261114-proposals-114",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/ff8161753b3b4a17a2574ba191b903d9"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Gaussian Mixture Model with 3 sources at unknown locations and equal amplitudes. Prior: uniform source locations in [-2,2]^2, amplitudes fixed to 1. Noise SD fixed to 0.5. Predict sums of 3 Gaussian peaks.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) - three (x,y) locations\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    # Compute squared distances to each source\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    # Gaussian kernel with sigma=0.2\n    sigma = 0.2\n    amplitudes = 1.0\n    gauss = amplitudes * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles, n_designs, 3)\n    signal = np.sum(gauss, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample three (x,y) locations uniformly in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords each\n"
+      },
+      {
+        "statement": "Model 2: Three equal-strength point sources with unknown locations, signal is sum of inverse distances plus small Gaussian width for smoothness. Prior: uniform source positions in [-2,2]. Noise SD fixed to 0.5.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) - three (x,y) locations\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    # Avoid division by zero\n    dist = np.maximum(dist, 0.1)\n    amplitudes = 1.0\n    signal = np.sum(amplitudes / dist, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Sample three (x,y) locations uniformly in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords each\n"
+      }
+    ]
+  }
+}

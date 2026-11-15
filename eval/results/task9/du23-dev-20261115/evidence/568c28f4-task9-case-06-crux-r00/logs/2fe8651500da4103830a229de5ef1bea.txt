@@ -1,0 +1,1 @@
+RESULT: {"boundary_samples": [], "cluster_sizes": [6, 10], "flagged_samples": [], "mismatch_depth": [], "mismatched_samples": [], "n_boundary": 0, "n_mismatched": 0, "pc1_variance_fraction": 0.748278, "separation": 62.954968, "skipped_samples": [], "suggested_cell_lines": []}

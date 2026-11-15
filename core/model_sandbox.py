@@ -49,6 +49,8 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
+import warnings
 from typing import Any
 
 import numpy as np
@@ -323,6 +325,8 @@ def main():
     watchdog.start()
     exec(compile(header["source"], "<model>", "exec"), namespace)
     if mode == "predict":
+        designs.setflags(write=False)
+        params.setflags(write=False)
         result = namespace["predict"](designs, params)
     else:
         rng = np.random.default_rng(int(header["seed"]))
@@ -400,7 +404,7 @@ class SandboxedFamily:
         seed = int(rng.integers(0, 2**63 - 1))
         return self._call({"mode": "sample_prior", "n": int(n), "seed": seed}, [])
 
-    def _call(self, header: dict[str, Any], arrays: list[np.ndarray]) -> np.ndarray:
+    def _call(self, header: dict[str, Any], arrays: list[np.ndarray], _startup_retry: int = 0) -> np.ndarray:
         header = {**header, "source": self.source, "timeout_s": self.timeout_s}
         payload = json.dumps(header).encode("utf-8") + b"\n" + b"".join(map(_npy_bytes, arrays))
         flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if sys.platform == "win32" else 0
@@ -423,6 +427,13 @@ class SandboxedFamily:
                     f"stderr: {_tail(exc.stderr)}"
                 ) from None
         stderr = _tail(proc.stderr)
+        startup_error = (proc.stderr or b"").decode("utf-8", errors="replace")
+        if (sys.platform == "win32" and proc.returncode != 0 and _startup_retry < 2
+                and "DLL load failed while importing _multiarray_umath" in startup_error
+                and 'File "<model>"' not in startup_error):
+            warnings.warn("Retrying NumPy DLL startup failure before model execution", RuntimeWarning, stacklevel=2)
+            time.sleep(.1 * 2 ** _startup_retry)
+            return self._call(header, arrays, _startup_retry + 1)
         if proc.returncode == _TIMEOUT_EXIT:
             raise ModelTimeout(
                 f"model {self.name!r}: {header['mode']} exceeded {self.timeout_s:g} s; "

@@ -1,0 +1,14 @@
+{
+  "job": {
+    "arm": "single_agent",
+    "case_id": "1001",
+    "config": null,
+    "job_id": "ca3bf345-boxing-1001-single_agent-r00",
+    "model": "gpt-4.1-mini",
+    "repeat": 0,
+    "seed": 1001,
+    "suite": "boxing",
+    "timeout": 420
+  },
+  "state": "complete"
+}

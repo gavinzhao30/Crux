@@ -1,0 +1,1579 @@
+{
+  "actual_wrapper_usage": {
+    "calls": 2,
+    "cached_calls": 0,
+    "input_tokens": 478,
+    "output_tokens": 1282,
+    "cost_usd": 0.0022424,
+    "unpriced_calls": 0
+  },
+  "episodes": [
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 3000,
+          "budget": 3,
+          "status": "ok",
+          "mse": 12.232158153344923,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 3000,
+          "budget": 5,
+          "status": "ok",
+          "mse": 9.949836592227266,
+          "failure": null
+        }
+      ],
+      "seed": 3000,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.17199999978765845,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "0b9c90d518858f3d3465fa4eeb59b513c03b8c87646a68f8cf2842c8f26d7792",
+      "sources_sha256": "5524030ffcb6a2a34b65e1389c3efcedfbf747f1daeafe59c0b00cb5d9aa7c63",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "sources": {
+              "ess_before": 306.62317765359325,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              1.1724233868045526,
+              1.2282432069800369,
+              0.9079205208440865,
+              1.2200797443675677,
+              1.08259992054596,
+              1.2110741674817127
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "sources": {
+              "ess_before": 306.62317765359325,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              1.0491849122230092,
+              1.3809152532914233,
+              0.7624004890481096,
+              1.30333852605894,
+              1.0327577693909598,
+              1.21474051959175
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "sources": {
+              "ess_before": 306.62317765359325,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              1.0882542899498182,
+              1.4700702221290478,
+              0.7659398589706361,
+              1.5384145400997764,
+              1.085156345259397,
+              1.2337660240647086
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "sources": {
+              "ess_before": 306.62317765359325,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              1.011760703696145,
+              1.0802538314856687,
+              0.7812118779408302,
+              1.0591086196562367,
+              1.53978817729541,
+              0.9039222554680286
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "sources": {
+              "ess_before": 306.62317765359325,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 306.623177653593
+          },
+          "parameter_std": {
+            "sources": [
+              1.011760703696145,
+              1.0802538314856687,
+              0.7812118779408302,
+              1.0591086196562367,
+              1.53978817729541,
+              0.9039222554680286
+            ]
+          }
+        }
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 3000,
+          "budget": 3,
+          "status": "ok",
+          "mse": 54.720827957993684,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 3000,
+          "budget": 5,
+          "status": "ok",
+          "mse": 55.560625062610896,
+          "failure": null
+        }
+      ],
+      "seed": 3000,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.1869999999180436,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "0b9c90d518858f3d3465fa4eeb59b513c03b8c87646a68f8cf2842c8f26d7792",
+      "sources_sha256": "5524030ffcb6a2a34b65e1389c3efcedfbf747f1daeafe59c0b00cb5d9aa7c63",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "sources": {
+              "ess_before": 13.96343471469661,
+              "accepted": 65,
+              "proposed": 2048,
+              "unique_particles": 72
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              1.198182823423554,
+              1.2285726668372823,
+              1.2105806244531863,
+              1.1897185607081169,
+              1.1894611592953814,
+              1.264720303482739
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "sources": {
+              "ess_before": 13.96343471469661,
+              "accepted": 65,
+              "proposed": 2048,
+              "unique_particles": 72
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 266.72479325402435
+          },
+          "parameter_std": {
+            "sources": [
+              1.198182823423554,
+              1.2285726668372823,
+              1.2105806244531863,
+              1.1897185607081169,
+              1.1894611592953814,
+              1.264720303482739
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "sources": {
+              "ess_before": 13.96343471469661,
+              "accepted": 65,
+              "proposed": 2048,
+              "unique_particles": 72
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.7504423653363523,
+              1.3463845978612183,
+              1.3777258625968367,
+              0.4371659086764749,
+              1.8553600204225775,
+              0.18251157425355768
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "sources": {
+              "ess_before": 13.96343471469661,
+              "accepted": 65,
+              "proposed": 2048,
+              "unique_particles": 72
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.3263879301348168,
+              0.4953130295913716,
+              0.29288887671650243,
+              0.39178593467532974,
+              0.48650440480116397,
+              0.3526222634766455
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "sources": {
+              "ess_before": 13.96343471469661,
+              "accepted": 65,
+              "proposed": 2048,
+              "unique_particles": 72
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.3798967122625264,
+              0.7401933310694256,
+              1.0150781878422295,
+              1.4130789656560956,
+              0.9043937833837484,
+              0.23879046432808837
+            ]
+          }
+        }
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "crux_random",
+          "seed": 3000,
+          "budget": 3,
+          "status": "ok",
+          "mse": 41.14003374760013,
+          "failure": null
+        },
+        {
+          "arm": "crux_random",
+          "seed": 3000,
+          "budget": 5,
+          "status": "ok",
+          "mse": 41.78886653168734,
+          "failure": null
+        }
+      ],
+      "seed": 3000,
+      "arm": "crux_random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 19.155999999959022,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "0b9c90d518858f3d3465fa4eeb59b513c03b8c87646a68f8cf2842c8f26d7792",
+      "sources_sha256": "5524030ffcb6a2a34b65e1389c3efcedfbf747f1daeafe59c0b00cb5d9aa7c63",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 65.39406493507502,
+              "accepted": 4,
+              "proposed": 2048,
+              "unique_particles": 7
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 509.9140803397348,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              1.187669034620797,
+              1.1462815120478753,
+              1.127845933902583,
+              1.1697051658170934,
+              1.1198496187712013,
+              1.1752013825088667
+            ],
+            "family-1": [
+              1.0997088254382046,
+              1.1060340917343092,
+              1.1513028967155983,
+              1.1570962184996512,
+              1.2185365864434319,
+              1.053968050551043
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 65.39406493507502,
+              "accepted": 4,
+              "proposed": 2048,
+              "unique_particles": 7
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 501.4637983962374,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              1.187669034620797,
+              1.1462815120478753,
+              1.127845933902583,
+              1.1697051658170934,
+              1.1198496187712013,
+              1.1752013825088667
+            ],
+            "family-1": [
+              1.2905897557335497,
+              1.2356900969768894,
+              1.3070966698341169,
+              1.3017891744257848,
+              1.299966836896422,
+              1.2779539871133827
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 65.39406493507502,
+              "accepted": 4,
+              "proposed": 2048,
+              "unique_particles": 7
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              6.8833827526759706e-15,
+              4.551914400963142e-15,
+              1.7763568394002505e-15,
+              5.551115123125783e-15,
+              4.3298697960381105e-15,
+              1.1546319456101628e-14
+            ],
+            "family-1": [
+              0.2876071283532539,
+              0.2822390627177339,
+              0.12712135796885562,
+              0.1982236175228129,
+              0.12756318765763033,
+              0.18910810072033576
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 65.39406493507502,
+              "accepted": 4,
+              "proposed": 2048,
+              "unique_particles": 7
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 507.69780065909674
+          },
+          "parameter_std": {
+            "family-0": [
+              6.8833827526759706e-15,
+              4.551914400963142e-15,
+              1.7763568394002505e-15,
+              5.551115123125783e-15,
+              4.3298697960381105e-15,
+              1.1546319456101628e-14
+            ],
+            "family-1": [
+              0.2876071283532539,
+              0.2822390627177339,
+              0.12712135796885562,
+              0.1982236175228129,
+              0.12756318765763033,
+              0.18910810072033576
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 65.39406493507502,
+              "accepted": 4,
+              "proposed": 2048,
+              "unique_particles": 7
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              6.8833827526759706e-15,
+              4.551914400963142e-15,
+              1.7763568394002505e-15,
+              5.551115123125783e-15,
+              4.3298697960381105e-15,
+              1.1546319456101628e-14
+            ],
+            "family-1": [
+              0.5004238221067266,
+              0.7710065808096401,
+              0.4545064937698856,
+              0.4075703171599741,
+              0.5764558826710909,
+              0.44561791675616325
+            ]
+          }
+        }
+      },
+      "paired_proposal_usage": {
+        "calls": 1,
+        "cached_calls": 0,
+        "input_tokens": 239,
+        "output_tokens": 497,
+        "cost_usd": 0.0008908000000000001,
+        "unpriced_calls": 0
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "crux_eig",
+          "seed": 3000,
+          "budget": 3,
+          "status": "ok",
+          "mse": 37.29429503340244,
+          "failure": null
+        },
+        {
+          "arm": "crux_eig",
+          "seed": 3000,
+          "budget": 5,
+          "status": "ok",
+          "mse": 27.227140934334653,
+          "failure": null
+        }
+      ],
+      "seed": 3000,
+      "arm": "crux_eig",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 18.938000000081956,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "0b9c90d518858f3d3465fa4eeb59b513c03b8c87646a68f8cf2842c8f26d7792",
+      "sources_sha256": "5524030ffcb6a2a34b65e1389c3efcedfbf747f1daeafe59c0b00cb5d9aa7c63",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "family-0": {
+              "ess_before": 492.9353086070874,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 146.56631423032186,
+              "accepted": 0,
+              "proposed": 2048,
+              "unique_particles": 3
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.45198182292732225,
+              1.0924772287244788,
+              0.15553080880295472,
+              0.12289946883748015,
+              0.17198414047341604,
+              0.213075404471354
+            ],
+            "family-1": [
+              0.13015991040609598,
+              0.15916263245031573,
+              0.09723143472067741,
+              0.04823819482777372,
+              0.07079866216062361,
+              0.19306836784089884
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "family-0": {
+              "ess_before": 492.9353086070874,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 146.56631423032186,
+              "accepted": 0,
+              "proposed": 2048,
+              "unique_particles": 3
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 492.4503762019737,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.45198182292732225,
+              1.0924772287244788,
+              0.15553080880295472,
+              0.12289946883748015,
+              0.17198414047341604,
+              0.213075404471354
+            ],
+            "family-1": [
+              0.7760536795141939,
+              0.4234295367298767,
+              0.6697329169786902,
+              0.42549695984939834,
+              0.4974138023827494,
+              1.2252025699549194
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "family-0": {
+              "ess_before": 492.9353086070874,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 146.56631423032186,
+              "accepted": 0,
+              "proposed": 2048,
+              "unique_particles": 3
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 492.0731044057428,
+            "family-1": 348.8523435781628
+          },
+          "parameter_std": {
+            "family-0": [
+              0.45198182292732225,
+              1.0924772287244788,
+              0.15553080880295472,
+              0.12289946883748015,
+              0.17198414047341604,
+              0.213075404471354
+            ],
+            "family-1": [
+              0.7760536795141939,
+              0.4234295367298767,
+              0.6697329169786902,
+              0.42549695984939834,
+              0.4974138023827494,
+              1.2252025699549194
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "family-0": {
+              "ess_before": 492.9353086070874,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 146.56631423032186,
+              "accepted": 0,
+              "proposed": 2048,
+              "unique_particles": 3
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 492.97026871869673,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.45198182292732225,
+              1.0924772287244788,
+              0.15553080880295472,
+              0.12289946883748015,
+              0.17198414047341604,
+              0.213075404471354
+            ],
+            "family-1": [
+              0.6163604379996641,
+              0.3176526176218628,
+              0.555514335491231,
+              0.5140790991464135,
+              0.41484007520393573,
+              1.0092310206317467
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "family-0": {
+              "ess_before": 492.9353086070874,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 146.56631423032186,
+              "accepted": 0,
+              "proposed": 2048,
+              "unique_particles": 3
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 492.9353086070874,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.45198182292732225,
+              1.0924772287244788,
+              0.15553080880295472,
+              0.12289946883748015,
+              0.17198414047341604,
+              0.213075404471354
+            ],
+            "family-1": [
+              0.005572325979481207,
+              0.03139511355656777,
+              0.03761164894458113,
+              0.06498824961652803,
+              0.04046089094731797,
+              0.03877476245243503
+            ]
+          }
+        }
+      },
+      "paired_proposal_usage": {
+        "calls": 1,
+        "cached_calls": 0,
+        "input_tokens": 239,
+        "output_tokens": 497,
+        "cost_usd": 0.0008908000000000001,
+        "unpriced_calls": 0
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "random",
+          "seed": 3001,
+          "budget": 3,
+          "status": "ok",
+          "mse": 44.30239686649419,
+          "failure": null
+        },
+        {
+          "arm": "random",
+          "seed": 3001,
+          "budget": 5,
+          "status": "ok",
+          "mse": 44.079663285330746,
+          "failure": null
+        }
+      ],
+      "seed": 3001,
+      "arm": "random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.06199999991804361,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "b2b0769889fe1e0028f0b0336bbd4db8e06ee6884326371c40c3e00dc7253152",
+      "sources_sha256": "2d43f33ad2207931950d414255637c4c9f51c137c1b35726f4c77d97d16f7acb",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "sources": {
+              "ess_before": 508.47742020181806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 259.67244424192324
+          },
+          "parameter_std": {
+            "sources": [
+              0.9745430737868025,
+              0.9745599006145782,
+              0.9757135995935869,
+              1.0488615585525507,
+              0.9904350354209566,
+              1.0182965951427867
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "sources": {
+              "ess_before": 508.47742020181806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.8440024769100198,
+              0.9259341212544805,
+              0.9007922540019042,
+              0.7919954517055253,
+              1.203068545902647,
+              0.974026304307036
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "sources": {
+              "ess_before": 508.47742020181806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.014847243602225443,
+              0.016654612163050298,
+              0.028609591269050993,
+              0.042667829938754814,
+              0.023793530024125605,
+              0.06509466557968574
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "sources": {
+              "ess_before": 508.47742020181806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 509.24046558676804
+          },
+          "parameter_std": {
+            "sources": [
+              0.014847243602225443,
+              0.016654612163050298,
+              0.028609591269050993,
+              0.042667829938754814,
+              0.023793530024125605,
+              0.06509466557968574
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "sources": {
+              "ess_before": 508.47742020181806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 508.4774202018183
+          },
+          "parameter_std": {
+            "sources": [
+              0.014847243602225443,
+              0.016654612163050298,
+              0.028609591269050993,
+              0.042667829938754814,
+              0.023793530024125605,
+              0.06509466557968574
+            ]
+          }
+        }
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "oracle",
+          "seed": 3001,
+          "budget": 3,
+          "status": "ok",
+          "mse": 33.6385151924291,
+          "failure": null
+        },
+        {
+          "arm": "oracle",
+          "seed": 3001,
+          "budget": 5,
+          "status": "ok",
+          "mse": 33.11148109521257,
+          "failure": null
+        }
+      ],
+      "seed": 3001,
+      "arm": "oracle",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 0.20300000021234155,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "b2b0769889fe1e0028f0b0336bbd4db8e06ee6884326371c40c3e00dc7253152",
+      "sources_sha256": "2d43f33ad2207931950d414255637c4c9f51c137c1b35726f4c77d97d16f7acb",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "sources": {
+              "ess_before": 10.907619908379017,
+              "accepted": 7,
+              "proposed": 2048,
+              "unique_particles": 11
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.9497745623199594,
+              1.1042473267929551,
+              1.0379159150169446,
+              1.1900302299800205,
+              1.0333315551735025,
+              1.0721877522978556
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "sources": {
+              "ess_before": 10.907619908379017,
+              "accepted": 7,
+              "proposed": 2048,
+              "unique_particles": 11
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.9981606609513951,
+              1.1836122560467746,
+              1.0804074295822588,
+              0.8393166038635259,
+              0.4950014163311313,
+              0.8180684019990188
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "sources": {
+              "ess_before": 10.907619908379017,
+              "accepted": 7,
+              "proposed": 2048,
+              "unique_particles": 11
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.15030952301084693,
+              0.1436481146698165,
+              1.0980914677551674,
+              0.6900494782170006,
+              0.28036423402085814,
+              0.36807641830861804
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "sources": {
+              "ess_before": 10.907619908379017,
+              "accepted": 7,
+              "proposed": 2048,
+              "unique_particles": 11
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.21078063892218538,
+              0.03588719617599981,
+              1.9038212507916117,
+              0.6673844680299452,
+              0.1315519494700837,
+              0.21312127197076275
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "sources": {
+              "ess_before": 10.907619908379017,
+              "accepted": 7,
+              "proposed": 2048,
+              "unique_particles": 11
+            }
+          },
+          "effective_sample_sizes": {
+            "sources": 512.0
+          },
+          "parameter_std": {
+            "sources": [
+              0.17450336293711688,
+              0.09506219777167088,
+              0.3000571607024293,
+              0.25220789126582793,
+              0.2529805718103823,
+              0.1990875330813941
+            ]
+          }
+        }
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "crux_random",
+          "seed": 3001,
+          "budget": 3,
+          "status": "ok",
+          "mse": 27.837038882293967,
+          "failure": null
+        },
+        {
+          "arm": "crux_random",
+          "seed": 3001,
+          "budget": 5,
+          "status": "ok",
+          "mse": 28.060047383630284,
+          "failure": null
+        }
+      ],
+      "seed": 3001,
+      "arm": "crux_random",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 25.5,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "b2b0769889fe1e0028f0b0336bbd4db8e06ee6884326371c40c3e00dc7253152",
+      "sources_sha256": "2d43f33ad2207931950d414255637c4c9f51c137c1b35726f4c77d97d16f7acb",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "family-0": {
+              "ess_before": 430.21962197811416,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 288.95845316872806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.8859538536274174,
+              0.7517011304585068,
+              0.9900195535268762,
+              0.6390231057612313,
+              0.8407850526756293,
+              1.0212343332542375,
+              0.7502080166580996,
+              0.099944376114188
+            ],
+            "family-1": [
+              1.1529274937539649,
+              1.2145304354946382,
+              1.1943585748654877,
+              1.1780292909059888,
+              1.198670786396776,
+              1.181254778624194,
+              0.7120758445425482
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "family-0": {
+              "ess_before": 430.21962197811416,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 288.95845316872806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              1.1561534725089333,
+              0.8098372383705242,
+              1.113535115743324,
+              0.641210922341575,
+              1.1704037442061486,
+              0.7046187651394638,
+              0.9049620616964404,
+              0.06771873667101219
+            ],
+            "family-1": [
+              1.009948760257536,
+              1.1781594811965088,
+              0.9830214067179528,
+              1.0427097647083492,
+              1.0517935660701285,
+              1.2375229111883954,
+              0.43495664336329737
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "family-0": {
+              "ess_before": 430.21962197811416,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 288.95845316872806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 279.5361986408261,
+            "family-1": 261.39786388240833
+          },
+          "parameter_std": {
+            "family-0": [
+              1.1561534725089333,
+              0.8098372383705242,
+              1.113535115743324,
+              0.641210922341575,
+              1.1704037442061486,
+              0.7046187651394638,
+              0.9049620616964404,
+              0.06771873667101219
+            ],
+            "family-1": [
+              1.009948760257536,
+              1.1781594811965088,
+              0.9830214067179528,
+              1.0427097647083492,
+              1.0517935660701285,
+              1.2375229111883954,
+              0.43495664336329737
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "family-0": {
+              "ess_before": 430.21962197811416,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 288.95845316872806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.8690329901378774,
+              1.0672821736847926,
+              1.296548033639637,
+              0.5632992062373491,
+              1.0242532598444993,
+              0.8405620559187141,
+              0.7179886491752098,
+              0.051171055332138976
+            ],
+            "family-1": [
+              0.9863421048226519,
+              1.1256186738920064,
+              0.8361655962252154,
+              0.5396041807955878,
+              0.9928034887079469,
+              0.818049669788614,
+              0.22538750735863008
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "family-0": {
+              "ess_before": 430.21962197811416,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 288.95845316872806,
+              "accepted": 0,
+              "proposed": 0
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 430.2196219781142,
+            "family-1": 288.95845316872794
+          },
+          "parameter_std": {
+            "family-0": [
+              0.8690329901378774,
+              1.0672821736847926,
+              1.296548033639637,
+              0.5632992062373491,
+              1.0242532598444993,
+              0.8405620559187141,
+              0.7179886491752098,
+              0.051171055332138976
+            ],
+            "family-1": [
+              0.9863421048226519,
+              1.1256186738920064,
+              0.8361655962252154,
+              0.5396041807955878,
+              0.9928034887079469,
+              0.818049669788614,
+              0.22538750735863008
+            ]
+          }
+        }
+      },
+      "paired_proposal_usage": {
+        "calls": 1,
+        "cached_calls": 0,
+        "input_tokens": 239,
+        "output_tokens": 785,
+        "cost_usd": 0.0013515999999999997,
+        "unpriced_calls": 0
+      }
+    },
+    {
+      "rows": [
+        {
+          "arm": "crux_eig",
+          "seed": 3001,
+          "budget": 3,
+          "status": "ok",
+          "mse": 28.08508656524274,
+          "failure": null
+        },
+        {
+          "arm": "crux_eig",
+          "seed": 3001,
+          "budget": 5,
+          "status": "ok",
+          "mse": 28.15876374343364,
+          "failure": null
+        }
+      ],
+      "seed": 3001,
+      "arm": "crux_eig",
+      "usage": {
+        "calls": 0,
+        "cached_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "unpriced_calls": 0
+      },
+      "seconds": 34.625,
+      "target_reached_at_checkpoint": null,
+      "test_points_sha256": "b2b0769889fe1e0028f0b0336bbd4db8e06ee6884326371c40c3e00dc7253152",
+      "sources_sha256": "2d43f33ad2207931950d414255637c4c9f51c137c1b35726f4c77d97d16f7acb",
+      "traces": [],
+      "particles": 512,
+      "simulations": 64,
+      "move_steps": 4,
+      "belief_diagnostics": {
+        "1": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 184.58969954980418,
+              "accepted": 18,
+              "proposed": 2048,
+              "unique_particles": 60
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.8859538536274174,
+              0.7517011304585068,
+              0.9900195535268762,
+              0.6390231057612313,
+              0.8407850526756293,
+              1.0212343332542375,
+              0.7502080166580996,
+              0.099944376114188
+            ],
+            "family-1": [
+              1.1529274937539649,
+              1.2145304354946382,
+              1.1943585748654877,
+              1.1780292909059888,
+              1.198670786396776,
+              1.181254778624194,
+              0.7120758445425482
+            ]
+          }
+        },
+        "2": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 184.58969954980418,
+              "accepted": 18,
+              "proposed": 2048,
+              "unique_particles": 60
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.5603261648338751,
+              0.43438618074737173,
+              0.6778421757495549,
+              0.49946819801341946,
+              0.28380734326439133,
+              0.5139988459596555,
+              0.21874402479648716,
+              0.037184998432808015
+            ],
+            "family-1": [
+              1.0110614847211923,
+              1.0646750010420196,
+              1.1567503089305,
+              0.8570897426792178,
+              1.1308536725124796,
+              1.0832272168397425,
+              0.3562335291693893
+            ]
+          }
+        },
+        "3": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 184.58969954980418,
+              "accepted": 18,
+              "proposed": 2048,
+              "unique_particles": 60
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 452.5820942342355,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              0.5603261648338751,
+              0.43438618074737173,
+              0.6778421757495549,
+              0.49946819801341946,
+              0.28380734326439133,
+              0.5139988459596555,
+              0.21874402479648716,
+              0.037184998432808015
+            ],
+            "family-1": [
+              1.0143701801461118,
+              1.1035056956449003,
+              1.0961893664920723,
+              0.8875347336657177,
+              0.9525680338762431,
+              1.0441374260546807,
+              0.2583333305394255
+            ]
+          }
+        },
+        "4": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 184.58969954980418,
+              "accepted": 18,
+              "proposed": 2048,
+              "unique_particles": 60
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              4.773959005888173e-15,
+              3.219646771412954e-15,
+              4.440892098500626e-16,
+              1.3322676295501878e-14,
+              9.71445146547012e-16,
+              1.5543122344752192e-15,
+              3.552713678800501e-15,
+              1.942890293094024e-15
+            ],
+            "family-1": [
+              0.9382684575824243,
+              1.0139065407116863,
+              0.9676805474725233,
+              0.9271898098823713,
+              0.9729020189347292,
+              0.9946029722069958,
+              0.23387939968481614
+            ]
+          }
+        },
+        "5": {
+          "moves": {
+            "family-0": {
+              "ess_before": 512.0,
+              "accepted": 0,
+              "proposed": 0
+            },
+            "family-1": {
+              "ess_before": 184.58969954980418,
+              "accepted": 18,
+              "proposed": 2048,
+              "unique_particles": 60
+            }
+          },
+          "effective_sample_sizes": {
+            "family-0": 512.0,
+            "family-1": 512.0
+          },
+          "parameter_std": {
+            "family-0": [
+              4.773959005888173e-15,
+              3.219646771412954e-15,
+              4.440892098500626e-16,
+              1.3322676295501878e-14,
+              9.71445146547012e-16,
+              1.5543122344752192e-15,
+              3.552713678800501e-15,
+              1.942890293094024e-15
+            ],
+            "family-1": [
+              0.8839078079442675,
+              1.2223423723144975,
+              0.9134909037205593,
+              0.8646632203958176,
+              1.1015419074414061,
+              0.8744849763064192,
+              0.16400716551860484
+            ]
+          }
+        }
+      },
+      "paired_proposal_usage": {
+        "calls": 1,
+        "cached_calls": 0,
+        "input_tokens": 239,
+        "output_tokens": 785,
+        "cost_usd": 0.0013515999999999997,
+        "unpriced_calls": 0
+      }
+    }
+  ]
+}

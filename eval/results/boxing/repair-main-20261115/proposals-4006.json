@@ -1,0 +1,82 @@
+{
+  "families": [],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source contributes to the signal with a Gaussian kernel centered at its location with fixed amplitude and spread. Parameters are the (x,y) locations of the 3 sources (6 parameters). The predict function sums Gaussian contributions from each source at each design point. The sample_prior samples source locations uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: shape (n_particles, 6) -> 3 sources with (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1,n_designs,2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles,1,3,2)\n    # Compute Gaussian kernel contributions\n    sigma = 0.3\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles,n_designs,3,2)\n    dist_sq = np.sum(diff ** 2, axis=-1)  # (n_particles,n_designs,3)\n    contributions = np.exp(-dist_sq / (2 * sigma ** 2))  # amplitude=1\n    return contributions.sum(axis=2)  # sum over 3 sources, shape (n_particles,n_designs)\n\ndef sample_prior(rng, n):\n    # Sample 3 sources uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source contributes inversely proportional to distance plus a small constant to avoid singularity. Parameters are 3 sources with (x,y) each. The predict sums contributions of 1/(distance + 0.1) from each source at each design point. The sample_prior samples source locations uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: shape (n_particles, 6) -> 3 sources with (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1,n_designs,2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles,1,3,2)\n    diff = designs_exp - params_exp  # (n_particles,n_designs,3,2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles,n_designs,3)\n    contributions = 1.0 / (dist + 0.1)  # avoid divide by zero\n    return contributions.sum(axis=2)  # sum over 3 sources, shape (n_particles,n_designs)\n\ndef sample_prior(rng, n):\n    # Sample 3 sources uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 9, in predict\r\nValueError: operands could not be broadcast together with shapes (1,2,2) (4,1,3,2)"
+    },
+    {
+      "family": 1,
+      "repair": 1,
+      "proposal": {
+        "statement": "Model 2: Each source contributes inversely proportional to distance plus a small constant to avoid singularity. Parameters are 3 sources with (x,y) each. The predict sums contributions of 1/(distance + 0.1) from each source at each design point. The sample_prior samples source locations uniformly in [-2,2]^2. The predict function is fully vectorized, deterministic, and matches the exact array contract for inputs and outputs. sample_prior uses the supplied rng.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: shape (n_particles, 6) -> 3 sources with (x,y) each\n    # designs: shape (n_designs, 2)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # Reshape params to (n_particles, 3, 2)\n    params_reshaped = params.reshape(n_particles, 3, 2)\n    # Expand dims to broadcast: designs (1, n_designs, 2), params (n_particles, 1, 3, 2)\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params_reshaped[:, None, :, :]  # (n_particles, 1, 3, 2)\n    diff = designs_exp - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    contributions = 1.0 / (dist + 0.1)  # avoid divide by zero\n    # sum over sources (axis=2) -> shape (n_particles, n_designs)\n    return contributions.sum(axis=2)\n\ndef sample_prior(rng, n):\n    # Sample 3 sources uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 13, in predict\r\nValueError: operands could not be broadcast together with shapes (1,2,2) (4,1,3,2)"
+    },
+    {
+      "family": 1,
+      "repair": 2,
+      "proposal": {
+        "statement": "Model 2: Each source contributes inversely proportional to distance plus 0.1 to avoid singularity. There are 3 sources, each with (x,y) location parameters. The predict function sums contributions of 1/(distance + 0.1) from each source at each design point. The predict function is fully vectorized, deterministic, and respects exact array contracts: it accepts designs of shape (n_designs, 2) and params of shape (n_particles, 6), returning outputs of shape (n_particles, n_designs). The sample_prior function uses the supplied rng to sample source locations uniformly in [-2,2]^2, shape (n, 6).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: shape (n_particles, 6) -> 3 sources with (x,y) each\n    # designs: shape (n_designs, 2)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    params_reshaped = params.reshape(n_particles, 3, 2)  # (n_particles, 3, 2)\n    # Expand dims for broadcasting:\n    # designs: (1, n_designs, 2), params: (n_particles, 1, 3, 2)\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params_reshaped[:, None, :, :]  # (n_particles, 1, 3, 2)\n    diff = designs_exp - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    contributions = 1.0 / (dist + 0.1)  # avoid divide by zero\n    return contributions.sum(axis=2)  # (n_particles, n_designs)\n\ndef sample_prior(rng, n):\n    # Sample 3 sources uniformly in [-2, 2]^2\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 13, in predict\r\nValueError: operands could not be broadcast together with shapes (1,2,2) (4,1,3,2)"
+    }
+  ],
+  "validation_error": "ValueError: One or more models failed after two repairs",
+  "usage": {
+    "calls": 3,
+    "cached_calls": 0,
+    "input_tokens": 1536,
+    "output_tokens": 1622,
+    "cost_usd": 0.0032096,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "acd80e5c04164ca3ad2ed4d62a66910e",
+      "run_id": "repair-main-20261115-proposals-4006",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/acd80e5c04164ca3ad2ed4d62a66910e"
+    },
+    {
+      "trace_id": "ff892384f57f473593ba5f8dc57ba0cd",
+      "run_id": "repair-main-20261115-proposals-4006",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "d63a4b0da273f887fb2120aa5029d6ca6d609bc43bc2917fd26291707687964a",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/ff892384f57f473593ba5f8dc57ba0cd"
+    },
+    {
+      "trace_id": "e01b1124ccf7407abb8f707ceb2cd8c9",
+      "run_id": "repair-main-20261115-proposals-4006",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "b2d78554ffd3b87fa8ec3063964ba5cdfe30248f8cd7c12745ef0689fae1bcd3",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/e01b1124ccf7407abb8f707ceb2cd8c9"
+    }
+  ]
+}

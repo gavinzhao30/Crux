@@ -1365,7 +1365,9 @@ class _Run:
         )
         cost_s = float(getattr(self.lab, "measure_cost_s", 1.0))
         belief = await asyncio.to_thread(
-            ParticleBelief, families, sigma, seed=self.cfg.seed, null_weight=null_weight
+            ParticleBelief, families, sigma, seed=self.cfg.seed, null_weight=null_weight,
+            n_particles=self.cfg.numeric_particles, n_sim=self.cfg.numeric_simulations,
+            move_steps=self.cfg.numeric_move_steps,
         )
         names = {f.name: f.name for f in families}
         if null_id:
@@ -1381,7 +1383,7 @@ class _Run:
 
         for i in range(max_m):
             self.budget.check()
-            ranking = await asyncio.to_thread(belief.rank_designs, values, "family")
+            ranking = await asyncio.to_thread(belief.rank_designs, values, self.cfg.numeric_eig_goal)
             scored = []
             for design, eig, _ in ranking:
                 j = index[design]
@@ -1449,6 +1451,9 @@ class _Run:
             prior = mapped(belief.family_posterior())
             result = await asyncio.to_thread(belief.update, values[j], float(y))
             posterior = mapped(result.family_posterior)
+            evaluator = getattr(self.lab, "evaluate_belief", None)
+            if evaluator is not None:
+                evaluator(belief, i + 1)
             await self._emit(
                 E.BELIEF_UPDATED,
                 question_id=q.id,
@@ -1518,7 +1523,7 @@ class _Run:
                     await self._reject_numeric(q.id, h.id, ev.id, reason)
             real = self._active_real(q.id)
             best = max(real, key=lambda h: posterior.get(h.id, 0.0), default=None)
-            if best is not None and posterior.get(best.id, 0.0) >= self.cfg.settle:
+            if self.cfg.numeric_stop_on_settle and best is not None and posterior.get(best.id, 0.0) >= self.cfg.settle:
                 q.status = "settled"
                 best.status = "accepted"
                 await self._emit(

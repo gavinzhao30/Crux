@@ -1,0 +1,5 @@
+arm,seed,budget,status,mse,failure
+crux_random,0,2,ok,18.956803402151966,
+crux_random,0,3,ok,19.115426030410454,
+crux_eig,0,2,ok,19.942315544374026,
+crux_eig,0,3,ok,17.978688268829096,

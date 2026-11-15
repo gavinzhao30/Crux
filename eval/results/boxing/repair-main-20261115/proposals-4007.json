@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is parameterized by its 2D location. The parameters array has shape (n,6) representing (x1,y1,x2,y2,x3,y3) for three sources. The predict function computes, for each design point, the sum of inverse distances to each source, simulating scalar intensity contributions from three point sources with equal strength.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # designs: (n_designs, 2), params: (n_particles, 6)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, n_designs, 3, 2)  # (n_particles, n_designs, 3, 2)\n    # Compute distance from each source to each design point\n    diff = designs_exp[:, :, None, :] - params_exp.transpose(1,0,2,3)  # (n_particles, n_designs, 3, 2)\n    diff = params_exp - designs_exp  # (n_particles, n_designs, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, n_designs, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    # The above repeated lines are a mistake, let's correct the code below:\n\nimport numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # Reshape params to (n_particles, 3, 2)\n    sources = params.reshape(n_particles, 3, 2)\n    # Expand dims for broadcasting\n    d = designs[None, :, None, :]  # (1, n_designs, 1, 2)\n    s = sources[:, None, :, :]     # (n_particles, 1, 3, 2)\n    dist = np.linalg.norm(d - s, axis=-1)  # (n_particles, n_designs, 3)\n    # Avoid division by zero by adding tiny epsilon\n    dist += 1e-12\n    intensity = np.sum(1.0 / dist, axis=2)  # Sum over 3 sources\n    return intensity  # (n_particles, n_designs)\n\ndef sample_prior(rng, n):\n    # Sample source locations uniformly in [-2, 2]^2\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coordinates each\n"
+    },
+    {
+      "statement": "Model 2: Each source is parameterized by polar coordinates (radius, angle) relative to origin, converted to Cartesian inside predict. Parameters shape (n,6) with (r1,theta1,r2,theta2,r3,theta3). Predict sums inverse distances from sources to designs as before.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    r = params[:, 0::2]      # (n_particles, 3)\n    theta = params[:, 1::2]  # (n_particles, 3)\n    # Convert polar to Cartesian\n    x = r * np.cos(theta)\n    y = r * np.sin(theta)\n    sources = np.stack([x, y], axis=2)  # (n_particles, 3, 2)\n    d = designs[None, :, None, :]  # (1, n_designs, 1, 2)\n    s = sources[:, None, :, :]     # (n_particles, 1, 3, 2)\n    dist = np.linalg.norm(d - s, axis=-1)  # (n_particles, n_designs, 3)\n    dist += 1e-12\n    intensity = np.sum(1.0 / dist, axis=2)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Radius in [0, 2*sqrt(2)] to cover max distance in [-2,2]^2\n    max_radius = 2*np.sqrt(2)\n    r = rng.uniform(0, max_radius, size=(n,3))\n    theta = rng.uniform(-np.pi, np.pi, size=(n,3))\n    params = np.empty((n,6))\n    params[:, 0::2] = r\n    params[:, 1::2] = theta\n    return params\n"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its 2D location. The parameters array has shape (n,6) representing (x1,y1,x2,y2,x3,y3) for three sources. The predict function computes, for each design point, the sum of inverse distances to each source, simulating scalar intensity contributions from three point sources with equal strength.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # designs: (n_designs, 2), params: (n_particles, 6)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, n_designs, 3, 2)  # (n_particles, n_designs, 3, 2)\n    # Compute distance from each source to each design point\n    diff = designs_exp[:, :, None, :] - params_exp.transpose(1,0,2,3)  # (n_particles, n_designs, 3, 2)\n    diff = params_exp - designs_exp  # (n_particles, n_designs, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, n_designs, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    diff = designs_exp - params[:, None, :].reshape(n_particles, 1, 3, 2)\n\n    # The above repeated lines are a mistake, let's correct the code below:\n\nimport numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # Reshape params to (n_particles, 3, 2)\n    sources = params.reshape(n_particles, 3, 2)\n    # Expand dims for broadcasting\n    d = designs[None, :, None, :]  # (1, n_designs, 1, 2)\n    s = sources[:, None, :, :]     # (n_particles, 1, 3, 2)\n    dist = np.linalg.norm(d - s, axis=-1)  # (n_particles, n_designs, 3)\n    # Avoid division by zero by adding tiny epsilon\n    dist += 1e-12\n    intensity = np.sum(1.0 / dist, axis=2)  # Sum over 3 sources\n    return intensity  # (n_particles, n_designs)\n\ndef sample_prior(rng, n):\n    # Sample source locations uniformly in [-2, 2]^2\n    return rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coordinates each\n"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by polar coordinates (radius, angle) relative to origin, converted to Cartesian inside predict. Parameters shape (n,6) with (r1,theta1,r2,theta2,r3,theta3). Predict sums inverse distances from sources to designs as before.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    r = params[:, 0::2]      # (n_particles, 3)\n    theta = params[:, 1::2]  # (n_particles, 3)\n    # Convert polar to Cartesian\n    x = r * np.cos(theta)\n    y = r * np.sin(theta)\n    sources = np.stack([x, y], axis=2)  # (n_particles, 3, 2)\n    d = designs[None, :, None, :]  # (1, n_designs, 1, 2)\n    s = sources[:, None, :, :]     # (n_particles, 1, 3, 2)\n    dist = np.linalg.norm(d - s, axis=-1)  # (n_particles, n_designs, 3)\n    dist += 1e-12\n    intensity = np.sum(1.0 / dist, axis=2)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Radius in [0, 2*sqrt(2)] to cover max distance in [-2,2]^2\n    max_radius = 2*np.sqrt(2)\n    r = rng.uniform(0, max_radius, size=(n,3))\n    theta = rng.uniform(-np.pi, np.pi, size=(n,3))\n    params = np.empty((n,6))\n    params[:, 0::2] = r\n    params[:, 1::2] = theta\n    return params\n"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 1583,
+    "cost_usd": 0.002628400000000003,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "054fcf67baa14c7ba132aabcfce08e4f",
+      "run_id": "repair-main-20261115-proposals-4007",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/054fcf67baa14c7ba132aabcfce08e4f"
+    }
+  ]
+}

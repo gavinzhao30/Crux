@@ -1,0 +1,21 @@
+{
+  "job": {
+    "arm": "single_agent",
+    "case_id": "case-12",
+    "config": null,
+    "input_manifest_data": {
+      "bundle_id": "3298bc2fac9079f3ab85b6e61347b7379633d211754dcb946414e1a27774c164",
+      "files": {
+        "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+        "tagseq_featurecounts_matrix.tsv": "9959334ebda670e7cc304eba6fec2373c3dcc892fda86ccbbbf3ed619fa306bd"
+      }
+    },
+    "job_id": "e3522e3c-task9-case-12-single_agent-r00",
+    "model": "gpt-4.1-mini",
+    "repeat": 0,
+    "seed": 0,
+    "suite": "task9",
+    "timeout": 300
+  },
+  "state": "complete"
+}

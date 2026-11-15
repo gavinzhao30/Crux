@@ -1,0 +1,31 @@
+job_id,suite,case_id,arm,repeat,seed,state,status,grade_status,score,raw_mse,cost_usd,model_calls,input_tokens,output_tokens,shared_proposal_cost_usd,shared_proposal_input_tokens,shared_proposal_output_tokens,seconds,experiments,fault,fault_detected,failure,failure_detail,artifact_ref
+boxing-1000-single_agent-r00,boxing,1000,single_agent,0,1000,complete,finished,graded,0.006962057226665962,142.63570528691085,0.0033944,23,6854,408,,,,17.523924921000003,20,,,,,C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1000-single_agent-r00
+boxing-1000-crux-r00,boxing,1000,crux,0,1000,failed,failed,failed,0.0,,,,,,,,,0.20176870099999977,,,,ValueError,"Paired proposal failed: ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):
+  File ""<string>"", line 77, in <module>
+  File ""<string>"", line 64, in main
+  File ""<model>"", line 8, in predict
+ValueError: cannot reshape array of size 24 into shape (4,2,3,2)",C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1000-crux-r00
+boxing-1001-single_agent-r00,boxing,1001,single_agent,0,1001,complete,finished,graded,0.0812030808135047,11.314803699340583,0.0034184,23,6854,423,,,,19.98974814,20,,,,,C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1001-single_agent-r00
+boxing-1001-crux-r00,boxing,1001,crux,0,1001,failed,failed,failed,0.0,,,,,,,,,0.19941935000000033,,,,ValueError,"Paired proposal failed: ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):
+  File ""<string>"", line 77, in <module>
+  File ""<string>"", line 64, in main
+  File ""<model>"", line 8, in predict
+ValueError: cannot reshape array of size 24 into shape (4,2,3,2)",C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1001-crux-r00
+boxing-1002-single_agent-r00,boxing,1002,single_agent,0,1002,complete,finished,graded,0.2531772782736295,2.949801525708866,0.0033884,23,6839,408,,,,15.457345847000003,20,,,,,C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1002-single_agent-r00
+boxing-1002-crux-r00,boxing,1002,crux,0,1002,failed,failed,failed,0.0,,,,,,,,,0.002852221000001265,,,,ValueError,"Paired proposal failed: ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):
+  File ""<string>"", line 77, in <module>
+  File ""<string>"", line 64, in main
+  File ""<model>"", line 13, in predict
+ValueError: cannot reshape array of size 24 into shape (4,2,3,2)",C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1002-crux-r00
+boxing-1003-single_agent-r00,boxing,1003,single_agent,0,1003,complete,finished,graded,0.10634058711768221,8.403747215476121,0.003392,23,6848,408,,,,16.41337519,20,,,,,C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1003-single_agent-r00
+boxing-1003-crux-r00,boxing,1003,crux,0,1003,failed,failed,failed,0.0,,,,,,,,,0.0005672449999991613,,,,ValueError,"Paired proposal failed: ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):
+  File ""<string>"", line 77, in <module>
+  File ""<string>"", line 64, in main
+  File ""<model>"", line 9, in predict
+ValueError: cannot reshape array of size 24 into shape (4,2,3,2)",C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1003-crux-r00
+boxing-1004-single_agent-r00,boxing,1004,single_agent,0,1004,complete,finished,graded,0.02915701252975758,33.29706657976026,0.0034212,23,6857,424,,,,15.342187579000004,20,,,,,C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1004-single_agent-r00
+boxing-1004-crux-r00,boxing,1004,crux,0,1004,failed,failed,failed,0.0,,,,,,,,,0.00046511699999740586,,,,ValueError,"Paired proposal failed: ModelError: model '1': predict failed with exit code 1; stderr: Traceback (most recent call last):
+  File ""<string>"", line 77, in <module>
+  File ""<string>"", line 64, in main
+  File ""<model>"", line 14, in predict
+ValueError: operands could not be broadcast together with shapes (1,2,2) (4,1,3,2)",C:\Users\gavin\OneDrive\文档\My Files\Projects\AI Research Hackathon\Crux\eval\results\boxing\20261115T042103Z\evidence\boxing-1004-crux-r00

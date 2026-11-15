@@ -1,0 +1,23 @@
+{
+  "families": [],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 752,
+    "cost_usd": 0.00129,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "6ff28c7f3c4e4d0eb0a61400b5d64907",
+      "run_id": "boxing-proposals-0",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/6ff28c7f3c4e4d0eb0a61400b5d64907"
+    }
+  ]
+}

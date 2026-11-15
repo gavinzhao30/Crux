@@ -1,0 +1,51 @@
+{
+  "source_commit": "ed8cda3bd4c774117f3bb4b1de4225cc28634411",
+  "arms": [
+    "random",
+    "grid",
+    "oracle",
+    "single_agent",
+    "crux_random",
+    "crux_eig"
+  ],
+  "seeds": [
+    4000,
+    4001,
+    4002,
+    4003,
+    4004,
+    4005,
+    4006,
+    4007,
+    4008,
+    4009,
+    4010,
+    4011,
+    4012,
+    4013,
+    4014,
+    4015,
+    4016,
+    4017,
+    4018,
+    4019
+  ],
+  "budgets": [
+    5,
+    10,
+    20
+  ],
+  "particles": 512,
+  "simulations": 64,
+  "candidate_grid_sha256": "d2069f1c11e91f93b35c8d1f9b22fd189a9cebed538704684690e2949b1057db",
+  "model": "gpt-4.1-mini",
+  "accounted_spend_cap_usd": 5.0,
+  "target_error": 1.0,
+  "failure_error": 1000000000000.0,
+  "bootstrap_resamples": 2000,
+  "oracle": "known structure; numerical total-information estimate; no hidden coordinates",
+  "likelihood": "continuous Normal approximation to rounded observations",
+  "move_steps": 4,
+  "repair_limit_per_family": 2,
+  "inference": "resample-move MH, full observation history; prior independence moves; reference local Normal-prior moves"
+}

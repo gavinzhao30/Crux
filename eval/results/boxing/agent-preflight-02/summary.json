@@ -1,0 +1,98 @@
+[
+  {
+    "arm": "crux_eig",
+    "budget": 2,
+    "n": 1,
+    "failures": 1,
+    "median": {
+      "estimate": 1000000000000.0,
+      "low": 1000000000000.0,
+      "high": 1000000000000.0
+    },
+    "mean_log10": {
+      "estimate": 12.0,
+      "low": 12.0,
+      "high": 12.0
+    }
+  },
+  {
+    "arm": "crux_eig",
+    "budget": 3,
+    "n": 1,
+    "failures": 1,
+    "median": {
+      "estimate": 1000000000000.0,
+      "low": 1000000000000.0,
+      "high": 1000000000000.0
+    },
+    "mean_log10": {
+      "estimate": 12.0,
+      "low": 12.0,
+      "high": 12.0
+    }
+  },
+  {
+    "arm": "crux_random",
+    "budget": 2,
+    "n": 1,
+    "failures": 1,
+    "median": {
+      "estimate": 1000000000000.0,
+      "low": 1000000000000.0,
+      "high": 1000000000000.0
+    },
+    "mean_log10": {
+      "estimate": 12.0,
+      "low": 12.0,
+      "high": 12.0
+    }
+  },
+  {
+    "arm": "crux_random",
+    "budget": 3,
+    "n": 1,
+    "failures": 1,
+    "median": {
+      "estimate": 1000000000000.0,
+      "low": 1000000000000.0,
+      "high": 1000000000000.0
+    },
+    "mean_log10": {
+      "estimate": 12.0,
+      "low": 12.0,
+      "high": 12.0
+    }
+  },
+  {
+    "arm": "single_agent",
+    "budget": 2,
+    "n": 1,
+    "failures": 0,
+    "median": {
+      "estimate": 67.99012625918792,
+      "low": 67.99012625918792,
+      "high": 67.99012625918792
+    },
+    "mean_log10": {
+      "estimate": 1.832445847669444,
+      "low": 1.832445847669444,
+      "high": 1.832445847669444
+    }
+  },
+  {
+    "arm": "single_agent",
+    "budget": 3,
+    "n": 1,
+    "failures": 0,
+    "median": {
+      "estimate": 222.02945576961346,
+      "low": 222.02945576961346,
+      "high": 222.02945576961346
+    },
+    "mean_log10": {
+      "estimate": 2.346410594403801,
+      "low": 2.346410594403801,
+      "high": 2.346410594403801
+    }
+  }
+]

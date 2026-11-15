@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Mixture of 3 Gaussian blobs with unknown means and fixed std. Prior: source locations uniform in [-2,2]^2. params shape (3,2) for means. predict sums three Gaussian densities at designs.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: (3,2) source means\n    n_designs = designs.shape[0]\n    n_particles = params.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :, :]  # (n_particles, 1, 3, 2)\n    # Gaussian kernel bandwidth\n    sigma = 0.3\n    # Compute squared distances\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist2 = np.sum(diff ** 2, axis=-1)  # (n_particles, n_designs, 3)\n    # Gaussian densities (unnormalized amplitude=1)\n    gauss = np.exp(-dist2 / (2 * sigma ** 2))\n    # Sum over 3 sources\n    intensity = np.sum(gauss, axis=2)  # (n_particles, n_designs)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Sample 3 source locations uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 3, 2))\n"
+    },
+    {
+      "statement": "Model 2: Mixture of 3 Laplace kernels with unknown locations and unknown strengths. Prior: locations uniform [-2,2]^2, strengths uniform [0.5,1.5]. params shape (3,3): (x,y,strength). predict sums weighted Laplace kernels at designs.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: (n_particles, 3, 3): (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, None, :]  # (1, n_designs, 1, 2)\n    params_exp = params[:, None, :, :2]  # (n_particles, 1, 3, 2)\n    strengths = params[:, None, :, 2]  # (n_particles, 1, 3)\n    # Compute L1 distances\n    diff = np.abs(designs_exp - params_exp)  # (n_particles, n_designs, 3, 2)\n    dist1 = np.sum(diff, axis=-1)  # (n_particles, n_designs, 3)\n    # Laplace kernel with scale b=0.3\n    b = 0.3\n    laplace = (1/(2*b)) * np.exp(-dist1 / b)  # (n_particles, n_designs, 3)\n    weighted = strengths * laplace  # (n_particles, n_designs, 3)\n    intensity = np.sum(weighted, axis=2)  # (n_particles, n_designs)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Sample 3 source locations uniform [-2,2]^2\n    locs = rng.uniform(-2, 2, size=(n, 3, 2))\n    # Sample 3 strengths uniform [0.5,1.5]\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3, 1))\n    return np.concatenate([locs, strengths], axis=2) # shape (n,3,3)\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 844,
+    "cost_usd": 0.0014372000000000013,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "41a8c3699d5d4df4833b8f4357b3ccce",
+      "run_id": "main-20261114-proposals-103",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/41a8c3699d5d4df4833b8f4357b3ccce"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Mixture of 3 Gaussian blobs with unknown means and fixed std. Prior: source locations uniform in [-2,2]^2. params shape (3,2) for means. predict sums three Gaussian densities at designs.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: (3,2) source means\n    n_designs = designs.shape[0]\n    n_particles = params.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :, :]  # (n_particles, 1, 3, 2)\n    # Gaussian kernel bandwidth\n    sigma = 0.3\n    # Compute squared distances\n    diff = designs_exp[:, :, None, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist2 = np.sum(diff ** 2, axis=-1)  # (n_particles, n_designs, 3)\n    # Gaussian densities (unnormalized amplitude=1)\n    gauss = np.exp(-dist2 / (2 * sigma ** 2))\n    # Sum over 3 sources\n    intensity = np.sum(gauss, axis=2)  # (n_particles, n_designs)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Sample 3 source locations uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 3, 2))\n"
+      },
+      {
+        "statement": "Model 2: Mixture of 3 Laplace kernels with unknown locations and unknown strengths. Prior: locations uniform [-2,2]^2, strengths uniform [0.5,1.5]. params shape (3,3): (x,y,strength). predict sums weighted Laplace kernels at designs.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params: (n_particles, 3, 3): (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, None, :]  # (1, n_designs, 1, 2)\n    params_exp = params[:, None, :, :2]  # (n_particles, 1, 3, 2)\n    strengths = params[:, None, :, 2]  # (n_particles, 1, 3)\n    # Compute L1 distances\n    diff = np.abs(designs_exp - params_exp)  # (n_particles, n_designs, 3, 2)\n    dist1 = np.sum(diff, axis=-1)  # (n_particles, n_designs, 3)\n    # Laplace kernel with scale b=0.3\n    b = 0.3\n    laplace = (1/(2*b)) * np.exp(-dist1 / b)  # (n_particles, n_designs, 3)\n    weighted = strengths * laplace  # (n_particles, n_designs, 3)\n    intensity = np.sum(weighted, axis=2)  # (n_particles, n_designs)\n    return intensity\n\ndef sample_prior(rng, n):\n    # Sample 3 source locations uniform [-2,2]^2\n    locs = rng.uniform(-2, 2, size=(n, 3, 2))\n    # Sample 3 strengths uniform [0.5,1.5]\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3, 1))\n    return np.concatenate([locs, strengths], axis=2) # shape (n,3,3)\n"
+      }
+    ]
+  }
+}

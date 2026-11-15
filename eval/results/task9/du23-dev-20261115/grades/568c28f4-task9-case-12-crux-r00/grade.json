@@ -1,0 +1,218 @@
+{
+  "protocol": "BixBench3 task 9, downstream pilot (published counts as input)",
+  "grader_commit": "d0e0bbb41222335b1b8878f533a58466a3a782dc",
+  "task": 9,
+  "self_test": false,
+  "artifact_count": 9,
+  "mean": 0.0,
+  "fraction_at_least_0_80": 0.0,
+  "artifacts": {
+    "t98g_c10_vs_control_degs": {
+      "artifact_id": "t98g_c10_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_c10_vs_control_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_c10_vs_control_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_c10_vs_control_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_c10_vs_control_degs.csv"
+      }
+    },
+    "t98g_f7_vs_control_degs": {
+      "artifact_id": "t98g_f7_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_f7_vs_control_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_f7_vs_control_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_f7_vs_control_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_f7_vs_control_degs.csv"
+      }
+    },
+    "t98g_g2_vs_control_degs": {
+      "artifact_id": "t98g_g2_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_g2_vs_control_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_g2_vs_control_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_g2_vs_control_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_g2_vs_control_degs.csv"
+      }
+    },
+    "t98g_slow_shared_degs": {
+      "artifact_id": "t98g_slow_shared_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_slow_shared_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_slow_shared_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_slow_shared_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_slow_shared_degs.csv"
+      }
+    },
+    "hek293_d10_vs_control_degs": {
+      "artifact_id": "hek293_d10_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_d10_vs_control_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_d10_vs_control_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_d10_vs_control_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_d10_vs_control_degs.csv"
+      }
+    },
+    "hek293_e6_vs_control_degs": {
+      "artifact_id": "hek293_e6_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_e6_vs_control_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_e6_vs_control_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_e6_vs_control_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_e6_vs_control_degs.csv"
+      }
+    },
+    "hek293_shared_degs": {
+      "artifact_id": "hek293_shared_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_shared_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_shared_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_shared_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\hek293_shared_degs.csv"
+      }
+    },
+    "t98g_d4_vs_control_degs": {
+      "artifact_id": "t98g_d4_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_vs_control_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_vs_control_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_vs_control_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_vs_control_degs.csv"
+      }
+    },
+    "t98g_d4_specific_upregulated_genes": {
+      "artifact_id": "t98g_d4_specific_upregulated_genes",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_specific_upregulated_genes.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_specific_upregulated_genes.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_specific_upregulated_genes.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-crux-r00\\tmpsgztps0x\\candidate\\t98g_d4_specific_upregulated_genes.csv"
+      }
+    }
+  }
+}

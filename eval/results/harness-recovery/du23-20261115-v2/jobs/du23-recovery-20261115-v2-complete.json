@@ -1,0 +1,52 @@
+{
+  "arm": "fixture",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\harness-recovery\\du23-20261115-v2\\evidence\\du23-recovery-20261115-v2-complete",
+  "case_id": "1000",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    },
+    {
+      "budget": 10,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    },
+    {
+      "budget": 20,
+      "mse": 642.9931066854022,
+      "score": 0.001552811652203773,
+      "status": "graded"
+    }
+  ],
+  "cost_usd": 0,
+  "experiments": 0,
+  "fixture": true,
+  "grade_status": "graded",
+  "heldout_predictions": {
+    "20": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "job_id": "du23-recovery-20261115-v2-complete",
+  "model_calls": 0,
+  "raw_mse": 642.9931066854022,
+  "repeat": 0,
+  "score": 0.001552811652203773,
+  "seed": 1000,
+  "state": "complete",
+  "status": "finished",
+  "suite": "boxing"
+}

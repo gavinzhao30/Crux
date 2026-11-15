@@ -1,0 +1,41 @@
+{
+  "arm": "crux",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\boxing\\20261115T042103Z\\evidence\\boxing-1000-crux-r00",
+  "case_id": "1000",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    },
+    {
+      "budget": 10,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    },
+    {
+      "budget": 20,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    }
+  ],
+  "config": null,
+  "failure": "ValueError",
+  "failure_detail": "Paired proposal failed: ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\n  File \"<string>\", line 77, in <module>\n  File \"<string>\", line 64, in main\n  File \"<model>\", line 8, in predict\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)",
+  "grade_status": "failed",
+  "job_id": "boxing-1000-crux-r00",
+  "model": "gpt-4.1-mini",
+  "proposal_error": "ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\n  File \"<string>\", line 77, in <module>\n  File \"<string>\", line 64, in main\n  File \"<model>\", line 8, in predict\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)",
+  "raw_mse": null,
+  "repeat": 0,
+  "score": 0.0,
+  "seconds": 0.20176870099999977,
+  "seed": 1000,
+  "state": "failed",
+  "status": "failed",
+  "suite": "boxing",
+  "timeout": 600
+}

@@ -1,0 +1,159 @@
+{
+  "rows": [
+    {
+      "arm": "crux_eig",
+      "seed": 4018,
+      "budget": 5,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ModelError"
+    },
+    {
+      "arm": "crux_eig",
+      "seed": 4018,
+      "budget": 10,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ModelError"
+    },
+    {
+      "arm": "crux_eig",
+      "seed": 4018,
+      "budget": 20,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "ModelError"
+    }
+  ],
+  "seed": 4018,
+  "arm": "crux_eig",
+  "history": [
+    [
+      [
+        0.6666666666666665,
+        1.333333333333333
+      ],
+      2.62
+    ],
+    [
+      [
+        1.333333333333333,
+        0.6666666666666665
+      ],
+      0.15
+    ]
+  ],
+  "usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "seconds": 4.594000000040978,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "7cb09c41b4e063a3238b5fead6b0add402d64f1c8f09c86ae94472b395c86367",
+  "sources_sha256": "ea0e4b6544be465447ece5379d97bb8d6361098e607f51c12f0b508c9d75a3df",
+  "traces": [],
+  "particles": 512,
+  "simulations": 64,
+  "move_steps": 4,
+  "belief_diagnostics": {
+    "1": {
+      "moves": {
+        "family-0": {
+          "ess_before": 7.855328895776815,
+          "accepted": 51,
+          "proposed": 2048,
+          "unique_particles": 64
+        },
+        "family-1": {
+          "ess_before": 228.66165806263305,
+          "accepted": 790,
+          "proposed": 2048,
+          "unique_particles": 498
+        }
+      },
+      "effective_sample_sizes": {
+        "family-0": 512.0,
+        "family-1": 512.0
+      },
+      "parameter_std": {
+        "family-0": [
+          0.8591365107808382,
+          1.0585264484732684,
+          0.21942114940757554,
+          0.7356429809859479,
+          0.9663955244566432,
+          0.2689574211832234,
+          0.8150817252516985,
+          1.1185040123991477,
+          0.3641526476910817
+        ],
+        "family-1": [
+          1.106926010334584,
+          1.0783236033700037,
+          0.2795512497522049,
+          1.0837888843188597,
+          1.1535513444813128,
+          0.2804527141390993,
+          1.0974745799119396,
+          1.147347667525563,
+          0.2805484923157669
+        ]
+      }
+    },
+    "2": {
+      "moves": {
+        "family-0": {
+          "ess_before": 510.96227243231385,
+          "accepted": 0,
+          "proposed": 0
+        },
+        "family-1": {
+          "ess_before": 72.28084297029231,
+          "accepted": 331,
+          "proposed": 2048,
+          "unique_particles": 333
+        }
+      },
+      "effective_sample_sizes": {
+        "family-0": 510.9622724323134,
+        "family-1": 512.0
+      },
+      "parameter_std": {
+        "family-0": [
+          0.8591365107808382,
+          1.0585264484732684,
+          0.21942114940757554,
+          0.7356429809859479,
+          0.9663955244566432,
+          0.2689574211832234,
+          0.8150817252516985,
+          1.1185040123991477,
+          0.3641526476910817
+        ],
+        "family-1": [
+          0.9341433226882668,
+          1.211399920020091,
+          0.28606123276042733,
+          0.9834274017659188,
+          1.2687418890378392,
+          0.2740757649602448,
+          0.9988619717003898,
+          1.304382518530572,
+          0.2692138783433062
+        ]
+      }
+    }
+  },
+  "paired_proposal_usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 862,
+    "cost_usd": 0.0014747999999999983,
+    "unpriced_calls": 0
+  }
+}

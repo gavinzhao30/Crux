@@ -1,0 +1,46 @@
+{
+  "arm": "single_agent",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\evidence\\568c28f4-task9-case-12-single_agent-r00",
+  "case_id": "case-12",
+  "config": null,
+  "cost_usd": "0.0673148",
+  "experiments": 21,
+  "fault": "sample_swap",
+  "fault_detected": false,
+  "fault_handled": false,
+  "fault_quote": "",
+  "fault_reason": "The METHODS.md describes the data loading, filtering, and differential expression analysis steps but does not mention any detection or handling of swapped count columns or samples S15 and S10. There is no indication that the agent identified or addressed the swapped samples fault.",
+  "fault_verdict": "missed",
+  "fraction_at_least_0_80": 0.2222222222222222,
+  "grade_status": "graded",
+  "input_manifest_data": {
+    "bundle_id": "3298bc2fac9079f3ab85b6e61347b7379633d211754dcb946414e1a27774c164",
+    "files": {
+      "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+      "tagseq_featurecounts_matrix.tsv": "9959334ebda670e7cc304eba6fec2373c3dcc892fda86ccbbbf3ed619fa306bd"
+    }
+  },
+  "input_tokens": 135603,
+  "job_id": "568c28f4-task9-case-12-single_agent-r00",
+  "judge_cost_usd": 0.0002704,
+  "judge_usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.0002704,
+    "input_tokens": 424,
+    "output_tokens": 63,
+    "unpriced_calls": 0
+  },
+  "model": "gpt-4.1-mini",
+  "model_calls": 22,
+  "output_tokens": 8171,
+  "repeat": 0,
+  "score": 0.4169468466510137,
+  "seconds": 218.502610046,
+  "seed": 0,
+  "state": "complete",
+  "status": "finished",
+  "suite": "task9",
+  "timeout": 420,
+  "usage_complete": true
+}

@@ -1,0 +1,9 @@
+{
+  "committed_events_and_artifacts": "pass",
+  "expected_jobs": 2,
+  "fixture_only": true,
+  "fresh_coordinator_recovery": "pass",
+  "model_calls": 0,
+  "recorded_jobs": 2,
+  "worker_process_crash": "pass"
+}

@@ -1,0 +1,126 @@
+{
+  "arm": "crux",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\boxing\\du23-final-dev-20261115\\evidence\\ca3bf345-boxing-1002-crux-r00",
+  "case_id": "1002",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": 10.385278637000338,
+      "score": 0.08783272082161957,
+      "status": "graded"
+    },
+    {
+      "budget": 10,
+      "mse": 10.278789628060574,
+      "score": 0.08866199592127275,
+      "status": "graded"
+    },
+    {
+      "budget": 20,
+      "mse": 7.145786761140751,
+      "score": 0.12276285020993578,
+      "status": "graded"
+    }
+  ],
+  "config": null,
+  "cost_usd": 0.0,
+  "experiments": 20,
+  "failure": null,
+  "grade_status": "graded",
+  "heldout_predictions": {
+    "5": [
+      0.05368774991859132,
+      0.00423215164634239,
+      0.0004528132079986457,
+      0.25218068218068646,
+      0.03224839025467373,
+      0.00036955914789732215,
+      0.02108229123951889,
+      0.0005186657893023683,
+      0.004937865260204888,
+      0.3445390376389535
+    ],
+    "10": [
+      0.08651910120535863,
+      0.0059485264067386375,
+      0.0015394221833993228,
+      0.348963260385698,
+      0.05223612265876039,
+      0.0003490930734183283,
+      0.0330119777672535,
+      0.0025759965614005373,
+      0.04067901058630429,
+      0.31005288630010785
+    ],
+    "20": [
+      0.9704884918211337,
+      0.017685691614005936,
+      0.0008059510057854057,
+      1.5869038708856122,
+      0.7676144711585591,
+      0.005252883079476302,
+      0.002946741930252243,
+      0.0008472640927139479,
+      0.17942697668947652,
+      1.6439958446402556
+    ]
+  },
+  "input_tokens": 0,
+  "job_id": "ca3bf345-boxing-1002-crux-r00",
+  "model": "gpt-4.1-mini",
+  "model_calls": 0,
+  "mse": null,
+  "output_tokens": 0,
+  "proposal_attempts": [
+    {
+      "error": null,
+      "family": 0,
+      "proposal": {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 6) for three sources (x1,y1,x2,y2,x3,y3)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    bandwidth = 0.3\n    amplitude = 1.0\n    results = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        xs = params[:, 2*i]\n        ys = params[:, 2*i + 1]\n        dx = designs[:, 0][None, :] - xs[:, None]\n        dy = designs[:, 1][None, :] - ys[:, None]\n        results += amplitude * np.exp(-(dx**2 + dy**2) / (2 * bandwidth**2))\n    return results\n\ndef sample_prior(rng, n):\n    # Sample uniform source locations in [-2,2]^2 for three sources\n    return rng.uniform(-2, 2, size=(n, 6))",
+        "statement": "Model 1: Each source is parameterized by (x,y) location within [-2,2]^2. Each source contributes to the signal as a Gaussian kernel with fixed amplitude and bandwidth. The predict function sums Gaussian contributions from all sources over the designs. The sample_prior samples uniform random locations for the three sources in [-2,2]^2."
+      },
+      "repair": 0
+    },
+    {
+      "error": null,
+      "family": 1,
+      "proposal": {
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 9): (x1,y1,a1,x2,y2,a2,x3,y3,a3)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    bandwidth = 0.5\n    results = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        xs = params[:, 3*i]\n        ys = params[:, 3*i + 1]\n        amps = params[:, 3*i + 2]\n        dx = designs[:, 0][None, :] - xs[:, None]\n        dy = designs[:, 1][None, :] - ys[:, None]\n        results += amps[:, None] * np.exp(-(dx**2 + dy**2) / (2 * bandwidth**2))\n    return results\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.hstack((locs[:, :2], amps[:, :1], locs[:, 2:4], amps[:, 1:2], locs[:, 4:6], amps[:, 2:3]))",
+        "statement": "Model 2: Each source is parameterized by (x,y) location in [-2,2]^2 and a Gaussian amplitude sampled from Uniform[0.5,1.5]. Bandwidth fixed at 0.5. The predict sums weighted Gaussian kernels. The sample_prior samples locations uniform in [-2,2]^2 and amplitudes uniform in [0.5,1.5]."
+      },
+      "repair": 0
+    }
+  ],
+  "proposal_error": null,
+  "proposals": [
+    {
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 6) for three sources (x1,y1,x2,y2,x3,y3)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    bandwidth = 0.3\n    amplitude = 1.0\n    results = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        xs = params[:, 2*i]\n        ys = params[:, 2*i + 1]\n        dx = designs[:, 0][None, :] - xs[:, None]\n        dy = designs[:, 1][None, :] - ys[:, None]\n        results += amplitude * np.exp(-(dx**2 + dy**2) / (2 * bandwidth**2))\n    return results\n\ndef sample_prior(rng, n):\n    # Sample uniform source locations in [-2,2]^2 for three sources\n    return rng.uniform(-2, 2, size=(n, 6))",
+      "statement": "Model 1: Each source is parameterized by (x,y) location within [-2,2]^2. Each source contributes to the signal as a Gaussian kernel with fixed amplitude and bandwidth. The predict function sums Gaussian contributions from all sources over the designs. The sample_prior samples uniform random locations for the three sources in [-2,2]^2."
+    },
+    {
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 9): (x1,y1,a1,x2,y2,a2,x3,y3,a3)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    bandwidth = 0.5\n    results = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        xs = params[:, 3*i]\n        ys = params[:, 3*i + 1]\n        amps = params[:, 3*i + 2]\n        dx = designs[:, 0][None, :] - xs[:, None]\n        dy = designs[:, 1][None, :] - ys[:, None]\n        results += amps[:, None] * np.exp(-(dx**2 + dy**2) / (2 * bandwidth**2))\n    return results\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.hstack((locs[:, :2], amps[:, :1], locs[:, 2:4], amps[:, 1:2], locs[:, 4:6], amps[:, 2:3]))",
+      "statement": "Model 2: Each source is parameterized by (x,y) location in [-2,2]^2 and a Gaussian amplitude sampled from Uniform[0.5,1.5]. Bandwidth fixed at 0.5. The predict sums weighted Gaussian kernels. The sample_prior samples locations uniform in [-2,2]^2 and amplitudes uniform in [0.5,1.5]."
+    }
+  ],
+  "raw_mse": 7.145786761140751,
+  "repeat": 0,
+  "score": 0.12276285020993578,
+  "seconds": 122.62651995300001,
+  "seed": 1002,
+  "shared_proposal_cost_usd": 0.0012427999999999999,
+  "shared_proposal_input_tokens": 239,
+  "shared_proposal_output_tokens": 717,
+  "state": "complete",
+  "status": "finished",
+  "suite": "boxing",
+  "timeout": 420,
+  "usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.0012427999999999999,
+    "input_tokens": 239,
+    "output_tokens": 717,
+    "unpriced_calls": 0
+  },
+  "usage_complete": true
+}

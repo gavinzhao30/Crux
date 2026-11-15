@@ -1,0 +1,391 @@
+{
+  "artifacts": [],
+  "budget": {
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "seconds": 20.333092,
+    "tokens_in": 0,
+    "tokens_out": 0
+  },
+  "config": {
+    "cost_lambda": 0.2,
+    "critic": false,
+    "eps": 0.1,
+    "lessons": false,
+    "llm": {
+      "cache": false,
+      "cache_dir": "runs\\.cache\\llm",
+      "max_concurrency": 8,
+      "max_output_tokens": 2048,
+      "max_retries": 1,
+      "prices_per_mtok": {
+        "gpt-4.1-mini": [
+          0.4,
+          1.6
+        ]
+      },
+      "role_models": {
+        "default": "gpt-4.1-mini"
+      },
+      "role_temperature": {
+        "default": 0.2,
+        "predictor": 0.8,
+        "proposer": 0.7
+      },
+      "timeout_s": 60.0
+    },
+    "max_critic_rounds": 2,
+    "max_experiments_per_question": 4,
+    "max_llm_calls": 40,
+    "max_regenerations": 2,
+    "max_seconds": 1800.0,
+    "max_usd": 2.0,
+    "memory": "pastdev",
+    "min_eig_bits": 0.05,
+    "n_predictor_samples": 8,
+    "name": "default",
+    "null_hypothesis": false,
+    "null_prior": 0.15,
+    "numeric_eig_goal": "total",
+    "numeric_particles": 256,
+    "numeric_simulations": 16,
+    "numeric_stop_on_settle": false,
+    "predictor": "sampled",
+    "proposers": 3,
+    "reject_below": 0.02,
+    "runs_dir": "eval\\results\\boxing\\main-20261114",
+    "search": true,
+    "seed": 111,
+    "selection": "random",
+    "settle": 0.9
+  },
+  "diagnostics": [
+    {
+      "experiment_id": "m1:x=-1.33333,y=2",
+      "recorded_at": "2026-11-15T03:14:13.493500+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 2.0
+        },
+        "query": null
+      },
+      "spec_hash": "e19daa496c6963b61e3a5485302e275e5ebb380c25ab0766f433d512adc5cf40"
+    },
+    {
+      "experiment_id": "m2:x=-0.666667,y=2",
+      "recorded_at": "2026-11-15T03:14:14.575432+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": 2.0
+        },
+        "query": null
+      },
+      "spec_hash": "fac5c57e40781fa8301c08ed046d7bb184d235b8a11eb138c7ab6fd27eb00a53"
+    },
+    {
+      "experiment_id": "m3:x=0.666667,y=0",
+      "recorded_at": "2026-11-15T03:14:15.666188+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "3f8e714edcc4431aa94725292e4178387ddcad075b9704c3ec59c0831585b2a0"
+    },
+    {
+      "experiment_id": "m4:x=-1.33333,y=1.33333",
+      "recorded_at": "2026-11-15T03:14:16.751359+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "bd0526d3875cb380cc0c5b37342713f4ed63c02f5510ac56fd55b26731ae8b78"
+    },
+    {
+      "experiment_id": "m5:x=0,y=0.666667",
+      "recorded_at": "2026-11-15T03:14:17.835266+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "d9277f11bade98a6ae3d416b3173e240ab53f43e8e786a6363ea682ce673c3fd"
+    },
+    {
+      "experiment_id": "m6:x=0,y=1.33333",
+      "recorded_at": "2026-11-15T03:14:19.173796+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "216a3e0700ac3ad91fadb6a5f68ca8ecb2fa9a182e044f5930275c686c607354"
+    },
+    {
+      "experiment_id": "m7:x=1.33333,y=0.666667",
+      "recorded_at": "2026-11-15T03:14:19.954859+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "4e6d70256aaf20c05f8ccc2f7423888f43574b77521752b2ee230da0c461ae78"
+    },
+    {
+      "experiment_id": "m8:x=-1.33333,y=0",
+      "recorded_at": "2026-11-15T03:14:20.806544+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "9190911410f1d5c705dee17c280140a95c16812013fd047ae5d0bca0340b66f6"
+    },
+    {
+      "experiment_id": "m9:x=1.33333,y=1.33333",
+      "recorded_at": "2026-11-15T03:14:21.643786+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "0af6d42bca1417610a410a4d50056cbc712a7b61a1536fb3957186d5bc60bade"
+    },
+    {
+      "experiment_id": "m10:x=-1.33333,y=1.33333",
+      "recorded_at": "2026-11-15T03:14:22.484761+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "bd0526d3875cb380cc0c5b37342713f4ed63c02f5510ac56fd55b26731ae8b78"
+    },
+    {
+      "experiment_id": "m11:x=2,y=-0.666667",
+      "recorded_at": "2026-11-15T03:14:23.777316+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 2.0,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "c90e8bc50b142dfadbf8369bad9650d1fc1e59bbfac1e7782a3d6866b57c58e6"
+    },
+    {
+      "experiment_id": "m12:x=0,y=1.33333",
+      "recorded_at": "2026-11-15T03:14:24.585830+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "216a3e0700ac3ad91fadb6a5f68ca8ecb2fa9a182e044f5930275c686c607354"
+    },
+    {
+      "experiment_id": "m13:x=1.33333,y=-2",
+      "recorded_at": "2026-11-15T03:14:25.516840+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": -2.0
+        },
+        "query": null
+      },
+      "spec_hash": "d6641ebfe686ab09ad2535a250e4ad0ab52123ba9cb147aa26e7d0b522c751e3"
+    },
+    {
+      "experiment_id": "m14:x=-0.666667,y=-2",
+      "recorded_at": "2026-11-15T03:14:26.410868+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": -2.0
+        },
+        "query": null
+      },
+      "spec_hash": "c2fe6cced5324bba4ec952b2e0ed287a958ecbdd1d10d85b6064dfd354f9d7a7"
+    },
+    {
+      "experiment_id": "m15:x=-1.33333,y=0.666667",
+      "recorded_at": "2026-11-15T03:14:27.238155+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "dc6a90455b0ef3021e788e32c2935e7102f09984e9694fdc51c09cc81de283c7"
+    },
+    {
+      "experiment_id": "m16:x=2,y=-2",
+      "recorded_at": "2026-11-15T03:14:28.071483+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 2.0,
+          "y": -2.0
+        },
+        "query": null
+      },
+      "spec_hash": "3d6488367ea7cb048522cf69bd6dd6f78f02db706d7a0338174095bb63f16ffd"
+    },
+    {
+      "experiment_id": "m17:x=0.666667,y=-1.33333",
+      "recorded_at": "2026-11-15T03:14:28.917332+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": -1.3333333333333335
+        },
+        "query": null
+      },
+      "spec_hash": "552aa51c85dd3d8d9fa57be95652e2ecd0b164a370f59dbb4b708fd8529b4cc0"
+    },
+    {
+      "experiment_id": "m18:x=0,y=1.33333",
+      "recorded_at": "2026-11-15T03:14:29.765784+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "216a3e0700ac3ad91fadb6a5f68ca8ecb2fa9a182e044f5930275c686c607354"
+    },
+    {
+      "experiment_id": "m19:x=0,y=0",
+      "recorded_at": "2026-11-15T03:14:30.637951+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "4ac25deb8f9ef759373cadf257b6321bc3c766ae105713c90b4270e3b66ca2b6"
+    },
+    {
+      "experiment_id": "m20:x=2,y=0",
+      "recorded_at": "2026-11-15T03:14:31.477627+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 2.0,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "306e175fbada3f5fd588d33081d6bd4781c335a15d84ec63d876e4805525dd98"
+    }
+  ],
+  "ended_at": "2026-11-15T03:14:32.549813+00:00",
+  "execution_backend": "BoxingLab",
+  "git_commit": "5d543cceb14fe6ba91546334d4ebf7b63f326681",
+  "git_dirty": true,
+  "grader_commit": "5d543cceb14fe6ba91546334d4ebf7b63f326681",
+  "input_bundle_id": null,
+  "input_hashes": {},
+  "lab": "boxing",
+  "model_ids": {
+    "default": "gpt-4.1-mini"
+  },
+  "prompt_hashes": {
+    "agents/prompts/bioinformatician.md": "1791da788cffdbe741dad414868f1136014bfb97123e70f97a782d382be7305d",
+    "agents/prompts/critic.md": "6b4f6f4ef7ed0975cda344fd437e1cc5354c140f1fde3b897b92b652f30bd265",
+    "agents/prompts/merge.md": "60d5930b8f6e3ce314385b52aeca8b8eff5a7540a51029a665e3f56f9fa2cb32",
+    "agents/prompts/referee.md": "4beb960e0431470878e11ce97f730fa551de63457bc7475a41951abfc9d0fb7a",
+    "agents/prompts/reporter.md": "0ecaf12c4540ea6d4f799991184e1b8837cc8368241280bc8b4ea8f368ce69b2",
+    "agents/prompts/sceptic.md": "0aed208acc2b03150dc01edf7de1df4d3355469aea85e499ad624e146d2940cf",
+    "agents/prompts/statistician.md": "f3477e178e870cc927b6d05441b76fcb57fd4c8b1c2f59360448f5d5704df93b"
+  },
+  "run_id": "main-20261114-crux_random-111",
+  "sandbox_id": null,
+  "sandbox_image_id": null,
+  "sandbox_image_recipe_sha256": "a89dbe618631f5b9c0825d89dd20125fcbb404157ef654afe7080ac7dae2e3b4",
+  "schema_version": 1,
+  "seeds": {
+    "orchestrator": 111,
+    "particles": 111
+  },
+  "started_at": "2026-11-15T03:14:12.216721+00:00",
+  "status": "ok",
+  "total_cost_usd": 0.0,
+  "total_tokens": 0,
+  "traces": [],
+  "tracing": {
+    "dropped": 0,
+    "errors": [],
+    "pending": 0
+  },
+  "usage": {
+    "calls": 0,
+    "cost_usd": 0.0,
+    "input_tokens": 0,
+    "known_cost_usd": 0.0,
+    "output_tokens": 0,
+    "unpriced_calls": 0
+  }
+}

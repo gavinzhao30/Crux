@@ -1,0 +1,8 @@
+{
+  "failure": "ValueError",
+  "failure_detail": "Paired proposal failed: ModelError: model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\n  File \"<string>\", line 77, in <module>\n  File \"<string>\", line 64, in main\n  File \"<model>\", line 8, in predict\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)",
+  "job_id": "boxing-1000-crux-r00",
+  "seconds": 0.20176870099999977,
+  "state": "failed",
+  "status": "failed"
+}

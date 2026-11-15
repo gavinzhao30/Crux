@@ -1,0 +1,67 @@
+{
+  "arms": [
+    "single_agent",
+    "crux"
+  ],
+  "batch_id": "f96d05e0",
+  "boxing_seed_splits": {
+    "dev": [
+      1000,
+      1001,
+      1002,
+      1003,
+      1004
+    ],
+    "test": [
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019
+    ]
+  },
+  "cases": "dev",
+  "jobs": [
+    {
+      "arm": "single_agent",
+      "case_id": "1000",
+      "config": null,
+      "job_id": "f96d05e0-boxing-1000-single_agent-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 1000,
+      "suite": "boxing",
+      "timeout": 600
+    },
+    {
+      "arm": "crux",
+      "case_id": "1000",
+      "config": null,
+      "job_id": "f96d05e0-boxing-1000-crux-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 1000,
+      "suite": "boxing",
+      "timeout": 600
+    }
+  ],
+  "repeats": 1,
+  "seed": 0,
+  "source_commit": "ed8cda3bd4c774117f3bb4b1de4225cc28634411",
+  "suite": "boxing"
+}

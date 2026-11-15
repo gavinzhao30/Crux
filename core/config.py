@@ -66,6 +66,11 @@ class EngineConfig(RunConfig):
     max_seconds: float = Field(1800, ge=0.0)
 
     seed: int = 0
+    numeric_eig_goal: Literal["family", "total"] = "family"
+    numeric_stop_on_settle: bool = True
+    numeric_particles: int = Field(500, ge=2)
+    numeric_simulations: int = Field(64, ge=1)
+    numeric_move_steps: int = Field(0, ge=0, le=20)
     runs_dir: str = "runs"
 
     # Start-of-run recall from a frozen, reviewed lesson corpus (``memory.lessons``): the

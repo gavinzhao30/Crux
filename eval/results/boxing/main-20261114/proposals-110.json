@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Mixture of three Gaussian sources with unknown locations and equal amplitudes. Prior: source locations uniform in [-2,2]^2, amplitude fixed at 1. Noise SD fixed at 0.5. Predict returns sum of three Gaussian bumps at source locations plus noise.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma_source = 0.3\n    noise_sd = 0.5\n\n    # Expand dims for broadcasting\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n\n    # Compute squared distances to each source\n    dists_sq = np.sum((designs_exp[:, :, None, :] - params_exp)**2, axis=-1)  # (n_particles, n_designs, 3)\n\n    # Sum of three Gaussian bumps\n    amplitudes = 1.0\n    signals = amplitudes * np.exp(-dists_sq / (2 * sigma_source**2))\n    signal_sum = np.sum(signals, axis=2)  # (n_particles, n_designs)\n\n    return signal_sum\n\ndef sample_prior(rng, n):\n    # Sample source locations uniformly in [-2, 2]^2 for 3 sources\n    locations = rng.uniform(-2, 2, size=(n, 6))  # 6 = 3 sources * 2 coords\n    return locations\n"
+    },
+    {
+      "statement": "Model 2: Mixture of three Laplace (exponential) sources with unknown locations and equal amplitudes. Prior: source locations uniform in [-2,2]^2, amplitude fixed at 1. Noise SD fixed at 0.5. Predict returns sum of three Laplace bumps at source locations plus noise.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    b = 0.3  # scale parameter for Laplace\n\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n\n    # Compute L1 distances to each source\n    dists_l1 = np.sum(np.abs(designs_exp[:, :, None, :] - params_exp), axis=-1)  # (n_particles, n_designs, 3)\n\n    amplitudes = 1.0\n    signals = amplitudes * np.exp(-dists_l1 / b)\n    signal_sum = np.sum(signals, axis=2)  # (n_particles, n_designs)\n\n    return signal_sum\n\ndef sample_prior(rng, n):\n    # Sample source locations uniformly in [-2, 2]^2 for 3 sources\n    locations = rng.uniform(-2, 2, size=(n, 6))  # 6 = 3 sources * 2 coords\n    return locations\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 792,
+    "cost_usd": 0.001354000000000001,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "59864fcfaebf4cffbe6e00af032d141a",
+      "run_id": "main-20261114-proposals-110",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/59864fcfaebf4cffbe6e00af032d141a"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Mixture of three Gaussian sources with unknown locations and equal amplitudes. Prior: source locations uniform in [-2,2]^2, amplitude fixed at 1. Noise SD fixed at 0.5. Predict returns sum of three Gaussian bumps at source locations plus noise.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma_source = 0.3\n    noise_sd = 0.5\n\n    # Expand dims for broadcasting\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n\n    # Compute squared distances to each source\n    dists_sq = np.sum((designs_exp[:, :, None, :] - params_exp)**2, axis=-1)  # (n_particles, n_designs, 3)\n\n    # Sum of three Gaussian bumps\n    amplitudes = 1.0\n    signals = amplitudes * np.exp(-dists_sq / (2 * sigma_source**2))\n    signal_sum = np.sum(signals, axis=2)  # (n_particles, n_designs)\n\n    return signal_sum\n\ndef sample_prior(rng, n):\n    # Sample source locations uniformly in [-2, 2]^2 for 3 sources\n    locations = rng.uniform(-2, 2, size=(n, 6))  # 6 = 3 sources * 2 coords\n    return locations\n"
+      },
+      {
+        "statement": "Model 2: Mixture of three Laplace (exponential) sources with unknown locations and equal amplitudes. Prior: source locations uniform in [-2,2]^2, amplitude fixed at 1. Noise SD fixed at 0.5. Predict returns sum of three Laplace bumps at source locations plus noise.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    b = 0.3  # scale parameter for Laplace\n\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n\n    # Compute L1 distances to each source\n    dists_l1 = np.sum(np.abs(designs_exp[:, :, None, :] - params_exp), axis=-1)  # (n_particles, n_designs, 3)\n\n    amplitudes = 1.0\n    signals = amplitudes * np.exp(-dists_l1 / b)\n    signal_sum = np.sum(signals, axis=2)  # (n_particles, n_designs)\n\n    return signal_sum\n\ndef sample_prior(rng, n):\n    # Sample source locations uniformly in [-2, 2]^2 for 3 sources\n    locations = rng.uniform(-2, 2, size=(n, 6))  # 6 = 3 sources * 2 coords\n    return locations\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,206 @@
+[
+  {
+    "seed": 3000,
+    "observations": 0,
+    "rank_correlation": 0.9805102040816326,
+    "same_top_design": true,
+    "settings": [
+      {
+        "particles": 512,
+        "simulations": 64,
+        "top_design": [
+          0.0,
+          0.0
+        ],
+        "max_eig_bits": 3.488682898498009,
+        "moves": {}
+      },
+      {
+        "particles": 2048,
+        "simulations": 256,
+        "top_design": [
+          0.0,
+          0.0
+        ],
+        "max_eig_bits": 3.291794989660809,
+        "moves": {}
+      }
+    ]
+  },
+  {
+    "seed": 3000,
+    "observations": 5,
+    "rank_correlation": 0.9632653061224489,
+    "same_top_design": true,
+    "settings": [
+      {
+        "particles": 512,
+        "simulations": 64,
+        "top_design": [
+          0.6666666666666665,
+          -0.6666666666666667
+        ],
+        "max_eig_bits": 4.246496536057819,
+        "moves": {
+          "sources": {
+            "ess_before": 405.1792708393852,
+            "accepted": 0,
+            "proposed": 0
+          }
+        }
+      },
+      {
+        "particles": 2048,
+        "simulations": 256,
+        "top_design": [
+          0.6666666666666665,
+          -0.6666666666666667
+        ],
+        "max_eig_bits": 4.341717168877493,
+        "moves": {
+          "sources": {
+            "ess_before": 1581.521481017447,
+            "accepted": 0,
+            "proposed": 0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "seed": 3001,
+    "observations": 0,
+    "rank_correlation": 0.9632653061224489,
+    "same_top_design": false,
+    "settings": [
+      {
+        "particles": 512,
+        "simulations": 64,
+        "top_design": [
+          -0.6666666666666667,
+          0.0
+        ],
+        "max_eig_bits": 3.0904976317540847,
+        "moves": {}
+      },
+      {
+        "particles": 2048,
+        "simulations": 256,
+        "top_design": [
+          0.0,
+          0.0
+        ],
+        "max_eig_bits": 3.116834244099726,
+        "moves": {}
+      }
+    ]
+  },
+  {
+    "seed": 3001,
+    "observations": 5,
+    "rank_correlation": 0.9203061224489795,
+    "same_top_design": false,
+    "settings": [
+      {
+        "particles": 512,
+        "simulations": 64,
+        "top_design": [
+          0.6666666666666665,
+          0.0
+        ],
+        "max_eig_bits": 3.62434659938921,
+        "moves": {
+          "sources": {
+            "ess_before": 288.6393209380073,
+            "accepted": 0,
+            "proposed": 0
+          }
+        }
+      },
+      {
+        "particles": 2048,
+        "simulations": 256,
+        "top_design": [
+          0.0,
+          0.6666666666666665
+        ],
+        "max_eig_bits": 3.6142402916683274,
+        "moves": {
+          "sources": {
+            "ess_before": 1024.8480441243896,
+            "accepted": 0,
+            "proposed": 0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "seed": 3002,
+    "observations": 0,
+    "rank_correlation": 0.9476530612244898,
+    "same_top_design": true,
+    "settings": [
+      {
+        "particles": 512,
+        "simulations": 64,
+        "top_design": [
+          -0.6666666666666667,
+          0.0
+        ],
+        "max_eig_bits": 2.9651264781917575,
+        "moves": {}
+      },
+      {
+        "particles": 2048,
+        "simulations": 256,
+        "top_design": [
+          -0.6666666666666667,
+          0.0
+        ],
+        "max_eig_bits": 2.86173015060806,
+        "moves": {}
+      }
+    ]
+  },
+  {
+    "seed": 3002,
+    "observations": 5,
+    "rank_correlation": 0.9657142857142856,
+    "same_top_design": false,
+    "settings": [
+      {
+        "particles": 512,
+        "simulations": 64,
+        "top_design": [
+          0.0,
+          0.6666666666666665
+        ],
+        "max_eig_bits": 3.575306134354843,
+        "moves": {
+          "sources": {
+            "ess_before": 329.1638157091641,
+            "accepted": 0,
+            "proposed": 0
+          }
+        }
+      },
+      {
+        "particles": 2048,
+        "simulations": 256,
+        "top_design": [
+          -0.6666666666666667,
+          0.0
+        ],
+        "max_eig_bits": 3.7784724352979207,
+        "moves": {
+          "sources": {
+            "ess_before": 1539.9669320401533,
+            "accepted": 0,
+            "proposed": 0
+          }
+        }
+      }
+    ]
+  }
+]

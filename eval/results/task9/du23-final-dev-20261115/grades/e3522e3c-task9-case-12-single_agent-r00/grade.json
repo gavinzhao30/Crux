@@ -1,0 +1,296 @@
+{
+  "protocol": "BixBench3 task 9, downstream pilot (published counts as input)",
+  "grader_commit": "d0e0bbb41222335b1b8878f533a58466a3a782dc",
+  "task": 9,
+  "self_test": false,
+  "artifact_count": 9,
+  "mean": 0.3319131109014623,
+  "fraction_at_least_0_80": 0.2222222222222222,
+  "artifacts": {
+    "t98g_c10_vs_control_degs": {
+      "artifact_id": "t98g_c10_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.2061560486757337,
+          "details": {
+            "expected_count": 1232,
+            "observed_count": 165,
+            "true_positive": 144,
+            "false_positive": 21,
+            "false_negative": 1088,
+            "precision": 0.8727272727272727,
+            "recall": 0.11688311688311688
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.0,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 144,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_f7_vs_control_degs": {
+      "artifact_id": "t98g_f7_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.0428380187416332,
+          "details": {
+            "expected_count": 1360,
+            "observed_count": 134,
+            "true_positive": 32,
+            "false_positive": 102,
+            "false_negative": 1328,
+            "precision": 0.23880597014925373,
+            "recall": 0.023529411764705882
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.0,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 32,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_g2_vs_control_degs": {
+      "artifact_id": "t98g_g2_vs_control_degs",
+      "score": 0.4419874924460434,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.4724984777755226,
+          "details": {
+            "expected_count": 3111,
+            "observed_count": 1816,
+            "true_positive": 1164,
+            "false_positive": 652,
+            "false_negative": 1947,
+            "precision": 0.6409691629955947,
+            "recall": 0.3741562198649952
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9354262780419484,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 1164,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_slow_shared_degs": {
+      "artifact_id": "t98g_slow_shared_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.0,
+          "details": {
+            "expected_count": 360,
+            "observed_count": 33,
+            "true_positive": 0,
+            "false_positive": 33,
+            "false_negative": 360,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "label_f1",
+          "score": 0.0,
+          "details": {
+            "row_intersection_count": 0,
+            "label_count": 0,
+            "per_label_f1": {}
+          }
+        }
+      ]
+    },
+    "hek293_d10_vs_control_degs": {
+      "artifact_id": "hek293_d10_vs_control_degs",
+      "score": 0.9644670050761421,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.9644670050761421,
+          "details": {
+            "expected_count": 380,
+            "observed_count": 408,
+            "true_positive": 380,
+            "false_positive": 28,
+            "false_negative": 0,
+            "precision": 0.9313725490196079,
+            "recall": 1.0
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 1.0,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 380,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "hek293_e6_vs_control_degs": {
+      "artifact_id": "hek293_e6_vs_control_degs",
+      "score": 0.9643705463182898,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.9643705463182898,
+          "details": {
+            "expected_count": 211,
+            "observed_count": 210,
+            "true_positive": 203,
+            "false_positive": 7,
+            "false_negative": 8,
+            "precision": 0.9666666666666667,
+            "recall": 0.9620853080568721
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 1.0,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 203,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "hek293_shared_degs": {
+      "artifact_id": "hek293_shared_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.0,
+          "details": {
+            "expected_count": 116,
+            "observed_count": 113,
+            "true_positive": 0,
+            "false_positive": 113,
+            "false_negative": 116,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "label_f1",
+          "score": 0.0,
+          "details": {
+            "row_intersection_count": 0,
+            "label_count": 0,
+            "per_label_f1": {}
+          }
+        }
+      ]
+    },
+    "t98g_d4_vs_control_degs": {
+      "artifact_id": "t98g_d4_vs_control_degs",
+      "score": 0.40726747898751436,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.4322033898305085,
+          "details": {
+            "expected_count": 2211,
+            "observed_count": 1329,
+            "true_positive": 765,
+            "false_positive": 564,
+            "false_negative": 1446,
+            "precision": 0.5756207674943566,
+            "recall": 0.34599728629579374
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9423051474613077,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 765,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_d4_specific_upregulated_genes": {
+      "artifact_id": "t98g_d4_specific_upregulated_genes",
+      "score": 0.20912547528517111,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.20912547528517111,
+          "details": {
+            "expected_count": 761,
+            "observed_count": 291,
+            "true_positive": 110,
+            "false_positive": 181,
+            "false_negative": 651,
+            "precision": 0.37800687285223367,
+            "recall": 0.1445466491458607
+          },
+          "axis": "rows"
+        }
+      ]
+    }
+  }
+}

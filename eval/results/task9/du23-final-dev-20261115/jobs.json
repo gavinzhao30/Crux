@@ -1,0 +1,389 @@
+{
+  "arms": [
+    "single_agent",
+    "crux"
+  ],
+  "batch_id": "e3522e3c",
+  "boxing_seed_splits": null,
+  "capabilities": {
+    "boxing": [
+      "single_agent",
+      "crux",
+      "crux_random_selection"
+    ],
+    "task9": [
+      "single_agent",
+      "crux",
+      "crux_random_selection",
+      "crux_no_critic",
+      "crux_role_only_memory"
+    ]
+  },
+  "cases": "dev",
+  "jobs": [
+    {
+      "arm": "single_agent",
+      "case_id": "case-05",
+      "config": null,
+      "input_manifest_data": {
+        "bundle_id": "c17deed74cbdf6131ed29f6c1d99b46640eed6ee34a5ad083db4a6a36a897e07",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "8dd72e8f1b5d44817d2e89fb32f34cd740548a13f8e03602933d2ebec53d8a08"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-05-single_agent-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "crux",
+      "case_id": "case-05",
+      "config": {
+        "cost_lambda": 0.2,
+        "critic": true,
+        "eps": 0.1,
+        "lessons": false,
+        "llm": {
+          "cache": false,
+          "cache_dir": "runs\\.cache\\llm",
+          "max_concurrency": 8,
+          "max_output_tokens": null,
+          "max_retries": 3,
+          "prices_per_mtok": {},
+          "role_models": {
+            "critic": "gpt-5.5",
+            "default": "gpt-4.1-mini",
+            "designer": "gpt-5.5",
+            "predictor": "gpt-4.1-mini",
+            "proposer": "gpt-4.1-mini",
+            "referee": "gpt-5.5",
+            "reporter": "gpt-5.5"
+          },
+          "role_temperature": {
+            "default": 0.2,
+            "predictor": 0.8,
+            "proposer": 0.7
+          },
+          "timeout_s": 120.0
+        },
+        "max_critic_rounds": 2,
+        "max_experiments_per_question": 4,
+        "max_llm_calls": 40,
+        "max_regenerations": 2,
+        "max_seconds": 300.0,
+        "max_usd": 2.0,
+        "memory": "pastdev",
+        "min_eig_bits": 0.05,
+        "n_predictor_samples": 8,
+        "name": "default",
+        "null_hypothesis": true,
+        "null_prior": 0.15,
+        "numeric_eig_goal": "family",
+        "numeric_move_steps": 0,
+        "numeric_particles": 500,
+        "numeric_simulations": 64,
+        "numeric_stop_on_settle": true,
+        "predictor": "sampled",
+        "proposers": 3,
+        "reject_below": 0.02,
+        "runs_dir": "/checkpoints/jobs",
+        "search": true,
+        "seed": 0,
+        "selection": "eig",
+        "settle": 0.9
+      },
+      "input_manifest_data": {
+        "bundle_id": "c17deed74cbdf6131ed29f6c1d99b46640eed6ee34a5ad083db4a6a36a897e07",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "8dd72e8f1b5d44817d2e89fb32f34cd740548a13f8e03602933d2ebec53d8a08"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-05-crux-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "single_agent",
+      "case_id": "case-06",
+      "config": null,
+      "input_manifest_data": {
+        "bundle_id": "a607845ad638c49710418b96a5862b28e46e9fd9ecbcc90fc8ce6301d2c2e56c",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "5ebbc95d3353c4775b7315b63cd0f32e183dcbd2de90dab3b76dba141552333e"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-06-single_agent-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "crux",
+      "case_id": "case-06",
+      "config": {
+        "cost_lambda": 0.2,
+        "critic": true,
+        "eps": 0.1,
+        "lessons": false,
+        "llm": {
+          "cache": false,
+          "cache_dir": "runs\\.cache\\llm",
+          "max_concurrency": 8,
+          "max_output_tokens": null,
+          "max_retries": 3,
+          "prices_per_mtok": {},
+          "role_models": {
+            "critic": "gpt-5.5",
+            "default": "gpt-4.1-mini",
+            "designer": "gpt-5.5",
+            "predictor": "gpt-4.1-mini",
+            "proposer": "gpt-4.1-mini",
+            "referee": "gpt-5.5",
+            "reporter": "gpt-5.5"
+          },
+          "role_temperature": {
+            "default": 0.2,
+            "predictor": 0.8,
+            "proposer": 0.7
+          },
+          "timeout_s": 120.0
+        },
+        "max_critic_rounds": 2,
+        "max_experiments_per_question": 4,
+        "max_llm_calls": 40,
+        "max_regenerations": 2,
+        "max_seconds": 300.0,
+        "max_usd": 2.0,
+        "memory": "pastdev",
+        "min_eig_bits": 0.05,
+        "n_predictor_samples": 8,
+        "name": "default",
+        "null_hypothesis": true,
+        "null_prior": 0.15,
+        "numeric_eig_goal": "family",
+        "numeric_move_steps": 0,
+        "numeric_particles": 500,
+        "numeric_simulations": 64,
+        "numeric_stop_on_settle": true,
+        "predictor": "sampled",
+        "proposers": 3,
+        "reject_below": 0.02,
+        "runs_dir": "/checkpoints/jobs",
+        "search": true,
+        "seed": 0,
+        "selection": "eig",
+        "settle": 0.9
+      },
+      "input_manifest_data": {
+        "bundle_id": "a607845ad638c49710418b96a5862b28e46e9fd9ecbcc90fc8ce6301d2c2e56c",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "5ebbc95d3353c4775b7315b63cd0f32e183dcbd2de90dab3b76dba141552333e"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-06-crux-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "single_agent",
+      "case_id": "case-09",
+      "config": null,
+      "input_manifest_data": {
+        "bundle_id": "1b1e3dc0aad9d29907aaa0a581549055ba4e4216ed53a9b044aad7e2635c77e5",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "f342b2472bcb35e4b904263dcd52bd8665270b036c775b212fe1ef7a4965f747"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-09-single_agent-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "crux",
+      "case_id": "case-09",
+      "config": {
+        "cost_lambda": 0.2,
+        "critic": true,
+        "eps": 0.1,
+        "lessons": false,
+        "llm": {
+          "cache": false,
+          "cache_dir": "runs\\.cache\\llm",
+          "max_concurrency": 8,
+          "max_output_tokens": null,
+          "max_retries": 3,
+          "prices_per_mtok": {},
+          "role_models": {
+            "critic": "gpt-5.5",
+            "default": "gpt-4.1-mini",
+            "designer": "gpt-5.5",
+            "predictor": "gpt-4.1-mini",
+            "proposer": "gpt-4.1-mini",
+            "referee": "gpt-5.5",
+            "reporter": "gpt-5.5"
+          },
+          "role_temperature": {
+            "default": 0.2,
+            "predictor": 0.8,
+            "proposer": 0.7
+          },
+          "timeout_s": 120.0
+        },
+        "max_critic_rounds": 2,
+        "max_experiments_per_question": 4,
+        "max_llm_calls": 40,
+        "max_regenerations": 2,
+        "max_seconds": 300.0,
+        "max_usd": 2.0,
+        "memory": "pastdev",
+        "min_eig_bits": 0.05,
+        "n_predictor_samples": 8,
+        "name": "default",
+        "null_hypothesis": true,
+        "null_prior": 0.15,
+        "numeric_eig_goal": "family",
+        "numeric_move_steps": 0,
+        "numeric_particles": 500,
+        "numeric_simulations": 64,
+        "numeric_stop_on_settle": true,
+        "predictor": "sampled",
+        "proposers": 3,
+        "reject_below": 0.02,
+        "runs_dir": "/checkpoints/jobs",
+        "search": true,
+        "seed": 0,
+        "selection": "eig",
+        "settle": 0.9
+      },
+      "input_manifest_data": {
+        "bundle_id": "1b1e3dc0aad9d29907aaa0a581549055ba4e4216ed53a9b044aad7e2635c77e5",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "f342b2472bcb35e4b904263dcd52bd8665270b036c775b212fe1ef7a4965f747"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-09-crux-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "single_agent",
+      "case_id": "case-12",
+      "config": null,
+      "input_manifest_data": {
+        "bundle_id": "3298bc2fac9079f3ab85b6e61347b7379633d211754dcb946414e1a27774c164",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "9959334ebda670e7cc304eba6fec2373c3dcc892fda86ccbbbf3ed619fa306bd"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-12-single_agent-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    },
+    {
+      "arm": "crux",
+      "case_id": "case-12",
+      "config": {
+        "cost_lambda": 0.2,
+        "critic": true,
+        "eps": 0.1,
+        "lessons": false,
+        "llm": {
+          "cache": false,
+          "cache_dir": "runs\\.cache\\llm",
+          "max_concurrency": 8,
+          "max_output_tokens": null,
+          "max_retries": 3,
+          "prices_per_mtok": {},
+          "role_models": {
+            "critic": "gpt-5.5",
+            "default": "gpt-4.1-mini",
+            "designer": "gpt-5.5",
+            "predictor": "gpt-4.1-mini",
+            "proposer": "gpt-4.1-mini",
+            "referee": "gpt-5.5",
+            "reporter": "gpt-5.5"
+          },
+          "role_temperature": {
+            "default": 0.2,
+            "predictor": 0.8,
+            "proposer": 0.7
+          },
+          "timeout_s": 120.0
+        },
+        "max_critic_rounds": 2,
+        "max_experiments_per_question": 4,
+        "max_llm_calls": 40,
+        "max_regenerations": 2,
+        "max_seconds": 300.0,
+        "max_usd": 2.0,
+        "memory": "pastdev",
+        "min_eig_bits": 0.05,
+        "n_predictor_samples": 8,
+        "name": "default",
+        "null_hypothesis": true,
+        "null_prior": 0.15,
+        "numeric_eig_goal": "family",
+        "numeric_move_steps": 0,
+        "numeric_particles": 500,
+        "numeric_simulations": 64,
+        "numeric_stop_on_settle": true,
+        "predictor": "sampled",
+        "proposers": 3,
+        "reject_below": 0.02,
+        "runs_dir": "/checkpoints/jobs",
+        "search": true,
+        "seed": 0,
+        "selection": "eig",
+        "settle": 0.9
+      },
+      "input_manifest_data": {
+        "bundle_id": "3298bc2fac9079f3ab85b6e61347b7379633d211754dcb946414e1a27774c164",
+        "files": {
+          "samples.tsv": "51b9e77afe725f176e3121c02eb75d71461ff666e64153cac956ef780e13d2d1",
+          "tagseq_featurecounts_matrix.tsv": "9959334ebda670e7cc304eba6fec2373c3dcc892fda86ccbbbf3ed619fa306bd"
+        }
+      },
+      "job_id": "e3522e3c-task9-case-12-crux-r00",
+      "model": "gpt-4.1-mini",
+      "repeat": 0,
+      "seed": 0,
+      "suite": "task9",
+      "timeout": 300
+    }
+  ],
+  "repeats": 1,
+  "seed": 0,
+  "source_commit": "b9f9e3c1a9232c8c95d514d1ba965eb5f178c885",
+  "suite": "task9",
+  "unsupported_numeric_presets": [
+    "crux_no_critic",
+    "crux_role_only_memory"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "arm": "crux",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\boxing\\repair-modal-03-20261115\\evidence\\7a68c62f-boxing-1000-crux-r00",
+  "case_id": "1000",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": 711.4576973989547,
+      "score": 0.001403592106100905,
+      "status": "graded"
+    },
+    {
+      "budget": 10,
+      "mse": 643.0361412573068,
+      "score": 0.0015527078931436517,
+      "status": "graded"
+    },
+    {
+      "budget": 20,
+      "mse": 643.0361412573068,
+      "score": 0.0015527078931436517,
+      "status": "graded"
+    }
+  ],
+  "config": null,
+  "cost_usd": 0.0,
+  "experiments": 20,
+  "failure": null,
+  "grade_status": "graded",
+  "heldout_predictions": {
+    "5": [
+      1.2188586291220749,
+      4.482404590933905,
+      0.611841578534904,
+      0.45517741598079803,
+      4.80749553219673,
+      1.9169707543610306,
+      38.06532214507826,
+      2.4891692402342973,
+      0.6604726814982378,
+      15.319974505525915
+    ],
+    "10": [
+      0.006568191403454328,
+      1.1177180661098887,
+      7.645897863660561e-09,
+      3.678326765635079e-11,
+      0.27421807313916735,
+      0.16905018482489506,
+      0.45706445037439014,
+      0.20851880662820071,
+      2.2630749630047712e-08,
+      0.39512297046522427
+    ],
+    "20": [
+      0.006568191403454328,
+      1.1177180661098887,
+      7.645897863660561e-09,
+      3.678326765635079e-11,
+      0.27421807313916735,
+      0.16905018482489506,
+      0.45706445037439014,
+      0.20851880662820071,
+      2.2630749630047712e-08,
+      0.39512297046522427
+    ]
+  },
+  "input_tokens": 0,
+  "job_id": "7a68c62f-boxing-1000-crux-r00",
+  "model": "gpt-4.1-mini",
+  "model_calls": 0,
+  "mse": null,
+  "output_tokens": 0,
+  "proposal_attempts": [
+    {
+      "error": null,
+      "family": 0,
+      "proposal": {
+        "code": "import numpy as np\n\ndef sample_prior(rng, n):\n    # Each particle has 3 sources, each source has (x, y, amplitude)\n    # Shape: (n, 9)\n    positions = rng.uniform(-2, 2, size=(n, 6))  # x1,y1,x2,y2,x3,y3\n    amplitudes = rng.uniform(0.5, 1.5, size=(n, 3))  # a1,a2,a3\n    params = np.concatenate([positions, amplitudes], axis=1)\n    return params\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9)\n    # designs shape: (n_designs, 2)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensities = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x = params[:, 2*i]\n        y = params[:, 2*i+1]\n        a = params[:, 6+i]\n        dx = designs[:, 0][None, :] - x[:, None]  # (n_particles, n_designs)\n        dy = designs[:, 1][None, :] - y[:, None]\n        dist_sq = dx**2 + dy**2 + 1e-6  # avoid division by zero\n        intensities += a[:, None] / dist_sq\n    return intensities\n",
+        "statement": "Model 1: Each source is parameterized by (x, y, amplitude). The prior samples source positions uniformly from [-2, 2] for both x and y, and amplitudes from Uniform(0.5, 1.5). The predict function sums the inverse squared distance contributions from each source to each design point, weighted by amplitude, producing noiseless scalar intensities."
+      },
+      "repair": 0
+    },
+    {
+      "error": null,
+      "family": 1,
+      "proposal": {
+        "code": "import numpy as np\n\ndef sample_prior(rng, n):\n    # Each particle has 3 sources with (x,y)\n    # Shape: (n, 6)\n    params = rng.uniform(-2, 2, size=(n, 6))\n    return params\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6)\n    # designs shape: (n_designs, 2)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    intensities = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x = params[:, 2*i]\n        y = params[:, 2*i+1]\n        dx = designs[:, 0][None, :] - x[:, None]  # (n_particles, n_designs)\n        dy = designs[:, 1][None, :] - y[:, None]\n        dist_sq = dx**2 + dy**2\n        intensities += np.exp(-dist_sq / (2 * sigma**2))\n    return intensities\n",
+        "statement": "Model 2: Each source is parameterized by (x, y) with fixed amplitude 1. Prior samples source positions uniformly in [-2, 2]. The predict function sums Gaussian-shaped contributions from each source with fixed amplitude 1 and fixed standard deviation 0.3 at each design point, producing noiseless scalar intensities."
+      },
+      "repair": 0
+    }
+  ],
+  "proposal_error": null,
+  "proposals": [
+    {
+      "code": "import numpy as np\n\ndef sample_prior(rng, n):\n    # Each particle has 3 sources, each source has (x, y, amplitude)\n    # Shape: (n, 9)\n    positions = rng.uniform(-2, 2, size=(n, 6))  # x1,y1,x2,y2,x3,y3\n    amplitudes = rng.uniform(0.5, 1.5, size=(n, 3))  # a1,a2,a3\n    params = np.concatenate([positions, amplitudes], axis=1)\n    return params\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9)\n    # designs shape: (n_designs, 2)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensities = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x = params[:, 2*i]\n        y = params[:, 2*i+1]\n        a = params[:, 6+i]\n        dx = designs[:, 0][None, :] - x[:, None]  # (n_particles, n_designs)\n        dy = designs[:, 1][None, :] - y[:, None]\n        dist_sq = dx**2 + dy**2 + 1e-6  # avoid division by zero\n        intensities += a[:, None] / dist_sq\n    return intensities\n",
+      "statement": "Model 1: Each source is parameterized by (x, y, amplitude). The prior samples source positions uniformly from [-2, 2] for both x and y, and amplitudes from Uniform(0.5, 1.5). The predict function sums the inverse squared distance contributions from each source to each design point, weighted by amplitude, producing noiseless scalar intensities."
+    },
+    {
+      "code": "import numpy as np\n\ndef sample_prior(rng, n):\n    # Each particle has 3 sources with (x,y)\n    # Shape: (n, 6)\n    params = rng.uniform(-2, 2, size=(n, 6))\n    return params\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6)\n    # designs shape: (n_designs, 2)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    intensities = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x = params[:, 2*i]\n        y = params[:, 2*i+1]\n        dx = designs[:, 0][None, :] - x[:, None]  # (n_particles, n_designs)\n        dy = designs[:, 1][None, :] - y[:, None]\n        dist_sq = dx**2 + dy**2\n        intensities += np.exp(-dist_sq / (2 * sigma**2))\n    return intensities\n",
+      "statement": "Model 2: Each source is parameterized by (x, y) with fixed amplitude 1. Prior samples source positions uniformly in [-2, 2]. The predict function sums Gaussian-shaped contributions from each source with fixed amplitude 1 and fixed standard deviation 0.3 at each design point, producing noiseless scalar intensities."
+    }
+  ],
+  "raw_mse": 643.0361412573068,
+  "repeat": 0,
+  "score": 0.0015527078931436517,
+  "seconds": 14.217542635000001,
+  "seed": 1000,
+  "shared_proposal_cost_usd": 0.0013084,
+  "shared_proposal_input_tokens": 239,
+  "shared_proposal_output_tokens": 758,
+  "state": "complete",
+  "status": "finished",
+  "suite": "boxing",
+  "timeout": 600,
+  "usage": {
+    "cached_calls": 0,
+    "calls": 1,
+    "cost_usd": 0.0013084,
+    "input_tokens": 239,
+    "output_tokens": 758,
+    "unpriced_calls": 0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "families": [],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 924,
+    "cost_usd": 0.0015652,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "9caca0ec234a47a4b177fd470406402f",
+      "run_id": "main-20261114-proposals-101",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/9caca0ec234a47a4b177fd470406402f"
+    }
+  ],
+  "validation_error": "model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 77, in <module>\r\n  File \"<string>\", line 64, in main\r\n  File \"<model>\", line 8, in predict\r\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)",
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Gaussian Mixture Model with 3 Equal-Strength Sources\n- Parameters: source locations (x,y) for each of 3 sources, fixed equal amplitude 1, fixed noise SD 0.5\n- Prior: uniform source locations in [-2,2]^2\n- Predict: sum of 3 Gaussian kernels evaluated at designs\n- Sample_prior: sample 3 source locations uniformly in [-2,2]^2\n- Vectorized and numpy only",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x1,y1,x2,y2,x3,y3)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1,n_designs,2)\n    params_exp = params[:, None, :].reshape(n_particles, n_designs, 3, 2)  # (n_particles,n_designs,3,2)\n    diff = designs_exp - params_exp  # (n_particles,n_designs,3,2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,n_designs,3)\n    amplitude = 1.0\n    sigma = 0.3\n    gaussians = amplitude * np.exp(-dist_sq / (2*sigma**2))  # (n_particles,n_designs,3)\n    signal = np.sum(gaussians, axis=2)  # (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # sample 3 source locations uniformly in [-2,2]^2\n    samples = rng.uniform(-2, 2, size=(n, 6))\n    return samples\n"
+      },
+      {
+        "statement": "Model 2: Sum of 3 Radial Basis Functions with unknown centers and widths\n- Parameters: source centers (x,y) and widths (sigma) for each of 3 sources, widths in [0.1,0.5]\n- Prior: centers uniform in [-2,2]^2, widths uniform in [0.1,0.5]\n- Predict: sum of 3 RBFs at designs\n- Sample_prior: sample centers and widths independently\n- Vectorized numpy implementation",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) for (x1,y1,s1,x2,y2,s2,x3,y3,s3)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :].reshape(1, n_designs, 1, 2)  # (1,n_designs,1,2)\n    params_pos = params[:, None, :, :].reshape(n_particles, n_designs, 3, 3)  # (n_particles,n_designs,3,3)\n    centers = params_pos[..., :2]  # (n_particles,n_designs,3,2)\n    sigmas = params_pos[..., 2]  # (n_particles,n_designs,3)\n    diff = designs_exp - centers  # (n_particles,n_designs,3,2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,n_designs,3)\n    gaussians = np.exp(-dist_sq / (2 * sigmas**2))  # (n_particles,n_designs,3)\n    signal = np.sum(gaussians, axis=2)  # (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    centers = rng.uniform(-2, 2, size=(n, 6))  # 3 centers x,y\n    sigmas = rng.uniform(0.1, 0.5, size=(n, 3))  # 3 widths\n    params = np.empty((n, 9))\n    params[:, :6] = centers\n    params[:, 6:] = sigmas\n    return params\n"
+      }
+    ]
+  }
+}

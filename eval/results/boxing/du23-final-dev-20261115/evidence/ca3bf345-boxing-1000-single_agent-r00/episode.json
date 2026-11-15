@@ -1,0 +1,458 @@
+{
+  "rows": [
+    {
+      "arm": "single_agent",
+      "seed": 1000,
+      "budget": 5,
+      "status": "pending_grade",
+      "mse": null,
+      "failure": null
+    },
+    {
+      "arm": "single_agent",
+      "seed": 1000,
+      "budget": 10,
+      "status": "pending_grade",
+      "mse": null,
+      "failure": null
+    },
+    {
+      "arm": "single_agent",
+      "seed": 1000,
+      "budget": 20,
+      "status": "pending_grade",
+      "mse": null,
+      "failure": null
+    }
+  ],
+  "seed": 1000,
+  "arm": "single_agent",
+  "history": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      3.31
+    ],
+    [
+      [
+        1.0,
+        0.0
+      ],
+      2.33
+    ],
+    [
+      [
+        0.5,
+        0.0
+      ],
+      3.26
+    ],
+    [
+      [
+        0.0,
+        1.0
+      ],
+      6.05
+    ],
+    [
+      [
+        0.5,
+        0.5
+      ],
+      25.04
+    ],
+    [
+      [
+        0.0,
+        0.5
+      ],
+      9.73
+    ],
+    [
+      [
+        0.5,
+        0.25
+      ],
+      7.47
+    ],
+    [
+      [
+        0.25,
+        0.5
+      ],
+      56.09
+    ],
+    [
+      [
+        0.3,
+        0.45
+      ],
+      37.43
+    ],
+    [
+      [
+        0.2,
+        0.5
+      ],
+      37.17
+    ],
+    [
+      [
+        0.22,
+        0.48
+      ],
+      35.43
+    ],
+    [
+      [
+        0.23,
+        0.49
+      ],
+      41.14
+    ],
+    [
+      [
+        0.24,
+        0.47
+      ],
+      36.12
+    ],
+    [
+      [
+        0.24,
+        0.49
+      ],
+      44.99
+    ],
+    [
+      [
+        0.23,
+        0.48
+      ],
+      39.56
+    ],
+    [
+      [
+        0.23,
+        0.51
+      ],
+      51.6
+    ],
+    [
+      [
+        0.23,
+        0.5
+      ],
+      46.44
+    ],
+    [
+      [
+        0.23,
+        0.52
+      ],
+      56.7
+    ],
+    [
+      [
+        0.23,
+        0.51
+      ],
+      51.65
+    ],
+    [
+      [
+        0.23,
+        0.53
+      ],
+      63.01
+    ]
+  ],
+  "usage": {
+    "calls": 23,
+    "cached_calls": 0,
+    "input_tokens": 6854,
+    "output_tokens": 408,
+    "cost_usd": 0.0033944,
+    "unpriced_calls": 0
+  },
+  "seconds": 13.901664577,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "d01e018b26cc8ce49c2842a06b2fdb3a5f6871cf536ef21ba967de1b7974ab07",
+  "sources_sha256": "eddd21f3ccf5a2494147a8e802d89453b6e0e63cf198b73115c9cb56a157f6cb",
+  "traces": [
+    {
+      "trace_id": "65811f13cec34418acfe270e59617f6c",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "85deda1cc7e1f92c63020c8e768b68f38d0b559849c6b8103eff7c53313c5538",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "f2efede1b12a4049a06fae13c478d4f6",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "e4eedcd5de67e6770b60601f01d29e197abd2eea55aca4e1a03933bb206c17bc",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "e021dc95ad9243019dd3b12c642d9da8",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "5389f9e6f8bda4587fc0ae32fcd510544e68fbef50dbbdba33e689884762f93e",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "2445960b4d514dfbbca70cc4cd133f73",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "a4e5302f7e8eb69914aea7890205f7f6cd836b4a83038490e0d9b79dd1062401",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "c06a9d83ea874b26a3f1f3246307d9bd",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "67ee4f9f1503f01f64eddc75391daac7e511be7a5fd3fa91c587eaa933e90c75",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "2aef7deef1604714980f253038cc4054",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "d1115fb9d5c09f4d4fe67234da54a891e3b8cf22d14656c8b76f464f6c7468fc",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "950a565ec7f4472fa88c35476d5d93b8",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "c836a58ce0a226252d09f4ec70be4634f2826a507cfebd0a50ac2722c89edd4e",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "a70e71a9cdd8411e9d6ef48f56320f63",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "68f3a595e9911030157583fa13fdf7f6738b9f66b47ab0f9d5176bfe06389aa8",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "0c2868f348b14963a5ea337bb9279ffc",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "cbee0248f3168f99c94170fcaec704d53f7f6a8ea110a2659354e73f3befc0f8",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "0a9c0b7865b74ef280b456081edb83ef",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "6bdd10f8e13b2431a896df038e53bbb9971e5093562167af28794f74aa9f68c6",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "c1e9d1721345406e89615c01c6ccdd26",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "62a0fc125a21c70f530a1b3e95740e4df4fc43de7310bf5f7b7edeb5517aa56e",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "c145b8f41364409c95c8453181648be8",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "236bcdc81109bde57f80986f19bbe0c96b7de2ab316a1a0fb8166ee56d60b905",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "4cb8ed1a0fe44265bc4c83b08c53b6aa",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "997e0278c5dd16cb80c76997443a697df21f1f9279cbef864255bb120d1c64fe",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "59af0099b810433c95c4dcc69644711f",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "55b5e1f5b47cb7e444ed991ea3b4884e2a0de721929e1e79d6ae77a899b92aa0",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "03c9def9abfa44b19cbb4cdd245408e3",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "c5ccb4c02f4a59a08fd88bfbc99f08c5728998d158197e8e5037ca4d63220199",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "ec65fc9a6a62456fa7dd0b0a38a27a7b",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "8d8f59b959b86ae071e0bf6585ff8f7796d92cff6fae8086e561b3be9f01f814",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "2bf46760209540c891f6afd495222c3f",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "3302ab42449f6a25764fafcc6b26795efcf958d571168fb436e66543a8a42e38",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "d7ac3f8742864b78a69152f64f75fed3",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "82570be2252073e5feb4163f23b145b0a944041802a73f4cbb5fd502cd199895",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "e963511b0b7d4c38bad1f47ed915854c",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "7510c0cabb6ccd87150c04d2785b3d04d28c7346cff309f8fde750a9a9502a33",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "b1dd51df73d9496e9cf9c149b698f752",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "f39b2e20c4c6472ee6904b55fa317c7d0d78c011592693945fac378f46dea192",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "39e808d7ff2046a99465ef2ea40bc8e3",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "90ad06884d27704c8333bfc54162c04bed40055b2b0d00c3a4efa009e7edd788",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "d7340bdf638c427bbf2ce2671e2738c7",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "513a470244257ebbf74f40466ad4fb5199bee603803c6517061c8b752f85a91a",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    },
+    {
+      "trace_id": "921b453d9d5540e8b60a68c2fe752ff7",
+      "run_id": "ca3bf345-boxing-1000-single_agent-r00",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "98ae1a474b817bcb51ab642a52088ea33dc22d1a9b91251e62bb40fcf761b043",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": null
+    }
+  ],
+  "particles": 256,
+  "simulations": 16,
+  "move_steps": 4,
+  "belief_diagnostics": {},
+  "heldout_predictions": {
+    "5": [
+      4.2,
+      25.1,
+      0.8,
+      0.6,
+      1.3,
+      3.9,
+      1.9,
+      1.5,
+      0.9,
+      2.0
+    ],
+    "10": [
+      0.75,
+      54.0,
+      0.35,
+      0.2,
+      1.0,
+      1.8,
+      1.2,
+      0.9,
+      0.3,
+      1.1
+    ],
+    "20": [
+      0.78,
+      62.0,
+      0.48,
+      0.36,
+      0.35,
+      1.1,
+      0.39,
+      0.33,
+      0.47,
+      0.37
+    ]
+  }
+}

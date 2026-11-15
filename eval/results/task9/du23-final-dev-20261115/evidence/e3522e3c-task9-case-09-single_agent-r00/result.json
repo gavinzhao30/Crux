@@ -1,0 +1,12 @@
+{
+  "cost_usd": 0.0801056,
+  "experiments": 17,
+  "input_tokens": 148708,
+  "job_id": "e3522e3c-task9-case-09-single_agent-r00",
+  "model_calls": 17,
+  "output_tokens": 12889,
+  "seconds": 306.078462873,
+  "state": "complete",
+  "status": "execution_limit",
+  "usage_complete": true
+}

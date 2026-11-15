@@ -1,0 +1,12 @@
+{
+  "cost_usd": 0.037798399999999996,
+  "experiments": 11,
+  "input_tokens": 61336,
+  "job_id": "568c28f4-task9-case-06-crux-r00",
+  "model_calls": 16,
+  "output_tokens": 8290,
+  "seconds": 442.302907829,
+  "state": "complete",
+  "status": "finished",
+  "usage_complete": true
+}

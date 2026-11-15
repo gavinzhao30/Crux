@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Mixture of three Gaussian sources with unknown centers and common amplitude. Parameters: 6 coordinates (3 sources x 2D) and a source amplitude parameter. Prior uniform in [-2,2] for coordinates, amplitude in [0,5]. Prediction sums three Gaussian PDFs at design points.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7) -> 3 sources * 2 coords + 1 amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    coords = params[:, :6].reshape(n_particles, 3, 2)  # (n_particles, 3 sources, 2D)\n    amplitude = params[:, 6][:, None, None]  # (n_particles,1,1)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    diff = designs_exp - coords[:, :, None, :]  # (n_particles,3,n_designs,2)\n    dist2 = np.sum(diff**2, axis=-1)  # (n_particles,3,n_designs)\n    sigma = 0.3\n    gauss = amplitude[:, :, None] * np.exp(-dist2 / (2 * sigma**2))  # (n_particles,3,n_designs)\n    signal = np.sum(gauss, axis=1)  # sum over sources -> (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    coords = rng.uniform(-2, 2, size=(n, 6))\n    amplitude = rng.uniform(0, 5, size=(n, 1))\n    return np.hstack([coords, amplitude])"
+    },
+    {
+      "statement": "Model 2: Sum of three isotropic Laplace sources with unknown centers and amplitude. Parameters: 6 coordinates + 1 amplitude. Prior uniform in [-2,2] for centers, amplitude in [0,5]. Prediction sums three Laplace PDFs at designs, with fixed scale b=0.3.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    coords = params[:, :6].reshape(n_particles, 3, 2)  # (n_particles,3,2)\n    amplitude = params[:, 6][:, None, None]  # (n_particles,1,1)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    diff = designs_exp - coords[:, :, None, :]  # (n_particles,3,n_designs,2)\n    dist = np.sum(np.abs(diff), axis=-1)  # L1 norm (n_particles,3,n_designs)\n    b = 0.3\n    laplace = amplitude[:, :, None] * (1/(2*b))**2 * np.exp(-dist / b)  # (n_particles,3,n_designs)\n    signal = np.sum(laplace, axis=1)  # sum over sources\n    return signal\n\ndef sample_prior(rng, n):\n    coords = rng.uniform(-2, 2, size=(n, 6))\n    amplitude = rng.uniform(0, 5, size=(n, 1))\n    return np.hstack([coords, amplitude])"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 772,
+    "cost_usd": 0.0013220000000000037,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "24b3dbe54b0945ae88601b5a443083b8",
+      "run_id": "main-20261114-proposals-118",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/24b3dbe54b0945ae88601b5a443083b8"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1: Mixture of three Gaussian sources with unknown centers and common amplitude. Parameters: 6 coordinates (3 sources x 2D) and a source amplitude parameter. Prior uniform in [-2,2] for coordinates, amplitude in [0,5]. Prediction sums three Gaussian PDFs at design points.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7) -> 3 sources * 2 coords + 1 amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    coords = params[:, :6].reshape(n_particles, 3, 2)  # (n_particles, 3 sources, 2D)\n    amplitude = params[:, 6][:, None, None]  # (n_particles,1,1)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    diff = designs_exp - coords[:, :, None, :]  # (n_particles,3,n_designs,2)\n    dist2 = np.sum(diff**2, axis=-1)  # (n_particles,3,n_designs)\n    sigma = 0.3\n    gauss = amplitude[:, :, None] * np.exp(-dist2 / (2 * sigma**2))  # (n_particles,3,n_designs)\n    signal = np.sum(gauss, axis=1)  # sum over sources -> (n_particles,n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    coords = rng.uniform(-2, 2, size=(n, 6))\n    amplitude = rng.uniform(0, 5, size=(n, 1))\n    return np.hstack([coords, amplitude])"
+      },
+      {
+        "statement": "Model 2: Sum of three isotropic Laplace sources with unknown centers and amplitude. Parameters: 6 coordinates + 1 amplitude. Prior uniform in [-2,2] for centers, amplitude in [0,5]. Prediction sums three Laplace PDFs at designs, with fixed scale b=0.3.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    coords = params[:, :6].reshape(n_particles, 3, 2)  # (n_particles,3,2)\n    amplitude = params[:, 6][:, None, None]  # (n_particles,1,1)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    diff = designs_exp - coords[:, :, None, :]  # (n_particles,3,n_designs,2)\n    dist = np.sum(np.abs(diff), axis=-1)  # L1 norm (n_particles,3,n_designs)\n    b = 0.3\n    laplace = amplitude[:, :, None] * (1/(2*b))**2 * np.exp(-dist / b)  # (n_particles,3,n_designs)\n    signal = np.sum(laplace, axis=1)  # sum over sources\n    return signal\n\ndef sample_prior(rng, n):\n    coords = rng.uniform(-2, 2, size=(n, 6))\n    amplitude = rng.uniform(0, 5, size=(n, 1))\n    return np.hstack([coords, amplitude])"
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source has parameters (x, y, intensity). The signal at each design point is the sum of intensities divided by squared distances plus one (to avoid singularity). The prior samples source locations uniformly in [-2,2]^2 and intensities uniformly in [0.5,1.5].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 3\n    intensities = params[:, :n_sources]\n    xs = params[:, n_sources:2*n_sources]\n    ys = params[:, 2*n_sources:3*n_sources]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - xs[:, i][:, None]\n        dy = designs_y[None, :] - ys[:, i][:, None]\n        dist_sq = dx**2 + dy**2 + 1.0  # avoid division by zero\n        predictions += intensities[:, i][:, None] / dist_sq\n    return predictions\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    intensities = rng.uniform(0.5, 1.5, size=(n, n_sources))\n    xs = rng.uniform(-2, 2, size=(n, n_sources))\n    ys = rng.uniform(-2, 2, size=(n, n_sources))\n    params = np.hstack([intensities, xs, ys])\n    return params"
+    },
+    {
+      "statement": "Model 2: Each source has parameters (x, y). The intensity is fixed to 1. The signal is sum of exp(-distance squared) (Gaussian kernel) from each source. Prior samples locations uniformly in [-2,2]^2.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 2\n    xs = params[:, :n_sources]\n    ys = params[:, n_sources:2*n_sources]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - xs[:, i][:, None]\n        dy = designs_y[None, :] - ys[:, i][:, None]\n        dist_sq = dx**2 + dy**2\n        predictions += np.exp(-dist_sq)\n    return predictions\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    xs = rng.uniform(-2, 2, size=(n, n_sources))\n    ys = rng.uniform(-2, 2, size=(n, n_sources))\n    params = np.hstack([xs, ys])\n    return params"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source has parameters (x, y, intensity). The signal at each design point is the sum of intensities divided by squared distances plus one (to avoid singularity). The prior samples source locations uniformly in [-2,2]^2 and intensities uniformly in [0.5,1.5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 3\n    intensities = params[:, :n_sources]\n    xs = params[:, n_sources:2*n_sources]\n    ys = params[:, 2*n_sources:3*n_sources]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - xs[:, i][:, None]\n        dy = designs_y[None, :] - ys[:, i][:, None]\n        dist_sq = dx**2 + dy**2 + 1.0  # avoid division by zero\n        predictions += intensities[:, i][:, None] / dist_sq\n    return predictions\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    intensities = rng.uniform(0.5, 1.5, size=(n, n_sources))\n    xs = rng.uniform(-2, 2, size=(n, n_sources))\n    ys = rng.uniform(-2, 2, size=(n, n_sources))\n    params = np.hstack([intensities, xs, ys])\n    return params"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source has parameters (x, y). The intensity is fixed to 1. The signal is sum of exp(-distance squared) (Gaussian kernel) from each source. Prior samples locations uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = params.shape[1] // 2\n    xs = params[:, :n_sources]\n    ys = params[:, n_sources:2*n_sources]\n    designs_x = designs[:, 0]\n    designs_y = designs[:, 1]\n    predictions = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        dx = designs_x[None, :] - xs[:, i][:, None]\n        dy = designs_y[None, :] - ys[:, i][:, None]\n        dist_sq = dx**2 + dy**2\n        predictions += np.exp(-dist_sq)\n    return predictions\n\ndef sample_prior(rng, n):\n    n_sources = 3\n    xs = rng.uniform(-2, 2, size=(n, n_sources))\n    ys = rng.uniform(-2, 2, size=(n, n_sources))\n    params = np.hstack([xs, ys])\n    return params"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 702,
+    "cost_usd": 0.001218800000000006,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "00571c9229e643d097c53036dd095aa9",
+      "run_id": "repair-main-20261115-proposals-4017",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/00571c9229e643d097c53036dd095aa9"
+    }
+  ]
+}

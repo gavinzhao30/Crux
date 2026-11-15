@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, NotRequired, TypedDict
@@ -148,7 +149,15 @@ class RunManifest:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.replace(name, self.path)
+            for attempt in range(6):
+                try:
+                    os.replace(name, self.path)
+                    break
+                except PermissionError as exc:
+                    # Windows sync/indexing can briefly deny atomic replacement.
+                    if getattr(exc, "winerror", None) not in {5, 32} or attempt == 5:
+                        raise
+                    time.sleep(.02 * 2 ** attempt)
         finally:
             Path(name).unlink(missing_ok=True)
 

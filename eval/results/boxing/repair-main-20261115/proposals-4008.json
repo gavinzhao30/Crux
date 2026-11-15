@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. Parameters array shape (n,6) representing three (x,y) pairs. Signal at a design point is sum of inverse Euclidean distances to each source, scaled by equal strength 1.0. Predict sums over all sources for each design point.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 6): three (x,y) sources\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sources = params.reshape(n_particles,3,2)  # (n_particles, 3, 2)\n    designs_exp = designs[None,:,None,:]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:,None,:,:]     # (n_particles, 1, 3, 2)\n    diff = designs_exp - sources_exp     # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1) # (n_particles, n_designs, 3)\n    dist = np.maximum(dist, 1e-6)        # avoid div by zero\n    strength = 1.0\n    contributions = strength / dist     # (n_particles, n_designs, 3)\n    signal = np.sum(contributions, axis=2)  # sum over sources\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform samples in [-2,2] for each x,y of 3 sources\n    return rng.uniform(-2,2,size=(n,6))"
+    },
+    {
+      "statement": "Model 2: Each source is parameterized by polar coordinates (r,theta) from origin with r in [0,2*sqrt(2)] and theta in [0,2pi]. Parameters shape (n,6): three (r,theta) pairs. Convert to Cartesian, then predict as sum of inverse Euclidean distances with equal strength 1.0.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    params = params.reshape(n_particles, 3, 2)  # (n_particles, 3, 2)\n    r = params[:,:,0]  # (n_particles, 3)\n    theta = params[:,:,1]  # (n_particles, 3)\n    x = r * np.cos(theta)  # (n_particles, 3)\n    y = r * np.sin(theta)  # (n_particles, 3)\n    sources = np.stack([x,y], axis=2)  # (n_particles, 3, 2)\n    designs_exp = designs[None,:,None,:]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:,None,:,:]     # (n_particles, 1, 3, 2)\n    diff = designs_exp - sources_exp     # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1) # (n_particles, n_designs, 3)\n    dist = np.maximum(dist, 1e-6)\n    strength = 1.0\n    contributions = strength / dist\n    signal = np.sum(contributions, axis=2)\n    return signal\n\ndef sample_prior(rng, n):\n    r = rng.uniform(0, 2*np.sqrt(2), size=(n,3))\n    theta = rng.uniform(0, 2*np.pi, size=(n,3))\n    return np.stack([r, theta], axis=2).reshape(n,6)"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. Parameters array shape (n,6) representing three (x,y) pairs. Signal at a design point is sum of inverse Euclidean distances to each source, scaled by equal strength 1.0. Predict sums over all sources for each design point.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles, 6): three (x,y) sources\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sources = params.reshape(n_particles,3,2)  # (n_particles, 3, 2)\n    designs_exp = designs[None,:,None,:]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:,None,:,:]     # (n_particles, 1, 3, 2)\n    diff = designs_exp - sources_exp     # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1) # (n_particles, n_designs, 3)\n    dist = np.maximum(dist, 1e-6)        # avoid div by zero\n    strength = 1.0\n    contributions = strength / dist     # (n_particles, n_designs, 3)\n    signal = np.sum(contributions, axis=2)  # sum over sources\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform samples in [-2,2] for each x,y of 3 sources\n    return rng.uniform(-2,2,size=(n,6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by polar coordinates (r,theta) from origin with r in [0,2*sqrt(2)] and theta in [0,2pi]. Parameters shape (n,6): three (r,theta) pairs. Convert to Cartesian, then predict as sum of inverse Euclidean distances with equal strength 1.0.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    params = params.reshape(n_particles, 3, 2)  # (n_particles, 3, 2)\n    r = params[:,:,0]  # (n_particles, 3)\n    theta = params[:,:,1]  # (n_particles, 3)\n    x = r * np.cos(theta)  # (n_particles, 3)\n    y = r * np.sin(theta)  # (n_particles, 3)\n    sources = np.stack([x,y], axis=2)  # (n_particles, 3, 2)\n    designs_exp = designs[None,:,None,:]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:,None,:,:]     # (n_particles, 1, 3, 2)\n    diff = designs_exp - sources_exp     # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1) # (n_particles, n_designs, 3)\n    dist = np.maximum(dist, 1e-6)\n    strength = 1.0\n    contributions = strength / dist\n    signal = np.sum(contributions, axis=2)\n    return signal\n\ndef sample_prior(rng, n):\n    r = rng.uniform(0, 2*np.sqrt(2), size=(n,3))\n    theta = rng.uniform(0, 2*np.pi, size=(n,3))\n    return np.stack([r, theta], axis=2).reshape(n,6)"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 845,
+    "cost_usd": 0.0014476000000000003,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "ac10734f5a494de484c249918253d1cb",
+      "run_id": "repair-main-20261115-proposals-4008",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/ac10734f5a494de484c249918253d1cb"
+    }
+  ]
+}

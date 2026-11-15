@@ -1,0 +1,39 @@
+{
+  "episodes": 120,
+  "checkpoints": 360,
+  "paired_seed_count": 20,
+  "case_hashes_and_observation_replay": "pass",
+  "hypothesis_sources_paired": "pass",
+  "cost_reconciliation": "pass",
+  "replays": {
+    "crux_random": {
+      "ok": true,
+      "details": "ReplayResult(path='eval/results/boxing/main-20261114/main-20261114-crux_random-100/events.jsonl', n_events=131, n_updates=20, n_checked=20, errors=[], final_beliefs={'signal': {'family-0': 7.736529568915766e-05, 'family-1': 0.9999226347043109}}, status='ok')"
+    },
+    "crux_eig": {
+      "ok": true,
+      "details": "ReplayResult(path='eval/results/boxing/main-20261114/main-20261114-crux_eig-100/events.jsonl', n_events=134, n_updates=20, n_checked=20, errors=[], final_beliefs={'signal': {'family-0': 3.4656955102942204e-06, 'family-1': 0.9999965343044898}}, status='ok')"
+    }
+  },
+  "actual_wrapper_usage": {
+    "calls": 480,
+    "cached_calls": 0,
+    "input_tokens": 141601,
+    "output_tokens": 24913,
+    "cost_usd": 0.09650120000000002,
+    "unpriced_calls": 0
+  },
+  "failures_by_arm": {
+    "random": 0,
+    "grid": 0,
+    "single_agent": 0,
+    "crux_random": 30,
+    "crux_eig": 33,
+    "oracle": 0
+  },
+  "failure_reasons": {
+    "NoPrediction": 42,
+    "PermissionError": 3,
+    "ValueError": 18
+  }
+}

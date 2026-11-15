@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is a 2D Gaussian with equal amplitude and fixed standard deviation. Parameters are the (x,y) locations of the 3 sources and their common amplitude. The predict function sums the Gaussian contributions from each source to each design point.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7): 3 sources * 2 coords + amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    means = np.zeros((n_particles, n_designs))\n    sigma = 0.3  # fixed std dev\n    for i in range(3):\n        xi = params[:, 2*i][:, None]  # (n_particles,1)\n        yi = params[:, 2*i+1][:, None]\n        amp = params[:, 6][:, None]\n        dx = designs[:, 0][None, :] - xi\n        dy = designs[:, 1][None, :] - yi\n        contrib = amp * np.exp(-0.5 * (dx**2 + dy**2) / sigma**2)\n        means += contrib\n    return means\n\ndef sample_prior(rng, n):\n    # sample 3 sources uniformly in [-2,2]^2 and amplitude in [0.5,2]\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    return np.hstack([locs, amps])"
+    },
+    {
+      "statement": "Model 2: Each source is an isotropic Laplace (exponential) kernel centered at unknown locations with unknown common amplitude and scale. Parameters include 3 source positions, amplitude, and scale. The predict sums Laplace kernels at each design point.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 8): 3 sources * 2 coords + amplitude + scale\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    means = np.zeros((n_particles, n_designs))\n    amp = params[:, 6][:, None]\n    scale = params[:, 7][:, None]\n    for i in range(3):\n        xi = params[:, 2*i][:, None]\n        yi = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - xi\n        dy = designs[:, 1][None, :] - yi\n        dist = np.sqrt(dx**2 + dy**2)\n        contrib = amp * np.exp(-dist / scale) / (2 * np.pi * scale**2)\n        means += contrib\n    return means\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    scales = rng.uniform(0.1, 0.5, size=(n, 1))\n    return np.hstack([locs, amps, scales])"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is a 2D Gaussian with equal amplitude and fixed standard deviation. Parameters are the (x,y) locations of the 3 sources and their common amplitude. The predict function sums the Gaussian contributions from each source to each design point.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7): 3 sources * 2 coords + amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    means = np.zeros((n_particles, n_designs))\n    sigma = 0.3  # fixed std dev\n    for i in range(3):\n        xi = params[:, 2*i][:, None]  # (n_particles,1)\n        yi = params[:, 2*i+1][:, None]\n        amp = params[:, 6][:, None]\n        dx = designs[:, 0][None, :] - xi\n        dy = designs[:, 1][None, :] - yi\n        contrib = amp * np.exp(-0.5 * (dx**2 + dy**2) / sigma**2)\n        means += contrib\n    return means\n\ndef sample_prior(rng, n):\n    # sample 3 sources uniformly in [-2,2]^2 and amplitude in [0.5,2]\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    return np.hstack([locs, amps])"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is an isotropic Laplace (exponential) kernel centered at unknown locations with unknown common amplitude and scale. Parameters include 3 source positions, amplitude, and scale. The predict sums Laplace kernels at each design point.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 8): 3 sources * 2 coords + amplitude + scale\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    means = np.zeros((n_particles, n_designs))\n    amp = params[:, 6][:, None]\n    scale = params[:, 7][:, None]\n    for i in range(3):\n        xi = params[:, 2*i][:, None]\n        yi = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - xi\n        dy = designs[:, 1][None, :] - yi\n        dist = np.sqrt(dx**2 + dy**2)\n        contrib = amp * np.exp(-dist / scale) / (2 * np.pi * scale**2)\n        means += contrib\n    return means\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    scales = rng.uniform(0.1, 0.5, size=(n, 1))\n    return np.hstack([locs, amps, scales])"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 722,
+    "cost_usd": 0.0012507999999999998,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "d74ae55e3f5f49abae5813e3c9b0c8e1",
+      "run_id": "repair-main-20261115-proposals-4005",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/d74ae55e3f5f49abae5813e3c9b0c8e1"
+    }
+  ]
+}

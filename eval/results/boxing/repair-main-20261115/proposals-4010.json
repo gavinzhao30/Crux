@@ -1,0 +1,91 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. The signal at each design point is the sum of inverse-distance contributions from each source, where contribution = strength/(distance + epsilon) with strength fixed at 1 and epsilon=1e-3 to avoid division by zero. The parameter vector has length 6 (3 sources * 2 coordinates). The predict function is fully vectorized to handle batches of parameters and design points with correct broadcasting. The sample_prior function uses the supplied RNG and samples parameters uniformly in [-2,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    strength = 1.0\n    epsilon = 1e-3\n    # Reshape params to (n_particles, n_sources, 2)\n    params_reshaped = params.reshape(n_particles, n_sources, 2)  # (P,3,2)\n    # Expand dims for broadcasting: designs (D,2) -> (1,D,2), params (P,3,2) -> (P,1,3,2)\n    designs_exp = designs[np.newaxis, :, np.newaxis, :]  # (1,D,1,2)\n    params_exp = params_reshaped[:, np.newaxis, :, :]    # (P,1,3,2)\n    # Compute distance: (P,D,3)\n    diff = designs_exp - params_exp  # (P,D,3,2)\n    dist = np.linalg.norm(diff, axis=-1) + epsilon  # (P,D,3)\n    contribution = strength / dist  # (P,D,3)\n    results = contribution.sum(axis=-1)  # sum over sources -> (P,D)\n    return results\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2: Each source is parameterized by its (x,y) location and a Gaussian kernel width sigma in [0.1,0.5]. The signal is the sum of Gaussian kernels with amplitude 1 at source centers. The parameter vector has length 9 (3 sources * 3 params: x,y,sigma).",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        sx = params[:, 3*i]\n        sy = params[:, 3*i+1]\n        sigma = params[:, 3*i+2]\n        dx = designs[:, 0][:, None] - sx[None, :]\n        dy = designs[:, 1][:, None] - sy[None, :]\n        dist2 = dx**2 + dy**2\n        contribution = np.exp(-dist2 / (2 * sigma[None, :]**2))\n        results += contribution.T\n    return results\n\ndef sample_prior(rng, n):\n    # Sample x,y uniform [-2,2]; sigma uniform [0.1,0.5]\n    xy = rng.uniform(-2, 2, size=(n, 6))  # 6 values for x,y of 3 sources\n    sigma = rng.uniform(0.1, 0.5, size=(n, 3))  # 3 sigma values\n    # Interleave xy and sigma correctly to shape (n,9): (x1,y1,s1,x2,y2,s2,x3,y3,s3)\n    params = np.empty((n, 9))\n    params[:, 0] = xy[:, 0]\n    params[:, 1] = xy[:, 1]\n    params[:, 2] = sigma[:, 0]\n    params[:, 3] = xy[:, 2]\n    params[:, 4] = xy[:, 3]\n    params[:, 5] = sigma[:, 1]\n    params[:, 6] = xy[:, 4]\n    params[:, 7] = xy[:, 5]\n    params[:, 8] = sigma[:, 2]\n    return params\n"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. The signal at each design point is the sum of inverse-distance contributions from each source, where contribution = strength/(distance + epsilon) with strength fixed at 1 and epsilon=1e-3 to avoid division by zero. The parameter vector has length 6 (3 sources * 2 coordinates).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    strength = 1.0\n    epsilon = 1e-3\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        sx = params[:, 2*i:2*i+1]  # shape (n_particles,1)\n        sy = params[:, 2*i+1:2*i+2]  # shape (n_particles,1)\n        dx = designs[:, 0] - sx.T  # shape (n_designs, n_particles)\n        dy = designs[:, 1] - sy.T  # shape (n_designs, n_particles)\n        dist = np.sqrt(dx**2 + dy**2) + epsilon\n        contribution = strength / dist.T  # shape (n_particles, n_designs)\n        results += contribution\n    return results\n\ndef sample_prior(rng, n):\n    # Sample each coordinate uniform in [-2,2], 6 params per particle\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 13, in predict\r\nValueError: operands could not be broadcast together with shapes (2,) (1,4)"
+    },
+    {
+      "family": 0,
+      "repair": 1,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. The signal at each design point is the sum of inverse-distance contributions from each source, where contribution = strength/(distance + epsilon) with strength fixed at 1 and epsilon=1e-3 to avoid division by zero. The parameter vector has length 6 (3 sources * 2 coordinates). The predict function is fully vectorized to handle batches of parameters and design points with correct broadcasting. The sample_prior function uses the supplied RNG and samples parameters uniformly in [-2,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    strength = 1.0\n    epsilon = 1e-3\n    # Reshape params to (n_particles, n_sources, 2)\n    params_reshaped = params.reshape(n_particles, n_sources, 2)  # (P,3,2)\n    # Expand dims for broadcasting: designs (D,2) -> (1,D,2), params (P,3,2) -> (P,1,3,2)\n    designs_exp = designs[np.newaxis, :, np.newaxis, :]  # (1,D,1,2)\n    params_exp = params_reshaped[:, np.newaxis, :, :]    # (P,1,3,2)\n    # Compute distance: (P,D,3)\n    diff = designs_exp - params_exp  # (P,D,3,2)\n    dist = np.linalg.norm(diff, axis=-1) + epsilon  # (P,D,3)\n    contribution = strength / dist  # (P,D,3)\n    results = contribution.sum(axis=-1)  # sum over sources -> (P,D)\n    return results\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by its (x,y) location and a Gaussian kernel width sigma in [0.1,0.5]. The signal is sum of Gaussian kernels with amplitude 1 at source centers. The parameter vector has length 9 (3 sources * 3 params: x,y,sigma).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        sx = params[:, 3*i]\n        sy = params[:, 3*i+1]\n        sigma = params[:, 3*i+2]\n        dx = designs[:, 0][:, None] - sx[None, :]\n        dy = designs[:, 1][:, None] - sy[None, :]\n        dist2 = dx**2 + dy**2\n        # Gaussian kernel amplitude 1\n        contribution = np.exp(-dist2 / (2 * sigma[None, :]**2))\n        results += contribution.T\n    return results\n\ndef sample_prior(rng, n):\n    # Sample x,y uniform [-2,2]; sigma uniform [0.1,0.5]\n    xy = rng.uniform(-2, 2, size=(n, 6))\n    sigma = rng.uniform(0.1, 0.5, size=(n, 3))\n    return np.hstack((xy[:, :2], sigma[:, 0], xy[:, 2:4], sigma[:, 1], xy[:, 4:6], sigma[:, 2]))"
+      },
+      "error": "ModelError: model 'validation': sample_prior failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 69, in main\r\n  File \"<model>\", line 24, in sample_prior\r\n  File \"C:\\Users\\gavin\\OneDrive\\\ufffd\u0135\ufffd\\My Files\\Projects\\AI Research Hackathon\\Crux\\.venv\\Lib\\site-packages\\numpy\\_core\\shape_base.py\", line 365, in hstack\r\n    return _nx.concatenate(arrs, 1, dtype=dtype, casting=casting)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nValueError: all the input arrays must have same number of dimensions, but the array at index 0 has 2 dimension(s) and the array at index 1 has 1 dimension(s)"
+    },
+    {
+      "family": 1,
+      "repair": 1,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by its (x,y) location and a Gaussian kernel width sigma in [0.1,0.5]. The signal is the sum of Gaussian kernels with amplitude 1 at source centers. The parameter vector has length 9 (3 sources * 3 params: x,y,sigma).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    results = np.zeros((n_particles, n_designs))\n    for i in range(n_sources):\n        sx = params[:, 3*i]\n        sy = params[:, 3*i+1]\n        sigma = params[:, 3*i+2]\n        dx = designs[:, 0][:, None] - sx[None, :]\n        dy = designs[:, 1][:, None] - sy[None, :]\n        dist2 = dx**2 + dy**2\n        contribution = np.exp(-dist2 / (2 * sigma[None, :]**2))\n        results += contribution.T\n    return results\n\ndef sample_prior(rng, n):\n    # Sample x,y uniform [-2,2]; sigma uniform [0.1,0.5]\n    xy = rng.uniform(-2, 2, size=(n, 6))  # 6 values for x,y of 3 sources\n    sigma = rng.uniform(0.1, 0.5, size=(n, 3))  # 3 sigma values\n    # Interleave xy and sigma correctly to shape (n,9): (x1,y1,s1,x2,y2,s2,x3,y3,s3)\n    params = np.empty((n, 9))\n    params[:, 0] = xy[:, 0]\n    params[:, 1] = xy[:, 1]\n    params[:, 2] = sigma[:, 0]\n    params[:, 3] = xy[:, 2]\n    params[:, 4] = xy[:, 3]\n    params[:, 5] = sigma[:, 1]\n    params[:, 6] = xy[:, 4]\n    params[:, 7] = xy[:, 5]\n    params[:, 8] = sigma[:, 2]\n    return params\n"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 3,
+    "cached_calls": 0,
+    "input_tokens": 1605,
+    "output_tokens": 1723,
+    "cost_usd": 0.0033988000000000004,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "4831ca24400b4ce6ba1d809cc657acc9",
+      "run_id": "repair-main-20261115-proposals-4010",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/4831ca24400b4ce6ba1d809cc657acc9"
+    },
+    {
+      "trace_id": "6ee8f43910a646508577ac99c6c80614",
+      "run_id": "repair-main-20261115-proposals-4010",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "90fa77711bade94edba76b06e2edbefb78cc52a9e1ce842690a8aa24519fd648",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/6ee8f43910a646508577ac99c6c80614"
+    },
+    {
+      "trace_id": "bc07e1f93a514239ad21eb8774dded58",
+      "run_id": "repair-main-20261115-proposals-4010",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "ca9842dc7c95f819d5e4b5663f8ad852df4a5ae837c6ff9e3674d745dd994767",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/bc07e1f93a514239ad21eb8774dded58"
+    }
+  ]
+}

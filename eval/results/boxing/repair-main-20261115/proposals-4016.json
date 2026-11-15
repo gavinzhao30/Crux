@@ -1,0 +1,91 @@
+{
+  "families": [
+    {
+      "statement": "The model assumes three equal-strength Gaussian sources with unknown 2D positions. Parameters are a flat array of length 6 representing the (x,y) coordinates of the three sources. The predict function calculates the sum of Gaussian profiles for each source at given design points, ensuring correct broadcasting and reshaping to respect input dimensions. The sample_prior function uses the supplied random number generator to uniformly sample source locations within [-2,2]^2.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # reshape params to (n_particles, 3, 2)\n    sources = params.reshape(n_particles, 3, 2)  # (n_particles, 3, 2)\n    # expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    sources_exp = sources[:, np.newaxis, :, :]  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - sources_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    strength = 1.0\n    sigma = 0.3\n    contrib = strength * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles, n_designs, 3)\n    result = np.sum(contrib, axis=-1)  # (n_particles, n_designs)\n    return result\n\ndef sample_prior(rng, n):\n    # Uniform source locations in [-2,2]^2 for three sources\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "The model assumes three unknown equal-strength sources, each contributing an inverse distance intensity profile with a small epsilon added to avoid division by zero. The parameters are the concatenated (x,y) coordinates of the three sources per particle. The predict function computes the sum of inverse distances from each design point to each source, returning a deterministic array of shape (n_particles, n_designs). The sample_prior function uses the supplied random number generator to uniformly sample source locations in [-2,2]^2 for each source and particle.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # Reshape params to (n_particles, 3, 2) for 3 sources each with (x,y)\n    params_reshaped = params.reshape(n_particles, 3, 2)\n    # Expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params_reshaped[:, np.newaxis, :, :]  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    strength = 1.0\n    eps = 1e-3\n    contrib = strength / (dist + eps)  # inverse distance\n    result = np.sum(contrib, axis=-1)  # (n_particles, n_designs)\n    return result\n\ndef sample_prior(rng, n):\n    # Sample 3 sources each with (x,y) uniformly in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 3 * 2))"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Each source contributes a Gaussian intensity profile with unknown location and equal strength. The model parameters are the (x,y) coordinates of the three sources concatenated into a flat array. The predict function sums the Gaussian contributions at each design point. The sample_prior function samples source locations uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # shape (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, n_designs, 3, 2)  # (n_particles, n_designs, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    strength = 1.0\n    sigma = 0.3\n    contrib = strength * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles, n_designs, 3)\n    result = np.sum(contrib, axis=-1)  # (n_particles, n_designs)\n    return result\n\ndef sample_prior(rng, n):\n    # Uniform source locations in [-2,2]^2 for three sources\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 8, in predict\r\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)"
+    },
+    {
+      "family": 0,
+      "repair": 1,
+      "proposal": {
+        "statement": "The model assumes three equal-strength Gaussian sources with unknown 2D positions. Parameters are a flat array of length 6 representing the (x,y) coordinates of the three sources. The predict function calculates the sum of Gaussian profiles for each source at given design points, ensuring correct broadcasting and reshaping to respect input dimensions. The sample_prior function uses the supplied random number generator to uniformly sample source locations within [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # reshape params to (n_particles, 3, 2)\n    sources = params.reshape(n_particles, 3, 2)  # (n_particles, 3, 2)\n    # expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    sources_exp = sources[:, np.newaxis, :, :]  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - sources_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    strength = 1.0\n    sigma = 0.3\n    contrib = strength * np.exp(-dist_sq / (2 * sigma**2))  # (n_particles, n_designs, 3)\n    result = np.sum(contrib, axis=-1)  # (n_particles, n_designs)\n    return result\n\ndef sample_prior(rng, n):\n    # Uniform source locations in [-2,2]^2 for three sources\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Each source contributes an inverse distance intensity profile with unknown location and equal strength. The model parameters are the (x,y) coordinates of the three sources concatenated. The predict function sums the inverse distances (plus a small epsilon) at each design point. The sample_prior function samples source locations uniformly in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :].reshape(n_particles, n_designs, 3, 2)  # (n_particles, n_designs, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    strength = 1.0\n    eps = 1e-3\n    contrib = strength / (dist + eps)  # inverse distance\n    result = np.sum(contrib, axis=-1)  # (n_particles, n_designs)\n    return result\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 7, in predict\r\nValueError: cannot reshape array of size 24 into shape (4,2,3,2)"
+    },
+    {
+      "family": 1,
+      "repair": 1,
+      "proposal": {
+        "statement": "The model assumes three unknown equal-strength sources, each contributing an inverse distance intensity profile with a small epsilon added to avoid division by zero. The parameters are the concatenated (x,y) coordinates of the three sources per particle. The predict function computes the sum of inverse distances from each design point to each source, returning a deterministic array of shape (n_particles, n_designs). The sample_prior function uses the supplied random number generator to uniformly sample source locations in [-2,2]^2 for each source and particle.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # Reshape params to (n_particles, 3, 2) for 3 sources each with (x,y)\n    params_reshaped = params.reshape(n_particles, 3, 2)\n    # Expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params_reshaped[:, np.newaxis, :, :]  # (n_particles, 1, 3, 2)\n    diff = designs_exp[:, :, np.newaxis, :] - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1)  # (n_particles, n_designs, 3)\n    strength = 1.0\n    eps = 1e-3\n    contrib = strength / (dist + eps)  # inverse distance\n    result = np.sum(contrib, axis=-1)  # (n_particles, n_designs)\n    return result\n\ndef sample_prior(rng, n):\n    # Sample 3 sources each with (x,y) uniformly in [-2,2]\n    return rng.uniform(-2, 2, size=(n, 3 * 2))"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 3,
+    "cached_calls": 0,
+    "input_tokens": 1439,
+    "output_tokens": 1556,
+    "cost_usd": 0.003065200000000004,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "1c23ca2b321048dc9ea08ebc2e5d94e0",
+      "run_id": "repair-main-20261115-proposals-4016",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/1c23ca2b321048dc9ea08ebc2e5d94e0"
+    },
+    {
+      "trace_id": "f5a78a60b1e0485895989d0c4175bad7",
+      "run_id": "repair-main-20261115-proposals-4016",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "be0e8189cf2c0cfb0b35cdbd496a90d56e1eeb2f1dbd764c7a259d5e0b093cdb",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/f5a78a60b1e0485895989d0c4175bad7"
+    },
+    {
+      "trace_id": "c7d432281ab14e2eb42019af6deb47bb",
+      "run_id": "repair-main-20261115-proposals-4016",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "898a6362b6351edeaa3c05e4e79f3aa445f4597a6bbd05ad0f853d37e642232c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/c7d432281ab14e2eb42019af6deb47bb"
+    }
+  ]
+}

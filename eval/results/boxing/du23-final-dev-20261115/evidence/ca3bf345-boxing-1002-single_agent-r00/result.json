@@ -1,0 +1,77 @@
+{
+  "checkpoints": [
+    {
+      "arm": "single_agent",
+      "budget": 5,
+      "failure": null,
+      "mse": null,
+      "seed": 1002,
+      "status": "pending_grade"
+    },
+    {
+      "arm": "single_agent",
+      "budget": 10,
+      "failure": null,
+      "mse": null,
+      "seed": 1002,
+      "status": "pending_grade"
+    },
+    {
+      "arm": "single_agent",
+      "budget": 20,
+      "failure": null,
+      "mse": null,
+      "seed": 1002,
+      "status": "pending_grade"
+    }
+  ],
+  "cost_usd": 0.0033884,
+  "experiments": 20,
+  "failure": null,
+  "heldout_predictions": {
+    "5": [
+      6.45,
+      2.87,
+      1.23,
+      6.1,
+      6.3,
+      2.95,
+      0.75,
+      1.15,
+      1.85,
+      5.8
+    ],
+    "10": [
+      5.75,
+      1.95,
+      0.91,
+      4.8,
+      5.6,
+      2.1,
+      0.2,
+      0.1,
+      0.4,
+      4.3
+    ],
+    "20": [
+      6.2,
+      1.5,
+      0.3,
+      4.8,
+      5.9,
+      1.6,
+      0.1,
+      0.0,
+      0.2,
+      5.0
+    ]
+  },
+  "input_tokens": 6839,
+  "job_id": "ca3bf345-boxing-1002-single_agent-r00",
+  "model_calls": 23,
+  "mse": null,
+  "output_tokens": 408,
+  "seconds": 14.479274310000008,
+  "state": "complete",
+  "status": "finished"
+}

@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Parameters are source locations (x,y) for three sources, total 6 parameters. predict sums inverse distance contributions from each source to each design point. sample_prior samples uniform locations in [-2,2]^2 for each source.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6), each source has (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    sources = params.reshape(n_particles, n_sources, 2)  # (n_particles,3,2)\n    # Expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, np.newaxis, :]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:, np.newaxis, :, :]  # (n_particles,1,3,2)\n    dists = np.linalg.norm(designs_exp - sources_exp, axis=3)  # (n_particles, n_designs, 3)\n    # Avoid div by zero\n    dists = np.maximum(dists, 1e-6)\n    contributions = 1.0 / dists  # inverse distance\n    preds = np.sum(contributions, axis=2)  # sum over sources, shape (n_particles, n_designs)\n    return preds\n\ndef sample_prior(rng, n):\n    # Uniform sources in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2: Parameters are source locations (x,y) for three sources plus a shared amplitude scaling parameter; total 7 parameters. predict sums amplitude-scaled inverse distance contributions. sample_prior samples uniform locations in [-2,2]^2 and amplitude in [0.5,1.5].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7), last param is amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    sources = params[:, :6].reshape(n_particles, n_sources, 2)  # (n_particles,3,2)\n    amps = params[:, 6]  # (n_particles,)\n    designs_exp = designs[np.newaxis, :, np.newaxis, :]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:, np.newaxis, :, :]  # (n_particles,1,3,2)\n    dists = np.linalg.norm(designs_exp - sources_exp, axis=3)  # (n_particles, n_designs, 3)\n    dists = np.maximum(dists, 1e-6)\n    contributions = 1.0 / dists\n    sums = np.sum(contributions, axis=2)  # (n_particles, n_designs)\n    preds = sums * amps[:, np.newaxis]\n    return preds\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 1.5, size=(n, 1))\n    return np.hstack([locs, amps])"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Parameters are source locations (x,y) for three sources, total 6 parameters. predict sums inverse distance contributions from each source to each design point. sample_prior samples uniform locations in [-2,2]^2 for each source.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6), each source has (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    sources = params.reshape(n_particles, n_sources, 2)  # (n_particles,3,2)\n    # Expand dims for broadcasting\n    designs_exp = designs[np.newaxis, :, np.newaxis, :]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:, np.newaxis, :, :]  # (n_particles,1,3,2)\n    dists = np.linalg.norm(designs_exp - sources_exp, axis=3)  # (n_particles, n_designs, 3)\n    # Avoid div by zero\n    dists = np.maximum(dists, 1e-6)\n    contributions = 1.0 / dists  # inverse distance\n    preds = np.sum(contributions, axis=2)  # sum over sources, shape (n_particles, n_designs)\n    return preds\n\ndef sample_prior(rng, n):\n    # Uniform sources in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Parameters are source locations (x,y) for three sources plus a shared amplitude scaling parameter; total 7 parameters. predict sums amplitude-scaled inverse distance contributions. sample_prior samples uniform locations in [-2,2]^2 and amplitude in [0.5,1.5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7), last param is amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    sources = params[:, :6].reshape(n_particles, n_sources, 2)  # (n_particles,3,2)\n    amps = params[:, 6]  # (n_particles,)\n    designs_exp = designs[np.newaxis, :, np.newaxis, :]  # (1, n_designs, 1, 2)\n    sources_exp = sources[:, np.newaxis, :, :]  # (n_particles,1,3,2)\n    dists = np.linalg.norm(designs_exp - sources_exp, axis=3)  # (n_particles, n_designs, 3)\n    dists = np.maximum(dists, 1e-6)\n    contributions = 1.0 / dists\n    sums = np.sum(contributions, axis=2)  # (n_particles, n_designs)\n    preds = sums * amps[:, np.newaxis]\n    return preds\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 1.5, size=(n, 1))\n    return np.hstack([locs, amps])"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 749,
+    "cost_usd": 0.0012939999999999965,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "cad09bc1956e4c0c8a02c6cb763e99fc",
+      "run_id": "repair-main-20261115-proposals-4011",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/cad09bc1956e4c0c8a02c6cb763e99fc"
+    }
+  ]
+}

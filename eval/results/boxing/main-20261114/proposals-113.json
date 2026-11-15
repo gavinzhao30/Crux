@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Mixture of 3 Gaussian sources with unknown locations and equal amplitudes. Parameters are concatenated: [x1,y1,x2,y2,x3,y3, amplitude]. Prior: uniform locations in [-2,2], amplitude in [0.5,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7) -> 3 sources (x,y) and amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 7)\n    sources = params_exp[:, :, :6].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    amplitude = params_exp[:, :, 6:7]  # (n_particles, 1, 1)\n\n    diff = designs_exp[:, :, None, :] - sources  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    # Each source is Gaussian with std=0.3 (arbitrary choice for spread)\n    std = 0.3\n    gauss = np.exp(-0.5 * dist_sq / (std**2)) / (2 * np.pi * std**2)  # (n_particles, n_designs, 3)\n    signal = amplitude * np.sum(gauss, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform locations in [-2, 2], amplitude in [0.5, 2]\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    return np.hstack([locs, amps])\n"
+    },
+    {
+      "statement": "Sum of three Laplace-shaped sources with unknown centers and equal amplitude. Parameters: [x1,y1,x2,y2,x3,y3, amplitude]. Prior uniform in [-2,2] and amplitude in [0.5,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 7)\n    sources = params_exp[:, :, :6].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    amplitude = params_exp[:, :, 6:7]  # (n_particles, 1, 1)\n\n    diff = designs_exp[:, :, None, :] - sources  # (n_particles, n_designs, 3, 2)\n    dist = np.sum(np.abs(diff), axis=-1)  # L1 norm (n_particles, n_designs, 3)\n    b = 0.3  # scale parameter for Laplace\n    laplace = (1/(2*b)) * np.exp(-dist / b)  # (n_particles, n_designs, 3)\n    signal = amplitude * np.sum(laplace, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    return np.hstack([locs, amps])\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 890,
+    "cost_usd": 0.0015108000000000066,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "de4c985b27d747b6b2d17cbcf16a3ce9",
+      "run_id": "main-20261114-proposals-113",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/de4c985b27d747b6b2d17cbcf16a3ce9"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Mixture of 3 Gaussian sources with unknown locations and equal amplitudes. Parameters are concatenated: [x1,y1,x2,y2,x3,y3, amplitude]. Prior: uniform locations in [-2,2], amplitude in [0.5,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 7) -> 3 sources (x,y) and amplitude\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 7)\n    sources = params_exp[:, :, :6].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    amplitude = params_exp[:, :, 6:7]  # (n_particles, 1, 1)\n\n    diff = designs_exp[:, :, None, :] - sources  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    # Each source is Gaussian with std=0.3 (arbitrary choice for spread)\n    std = 0.3\n    gauss = np.exp(-0.5 * dist_sq / (std**2)) / (2 * np.pi * std**2)  # (n_particles, n_designs, 3)\n    signal = amplitude * np.sum(gauss, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform locations in [-2, 2], amplitude in [0.5, 2]\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    return np.hstack([locs, amps])\n"
+      },
+      {
+        "statement": "Sum of three Laplace-shaped sources with unknown centers and equal amplitude. Parameters: [x1,y1,x2,y2,x3,y3, amplitude]. Prior uniform in [-2,2] and amplitude in [0.5,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :]    # (n_particles, 1, 7)\n    sources = params_exp[:, :, :6].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    amplitude = params_exp[:, :, 6:7]  # (n_particles, 1, 1)\n\n    diff = designs_exp[:, :, None, :] - sources  # (n_particles, n_designs, 3, 2)\n    dist = np.sum(np.abs(diff), axis=-1)  # L1 norm (n_particles, n_designs, 3)\n    b = 0.3  # scale parameter for Laplace\n    laplace = (1/(2*b)) * np.exp(-dist / b)  # (n_particles, n_designs, 3)\n    signal = amplitude * np.sum(laplace, axis=2)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2, 2, size=(n, 6))\n    amps = rng.uniform(0.5, 2, size=(n, 1))\n    return np.hstack([locs, amps])\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "suite": "task9",
+  "requested": 8,
+  "recorded": 8,
+  "separate_grades_reconciled": 7,
+  "failures_retained": 1,
+  "paired_seeds": "pass",
+  "summary_matches_job_and_grader": "pass",
+  "under_20_minutes": true,
+  "wall_seconds": 755.438000000082
+}

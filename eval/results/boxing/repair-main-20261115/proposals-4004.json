@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Parameterize sources as flat array of length 6 representing three (x,y) coordinates. Prior samples uniformly over [-2,2]^2 for each source. Predict sums inverse distances from each design point to each source with strength 1, avoiding division by zero by adding small epsilon.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles,6): three (x,y) points\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    strengths = 1.0\n    epsilon = 1e-8\n    # reshape params to (n_particles,3,2)\n    sources = params.reshape(n_particles, 3, 2)\n    # expand dims for broadcasting\n    d = designs[None, :, None, :]  # (1,n_designs,1,2)\n    s = sources[:, None, :, :]      # (n_particles,1,3,2)\n    dist = np.linalg.norm(d - s, axis=3) + epsilon  # (n_particles,n_designs,3)\n    contributions = strengths / dist\n    pred = contributions.sum(axis=2)  # sum over three sources\n    return pred\n\ndef sample_prior(rng, n):\n    # uniform over [-2,2]^2 for each source, 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2: Parameterize sources as (r, theta) polar coordinates with r in [0,2*sqrt(2)] and theta in [0,2pi]. Prior samples r and theta uniformly, then convert to (x,y). Predict sums of strengths 1/distances as before.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles,6): three (r,theta) pairs\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    strengths = 1.0\n    epsilon = 1e-8\n    # extract r and theta for each source\n    r = params[:, 0::2]  # shape (n_particles,3)\n    theta = params[:, 1::2]  # shape (n_particles,3)\n    x = r * np.cos(theta)\n    y = r * np.sin(theta)\n    sources = np.stack([x,y], axis=2)  # (n_particles,3,2)\n    d = designs[None, :, None, :]  # (1,n_designs,1,2)\n    s = sources[:, None, :, :]      # (n_particles,1,3,2)\n    dist = np.linalg.norm(d - s, axis=3) + epsilon  # (n_particles,n_designs,3)\n    contributions = strengths / dist\n    pred = contributions.sum(axis=2)\n    return pred\n\ndef sample_prior(rng, n):\n    max_r = 2 * np.sqrt(2)\n    r = rng.uniform(0, max_r, size=(n,3))\n    theta = rng.uniform(0, 2*np.pi, size=(n,3))\n    params = np.empty((n,6))\n    params[:, 0::2] = r\n    params[:, 1::2] = theta\n    return params"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Parameterize sources as flat array of length 6 representing three (x,y) coordinates. Prior samples uniformly over [-2,2]^2 for each source. Predict sums inverse distances from each design point to each source with strength 1, avoiding division by zero by adding small epsilon.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles,6): three (x,y) points\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    strengths = 1.0\n    epsilon = 1e-8\n    # reshape params to (n_particles,3,2)\n    sources = params.reshape(n_particles, 3, 2)\n    # expand dims for broadcasting\n    d = designs[None, :, None, :]  # (1,n_designs,1,2)\n    s = sources[:, None, :, :]      # (n_particles,1,3,2)\n    dist = np.linalg.norm(d - s, axis=3) + epsilon  # (n_particles,n_designs,3)\n    contributions = strengths / dist\n    pred = contributions.sum(axis=2)  # sum over three sources\n    return pred\n\ndef sample_prior(rng, n):\n    # uniform over [-2,2]^2 for each source, 3 sources\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Parameterize sources as (r, theta) polar coordinates with r in [0,2*sqrt(2)] and theta in [0,2pi]. Prior samples r and theta uniformly, then convert to (x,y). Predict sums of strengths 1/distances as before.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape (n_particles,6): three (r,theta) pairs\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    strengths = 1.0\n    epsilon = 1e-8\n    # extract r and theta for each source\n    r = params[:, 0::2]  # shape (n_particles,3)\n    theta = params[:, 1::2]  # shape (n_particles,3)\n    x = r * np.cos(theta)\n    y = r * np.sin(theta)\n    sources = np.stack([x,y], axis=2)  # (n_particles,3,2)\n    d = designs[None, :, None, :]  # (1,n_designs,1,2)\n    s = sources[:, None, :, :]      # (n_particles,1,3,2)\n    dist = np.linalg.norm(d - s, axis=3) + epsilon  # (n_particles,n_designs,3)\n    contributions = strengths / dist\n    pred = contributions.sum(axis=2)\n    return pred\n\ndef sample_prior(rng, n):\n    max_r = 2 * np.sqrt(2)\n    r = rng.uniform(0, max_r, size=(n,3))\n    theta = rng.uniform(0, 2*np.pi, size=(n,3))\n    params = np.empty((n,6))\n    params[:, 0::2] = r\n    params[:, 1::2] = theta\n    return params"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 755,
+    "cost_usd": 0.0013035999999999985,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "604537aa43404478ab2e6fec3cd95870",
+      "run_id": "repair-main-20261115-proposals-4004",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/604537aa43404478ab2e6fec3cd95870"
+    }
+  ]
+}

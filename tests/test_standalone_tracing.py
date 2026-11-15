@@ -11,6 +11,37 @@ from core.tracing import TraceSession, current_run
 from scripts import run_proposers
 
 
+def test_manifest_retries_only_transient_windows_replacement_errors(tmp_path, monkeypatch):
+    from core import manifest as module
+
+    manifest = RunManifest(tmp_path / "run", "run", load_config(),
+        SimpleNamespace(name="boxing"), SimpleNamespace(executor=None, clock=lambda: 1000))
+    replace = module.os.replace
+    attempts = []
+
+    def locked_once(source, target):
+        attempts.append(target)
+        if len(attempts) == 1:
+            error = PermissionError("sharing violation")
+            error.winerror = 32
+            raise error
+        replace(source, target)
+
+    monkeypatch.setattr(module.os, "replace", locked_once)
+    monkeypatch.setattr(module.time, "sleep", lambda _: None)
+    manifest.write()
+    assert len(attempts) == 2
+    assert json.loads(manifest.path.read_text())["run_id"] == "run"
+
+    def denied(source, target):
+        raise PermissionError("permanent denial")
+
+    monkeypatch.setattr(module.os, "replace", denied)
+    with pytest.raises(PermissionError, match="permanent denial"):
+        manifest.write()
+    assert not list(manifest.path.parent.glob(".manifest-*"))
+
+
 def test_late_open_records_resolved_execution_provenance(tmp_path):
     cfg = load_config()
     executor = SimpleNamespace(inputs=SimpleNamespace(files={"counts": "a" * 64}, bundle_id="bundle"),

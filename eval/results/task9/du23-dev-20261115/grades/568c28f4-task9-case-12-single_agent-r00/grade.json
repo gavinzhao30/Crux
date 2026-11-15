@@ -1,0 +1,282 @@
+{
+  "protocol": "BixBench3 task 9, downstream pilot (published counts as input)",
+  "grader_commit": "d0e0bbb41222335b1b8878f533a58466a3a782dc",
+  "task": 9,
+  "self_test": false,
+  "artifact_count": 9,
+  "mean": 0.4169468466510137,
+  "fraction_at_least_0_80": 0.2222222222222222,
+  "artifacts": {
+    "t98g_c10_vs_control_degs": {
+      "artifact_id": "t98g_c10_vs_control_degs",
+      "score": 0.2057998978421743,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.2087205146533238,
+          "details": {
+            "expected_count": 1232,
+            "observed_count": 167,
+            "true_positive": 146,
+            "false_positive": 21,
+            "false_negative": 1086,
+            "precision": 0.874251497005988,
+            "recall": 0.1185064935064935
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9860070447986365,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 146,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_f7_vs_control_degs": {
+      "artifact_id": "t98g_f7_vs_control_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.0,
+          "details": {
+            "expected_count": 1360,
+            "observed_count": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 1360,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.0,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 0,
+            "row_intersection_count": 0,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_g2_vs_control_degs": {
+      "artifact_id": "t98g_g2_vs_control_degs",
+      "score": 0.6510390168030855,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.665790461885092,
+          "details": {
+            "expected_count": 3111,
+            "observed_count": 2215,
+            "true_positive": 1773,
+            "false_positive": 442,
+            "false_negative": 1338,
+            "precision": 0.800451467268623,
+            "recall": 0.5699132111861138
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9778437122090335,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 1773,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_slow_shared_degs": {
+      "artifact_id": "t98g_slow_shared_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\t98g_slow_shared_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\t98g_slow_shared_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\t98g_slow_shared_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\t98g_slow_shared_degs.csv"
+      }
+    },
+    "hek293_d10_vs_control_degs": {
+      "artifact_id": "hek293_d10_vs_control_degs",
+      "score": 0.9373433504102459,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.93734335839599,
+          "details": {
+            "expected_count": 380,
+            "observed_count": 418,
+            "true_positive": 374,
+            "false_positive": 44,
+            "false_negative": 6,
+            "precision": 0.8947368421052632,
+            "recall": 0.9842105263157894
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9999999914804494,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 374,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "hek293_e6_vs_control_degs": {
+      "artifact_id": "hek293_e6_vs_control_degs",
+      "score": 0.9607388927818067,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.9607390300230947,
+          "details": {
+            "expected_count": 211,
+            "observed_count": 222,
+            "true_positive": 208,
+            "false_positive": 14,
+            "false_negative": 3,
+            "precision": 0.9369369369369369,
+            "recall": 0.985781990521327
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9999998571502939,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 208,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "hek293_shared_degs": {
+      "artifact_id": "hek293_shared_degs",
+      "score": 0.0,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "artifact_error",
+          "score": 0.0,
+          "details": {
+            "reason": "missing_agent_artifact",
+            "error_type": "FileNotFoundError",
+            "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\hek293_shared_degs.csv",
+            "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\hek293_shared_degs.csv"
+          }
+        }
+      ],
+      "error": {
+        "reason": "missing_agent_artifact",
+        "error_type": "FileNotFoundError",
+        "message": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\hek293_shared_degs.csv",
+        "agent_artifact_path": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\task9\\du23-dev-20261115\\grades\\568c28f4-task9-case-12-single_agent-r00\\tmpk7_0gixk\\candidate\\hek293_shared_degs.csv"
+      }
+    },
+    "t98g_d4_vs_control_degs": {
+      "artifact_id": "t98g_d4_vs_control_degs",
+      "score": 0.5356338571980632,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.545227698066126,
+          "details": {
+            "expected_count": 2211,
+            "observed_count": 995,
+            "true_positive": 874,
+            "false_positive": 121,
+            "false_negative": 1337,
+            "precision": 0.878391959798995,
+            "recall": 0.3952962460425147
+          },
+          "axis": "rows"
+        },
+        {
+          "metric": "ccc",
+          "score": 0.9824039737854637,
+          "details": {
+            "axis": "columns",
+            "item_count": 1,
+            "scored_item_count": 1,
+            "row_intersection_count": 874,
+            "column_intersection_count": 1,
+            "missing_requested_columns": []
+          },
+          "axis": "columns"
+        }
+      ]
+    },
+    "t98g_d4_specific_upregulated_genes": {
+      "artifact_id": "t98g_d4_specific_upregulated_genes",
+      "score": 0.46196660482374763,
+      "score_combination": "product",
+      "checks": [
+        {
+          "metric": "f1",
+          "score": 0.46196660482374763,
+          "details": {
+            "expected_count": 761,
+            "observed_count": 317,
+            "true_positive": 249,
+            "false_positive": 68,
+            "false_negative": 512,
+            "precision": 0.7854889589905363,
+            "recall": 0.3272010512483574
+          },
+          "axis": "rows"
+        }
+      ]
+    }
+  }
+}

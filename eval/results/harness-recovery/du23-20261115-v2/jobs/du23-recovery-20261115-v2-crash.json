@@ -1,0 +1,36 @@
+{
+  "arm": "fixture",
+  "artifact_ref": "C:\\Users\\gavin\\OneDrive\\\u6587\u6863\\My Files\\Projects\\AI Research Hackathon\\Crux\\eval\\results\\harness-recovery\\du23-20261115-v2\\evidence\\du23-recovery-20261115-v2-crash",
+  "case_id": "1000",
+  "checkpoints": [
+    {
+      "budget": 5,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    },
+    {
+      "budget": 10,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    },
+    {
+      "budget": 20,
+      "mse": null,
+      "score": 0.0,
+      "status": "failed"
+    }
+  ],
+  "failure": "MissingCheckpoint",
+  "failure_detail": "path \"/jobs/du23-recovery-20261115-v2-crash/result.json\" does not exist",
+  "grade_status": "failed",
+  "job_id": "du23-recovery-20261115-v2-crash",
+  "raw_mse": null,
+  "repeat": 0,
+  "score": 0.0,
+  "seed": 1000,
+  "state": "missing",
+  "status": "interrupted",
+  "suite": "boxing"
+}

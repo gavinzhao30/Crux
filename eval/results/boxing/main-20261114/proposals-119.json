@@ -1,0 +1,36 @@
+{
+  "families": [],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 960,
+    "cost_usd": 0.0016227999999999937,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "81d4c5c178c74ad5b623eb30e5df7b34",
+      "run_id": "main-20261114-proposals-119",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/81d4c5c178c74ad5b623eb30e5df7b34"
+    }
+  ],
+  "validation_error": "model '0': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 77, in <module>\r\n  File \"<string>\", line 64, in main\r\n  File \"<model>\", line 16, in predict\r\nValueError: operands could not be broadcast together with shapes (4,1,3,1) (4,2,3)",
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model 1 assumes three point sources with unknown locations uniformly distributed in [-2,2]^2 and equal intensity in [0,5]. The predict function computes the sum of Gaussian kernels centered at each source with fixed spread sigma=0.3. The sample_prior samples source locations uniformly and intensities uniformly.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9): x1,y1,x2,y2,x3,y3,I1,I2,I3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]    # (n_particles, 1, 9)\n    # Extract source positions and intensities\n    sources = params_exp[:, :, :6].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    intensities = params_exp[:, :, 6:].reshape(n_particles, 1, 3, 1)  # (n_particles, 1, 3, 1)\n    # Compute squared distances from designs to each source\n    dist_sq = np.sum((designs_exp[:, :, np.newaxis, :] - sources) ** 2, axis=-1)  # (n_particles, n_designs, 3)\n    # Gaussian kernel response\n    response = intensities * np.exp(-dist_sq / (2 * sigma ** 2))  # (n_particles, n_designs, 3, 1) squeezed to (n_particles, n_designs, 3)\n    response = response.squeeze(-1)\n    # Sum contributions from all sources\n    pred = np.sum(response, axis=-1)  # (n_particles, n_designs)\n    return pred\n\ndef sample_prior(rng, n):\n    # Locations uniform in [-2,2]^2 for each of 3 sources\n    locs = rng.uniform(-2, 2, size=(n, 6))  # 3 sources * 2 coords\n    # Intensities uniform in [0,5] for each source\n    intensities = rng.uniform(0, 5, size=(n, 3))\n    params = np.hstack([locs, intensities])  # shape (n,9)\n    return params\n"
+      },
+      {
+        "statement": "Model 2 assumes three equal-strength point sources with intensity fixed to 3.0. Their locations follow a Gaussian prior centered at origin with std=1 clipped to [-2,2]. The signal at a design point is the sum of inverse distance responses with a minimum distance cutoff to avoid singularity.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6): x1,y1,x2,y2,x3,y3\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensity = 3.0\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, np.newaxis, :]    # (n_particles, 1, 6)\n    sources = params_exp.reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    # Compute distances\n    dist = np.linalg.norm(designs_exp[:, :, np.newaxis, :] - sources, axis=-1)  # (n_particles, n_designs, 3)\n    # Avoid division by zero by minimum distance of 0.1\n    dist = np.maximum(dist, 0.1)\n    response = intensity / dist  # (n_particles, n_designs, 3)\n    pred = np.sum(response, axis=-1)  # (n_particles, n_designs)\n    return pred\n\ndef sample_prior(rng, n):\n    # Gaussian prior N(0,1) clipped to [-2,2]\n    locs = rng.normal(0, 1, size=(n, 6))\n    locs = np.clip(locs, -2, 2)\n    return locs"
+      }
+    ]
+  }
+}

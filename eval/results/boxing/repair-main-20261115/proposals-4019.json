@@ -1,0 +1,72 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is defined by its (x, y) location. Parameters are an array of shape (6,) representing three sources with (x, y) coordinates each. Prior samples uniformly in [-2, 2] for each coordinate. The predicted signal at each design point is the sum of inverse distances from the three sources, ensuring no division by zero.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        src_x = params[:, 2*i][:, None]\n        src_y = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - src_x\n        dy = designs[:, 1][None, :] - src_y\n        dist = np.sqrt(dx**2 + dy**2) + 1e-6\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2: Each source is parameterized by polar coordinates (r, theta) within the circle of radius 2 centered at origin. Parameters shape (n,6) represent n parameter sets for three sources with (r, theta). Prior samples r uniformly in [0,2] and theta in [0, 2*pi]. Predict sums signals deterministically using cartesian conversions of polar coordinates, supporting batch predictions with designs shape (m,2) and params shape (n,6).",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        r = params[:, 2*i]  # shape (n_particles,)\n        theta = params[:, 2*i+1]  # shape (n_particles,)\n        src_x = r * np.cos(theta)  # shape (n_particles,)\n        src_y = r * np.sin(theta)  # shape (n_particles,)\n        dx = designs[None, :, 0] - src_x[:, None]  # shape (n_particles, n_designs)\n        dy = designs[None, :, 1] - src_y[:, None]  # shape (n_particles, n_designs)\n        dist = np.sqrt(dx**2 + dy**2) + 1e-6\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    r = rng.uniform(0, 2, size=(n, 3))\n    theta = rng.uniform(0, 2*np.pi, size=(n, 3))\n    params = np.empty((n, 6))\n    params[:, 0::2] = r\n    params[:, 1::2] = theta\n    return params"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is defined by its (x, y) location. Parameters are an array of shape (6,) representing three sources with (x, y) coordinates each. Prior samples uniformly in [-2, 2] for each coordinate. The predicted signal at each design point is the sum of inverse distances from the three sources, ensuring no division by zero.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        src_x = params[:, 2*i][:, None]\n        src_y = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - src_x\n        dy = designs[:, 1][None, :] - src_y\n        dist = np.sqrt(dx**2 + dy**2) + 1e-6\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by polar coordinates (r, theta) within the circle of radius 2 centered at origin. Parameters shape (6,) represent three sources with (r, theta). Prior samples r uniformly in [0,2] and theta in [0, 2*pi]. Predict sums similarly using cartesian conversions of polar coordinates.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        r = params[:, 2*i]\n        theta = params[:, 2*i+1]\n        src_x = r * np.cos(theta)[:, None]\n        src_y = r * np.sin(theta)[:, None]\n        dx = designs[:, 0][None, :] - src_x\n        dy = designs[:, 1][None, :] - src_y\n        dist = np.sqrt(dx**2 + dy**2) + 1e-6\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    r = rng.uniform(0, 2, size=(n, 3))\n    theta = rng.uniform(0, 2*np.pi, size=(n, 3))\n    return np.vstack([r, theta]).T.reshape(n, 6)"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 12, in predict\r\nValueError: operands could not be broadcast together with shapes (1,2) (4,4)"
+    },
+    {
+      "family": 1,
+      "repair": 1,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by polar coordinates (r, theta) within the circle of radius 2 centered at origin. Parameters shape (n,6) represent n parameter sets for three sources with (r, theta). Prior samples r uniformly in [0,2] and theta in [0, 2*pi]. Predict sums signals deterministically using cartesian conversions of polar coordinates, supporting batch predictions with designs shape (m,2) and params shape (n,6).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    signals = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        r = params[:, 2*i]  # shape (n_particles,)\n        theta = params[:, 2*i+1]  # shape (n_particles,)\n        src_x = r * np.cos(theta)  # shape (n_particles,)\n        src_y = r * np.sin(theta)  # shape (n_particles,)\n        dx = designs[None, :, 0] - src_x[:, None]  # shape (n_particles, n_designs)\n        dy = designs[None, :, 1] - src_y[:, None]  # shape (n_particles, n_designs)\n        dist = np.sqrt(dx**2 + dy**2) + 1e-6\n        signals += 1.0 / dist\n    return signals\n\ndef sample_prior(rng, n):\n    r = rng.uniform(0, 2, size=(n, 3))\n    theta = rng.uniform(0, 2*np.pi, size=(n, 3))\n    params = np.empty((n, 6))\n    params[:, 0::2] = r\n    params[:, 1::2] = theta\n    return params"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 2,
+    "cached_calls": 0,
+    "input_tokens": 815,
+    "output_tokens": 1021,
+    "cost_usd": 0.0019596000000000058,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "c04deedc157c4acf9c4c0fbf8adf5230",
+      "run_id": "repair-main-20261115-proposals-4019",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/c04deedc157c4acf9c4c0fbf8adf5230"
+    },
+    {
+      "trace_id": "e0d33a2872454d738b151c7851955c72",
+      "run_id": "repair-main-20261115-proposals-4019",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "8aee38c258c2b7c5f063830107d285e72562260b36f67656efa25e7ce1ea1969",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/e0d33a2872454d738b151c7851955c72"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "families": [
+    {
+      "statement": "Model sources as three 2D Gaussian-shaped emitters with unknown locations; parameters are source coordinates. Prior: uniform in [-2,2]^2 for each source. Predict sums of Gaussian profiles at design points.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    designs_exp = designs_exp[:, :, None, :]  # (1, n_designs, 1, 2)\n\n    diff = designs_exp - params_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    sigma = 0.3\n    strength = 1.0\n    gauss = strength * np.exp(-dist_sq / (2 * sigma**2))\n    signal = np.sum(gauss, axis=-1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # uniform in [-2,2] for each source coordinate, 6 parameters total\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    },
+    {
+      "statement": "Model sources as three unknown point sources with equal strength; parameters are source coordinates. Signal at design is sum of inverse distances plus 1 to avoid singularities. Prior: uniform in [-2,2]^2 for each source.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    designs_exp = designs_exp[:, :, None, :]  # (1, n_designs, 1, 2)\n\n    diff = designs_exp - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1) + 1e-3  # avoid zero division\n    strength = 1.0\n    signal = np.sum(strength / dist, axis=-1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+    }
+  ],
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 217,
+    "output_tokens": 676,
+    "cost_usd": 0.0011684,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "97d6889ad2684057ace3997759ffe515",
+      "run_id": "main-20261114-proposals-111",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "3ce05a56b21fdec4810286196989cd484d3aa572377e58753b2039d7ca2e95d4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/97d6889ad2684057ace3997759ffe515"
+    }
+  ],
+  "validation_error": null,
+  "raw_proposals": {
+    "families": [
+      {
+        "statement": "Model sources as three 2D Gaussian-shaped emitters with unknown locations; parameters are source coordinates. Prior: uniform in [-2,2]^2 for each source. Predict sums of Gaussian profiles at design points.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) for 3 sources (x,y) each\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    designs_exp = designs_exp[:, :, None, :]  # (1, n_designs, 1, 2)\n\n    diff = designs_exp - params_exp  # (n_particles, n_designs, 3, 2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles, n_designs, 3)\n    sigma = 0.3\n    strength = 1.0\n    gauss = strength * np.exp(-dist_sq / (2 * sigma**2))\n    signal = np.sum(gauss, axis=-1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # uniform in [-2,2] for each source coordinate, 6 parameters total\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      },
+      {
+        "statement": "Model sources as three unknown point sources with equal strength; parameters are source coordinates. Signal at design is sum of inverse distances plus 1 to avoid singularities. Prior: uniform in [-2,2]^2 for each source.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[None, :, :]  # (1, n_designs, 2)\n    params_exp = params[:, None, :].reshape(n_particles, 1, 3, 2)  # (n_particles, 1, 3, 2)\n    designs_exp = designs_exp[:, :, None, :]  # (1, n_designs, 1, 2)\n\n    diff = designs_exp - params_exp  # (n_particles, n_designs, 3, 2)\n    dist = np.linalg.norm(diff, axis=-1) + 1e-3  # avoid zero division\n    strength = 1.0\n    signal = np.sum(strength / dist, axis=-1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))\n"
+      }
+    ]
+  }
+}
