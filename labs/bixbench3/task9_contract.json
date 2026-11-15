@@ -3,6 +3,7 @@
     "path": "t98g_c10_vs_control_degs.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "de",
     "required_columns": [
       "gene_id",
@@ -40,6 +41,7 @@
     "path": "t98g_f7_vs_control_degs.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "de",
     "required_columns": [
       "gene_id",
@@ -77,6 +79,7 @@
     "path": "t98g_g2_vs_control_degs.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "de",
     "required_columns": [
       "gene_id",
@@ -114,6 +117,9 @@
     "path": "t98g_slow_shared_degs.csv",
     "format": "csv",
     "row_key": "gene_symbol",
+    "allowed_values": {
+      "regulation": ["up_vs_control", "down_vs_control"]
+    },
     "kind": "gene_list",
     "required_columns": [
       "gene_symbol",
@@ -203,6 +209,7 @@
     "path": "hek293_d10_vs_control_degs.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "de",
     "required_columns": [
       "gene_id",
@@ -240,6 +247,7 @@
     "path": "hek293_e6_vs_control_degs.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "de",
     "required_columns": [
       "gene_id",
@@ -277,6 +285,9 @@
     "path": "hek293_shared_degs.csv",
     "format": "csv",
     "row_key": "gene_symbol",
+    "allowed_values": {
+      "regulation": ["up_vs_control", "down_vs_control"]
+    },
     "kind": "gene_list",
     "required_columns": [
       "gene_symbol",
@@ -334,6 +345,7 @@
     "path": "t98g_d4_vs_control_degs.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "de",
     "required_columns": [
       "gene_id",
@@ -371,6 +383,7 @@
     "path": "t98g_d4_specific_upregulated_genes.csv",
     "format": "csv",
     "row_key": "gene_id",
+    "unversioned_ids": true,
     "kind": "gene_list",
     "required_columns": [
       "gene_id"
