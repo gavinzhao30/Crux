@@ -288,6 +288,19 @@ def markdown(report: dict) -> str:
     winner = report["heldout_log_loss_winner"]
     if winner:
         lines.extend(["", f"Lowest held-out log loss belongs to **{winner.title()}**."])
+        if not report["jev_beats_both"]:
+            lines.extend(
+                [
+                    "",
+                    (
+                        "Keep the sampled predictor as the fallback where library probabilities "
+                        "are unavailable. For a direct fallback comparison, evaluate Jev and "
+                        "eight sampled draws on diagnostic–hypothesis pairs with no library row. "
+                        "Give both predictors the same inputs, score held-out log loss against "
+                        "observed bins, and replay first diagnostic choices."
+                    ),
+                ]
+            )
     else:
         lines.extend(
             ["", "The three-way decision requires full matched held-out coverage."]

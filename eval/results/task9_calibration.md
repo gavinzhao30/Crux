@@ -61,3 +61,5 @@ Offline rankings replay the first choice within each eligible case and fork, wit
 - Jev — jev-latest, one batched Choice request per experiment
 
 Lowest held-out log loss belongs to **Stated**.
+
+Keep the sampled predictor as the fallback where library probabilities are unavailable. For a direct fallback comparison, evaluate Jev and eight sampled draws on diagnostic–hypothesis pairs with no library row. Give both predictors the same inputs, score held-out log loss against observed bins, and replay first diagnostic choices.
