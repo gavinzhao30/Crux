@@ -1,0 +1,34 @@
+[
+  {
+    "id": "c4d913f24f7f4e79",
+    "traceId": "acbf5594d72a4809bc57924636164739",
+    "model": "gpt-4.1-mini",
+    "inputUsage": 1571,
+    "outputUsage": 85,
+    "totalCost": 0.000764399999
+  },
+  {
+    "id": "60cec53c2a67f7d1",
+    "traceId": "c321d530ef574ebfae81d9f6286d4ee0",
+    "model": "gpt-4.1-mini",
+    "inputUsage": 1818,
+    "outputUsage": 85,
+    "totalCost": 0.0008632
+  },
+  {
+    "id": "3044ffd47da19b17",
+    "traceId": "52a9da3483c54381a8dcf487e8721f0f",
+    "model": "gpt-4.1-mini",
+    "inputUsage": 1952,
+    "outputUsage": 113,
+    "totalCost": 0.0009616
+  },
+  {
+    "id": "4a049e9426c6cd37",
+    "traceId": "9d2280061d68470b9c601b50b3e26b43",
+    "model": "gpt-4.1-mini",
+    "inputUsage": 2159,
+    "outputUsage": 98,
+    "totalCost": 0.001020399999
+  }
+]

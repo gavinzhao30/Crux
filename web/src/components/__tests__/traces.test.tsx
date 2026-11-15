@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { foldEvent, initialState } from '../../state/fold';
+import { foldAll, foldEvent, initialState } from '../../state/fold';
 import { QuestionsPanel } from '../QuestionsPanel';
 import { RankingPanel } from '../RankingPanel';
 
@@ -14,6 +15,18 @@ function event(seq: number, type: string, payload: unknown) {
 }
 
 describe('decision trace links', () => {
+  it.skipIf(!process.env.DU45_RUN_LOG)('renders the stored links from the live acceptance log', () => {
+    const events = readFileSync(process.env.DU45_RUN_LOG!, 'utf8').trim().split('\n')
+      .map(line => JSON.parse(line));
+    const state = foldAll(events);
+    const html = renderToStaticMarkup(<QuestionsPanel state={state} />) +
+      renderToStaticMarkup(<RankingPanel state={state} />);
+    const refs = Object.values(state.decisionTraces).flat();
+    expect(refs.length).toBeGreaterThan(0);
+    expect(html).toContain('Model trace · designer');
+    expect(refs.some(ref => html.includes(`href="${ref.url}"`))).toBe(true);
+  });
+
   it('opens the exact model trace from question and ranking cards after replay', () => {
     let state = foldEvent(initialState(), event(0, 'question.opened', {
       question: { id: 'q', text: 'Which method?', kind: 'categorical', status: 'open', impact: 1 },

@@ -89,7 +89,8 @@ while Langfuse fails, bounded flush, no duplicate inference, concurrent runs,
 artifact hashing, pre-execution persistence and success/error/cancellation cleanup.
 Frontend tests verify card links and reject unsafe URLs and other runs' references.
 
-Final live acceptance still requires an authenticated Langfuse Cloud project, a
-real model call whose recorded link opens the matching trace, and replay on the
-chosen scientific hero run. An offline synthetic run is a reproducible integration
-fixture, not evidence that a scientific hero run is complete.
+The verified Cloud smoke test and remaining scientific hero-run acceptance are
+recorded in `docs/acceptance/DU-45.md`. Run the smoke again with
+`uv run --env-file .env python scripts/check_tracing.py --run-id UNIQUE_RUN_ID`.
+A synthetic integration fixture does not establish completion of the scientific
+hero run.
