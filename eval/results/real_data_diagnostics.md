@@ -87,3 +87,26 @@ PC1's likelihood rows changed from exact to measured, because "unclear" happens 
 - **Not a detection rate.** This shows how the diagnostics behave on real data with no planted faults. Detection on real counts needs the generic fault planter (DU-49).
 - **No dataset matches task 9's shape**, a replicated perturbation in two or more cell lines. The ELEM-1200RS candidate on DU-48 is gated and needs a subset screen.
 - **Unconfirmed:** the airway swap comes from the data alone. The dataset's authors haven't confirmed it.
+
+## Detection on real counts with planted faults (DU-49)
+
+`eval.suites.plant_faults` plants each of the six faults twice on each dataset (seed 49), skipping faults the design can't carry. `eval.suites.detect_faults` runs the 12 diagnostics on every case and reads the private truth key. A fault counts as **caught** when a diagnostic of its fork lands in the fault option's likeliest bin.
+
+```
+uv run python -m eval.suites.plant_faults --case ../data/cases/<case> --output ../data/suites/<case> --seed 49
+uv run python -m eval.suites.detect_faults ../data/suites/<case> --workers 6
+```
+
+| Planted fault | COVID lung/colon (2 tissues) | Pasilla (1 line) | Airway, treatment groups (1 background) |
+| --- | --- | --- | --- |
+| sample_swap | 2/2 | 2/2 | 2/2 |
+| label_inversion | 2/2 | 0/2 | 0/2 |
+| duplicate_library | 2/2 | 2/2 | 2/2 |
+| low_depth | 2/2 | 2/2 | 2/2 |
+| cell_line_swap | 2/2 | n/a (one line) | n/a (one line) |
+| gene_version | 2/2 | 2/2 | n/a (Entrez ids carry no versions) |
+| **Caught** | **12/12** | **8/10** | **6/8** |
+
+- **Caught: 26 of 30 planted faults.** All four misses are label inversions on single-line designs. The direction checks compare treated groups against a second cell line, so they can't see an inversion there; they abstain and don't guess. Every fault a design can carry and our checks cover was caught, 26 of 26.
+- **False alarms: 1 in 33 cases.** On pasilla, a thinned library also set off the swap search once. The constant flags in the COVID cases (sample_quality) and the airway cases (sample_labels) are already in the clean case. They are the two real problems in that public data described above, not false alarms from planting.
+- **Limit:** two instances per fault per dataset is a small sample. The rates are a sanity check on real counts, not a benchmark number.
