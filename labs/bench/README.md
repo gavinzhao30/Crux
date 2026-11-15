@@ -32,6 +32,18 @@ python3 labs/bench/node.py --fake --port 8765
 
 Check from the laptop: `curl http://<jetson>:8765/health`.
 
+## Phone as the screen (no monitor on the Jetson)
+
+The node serves its own stimulus page, so any phone or laptop on the same network can be the screen:
+
+```
+python3 node.py --camera 0 --display none --exposure 300 --wb 4600 --gain 0 --port 8765   # on the Jetson
+```
+
+Open `http://<jetson>:8765/screen` on the phone and tap once: it goes full screen and stays awake. Turn off auto-brightness and Night Shift/True Tone, set brightness to a fixed level, and prop the phone so its screen fills the centre of the camera's view. `POST /patch` takes `{"rgb": [r, g, b]}` or `{"level": v}`. It returns only after the page has painted the new colour (`"screen_ack": true`), then waits `--settle`.
+
+The node owns the camera on one reader thread. `/measure` returns the grey mean, per-channel `r`/`g`/`b` and `spatial_sd` (an occluded lens shows up here), and `/stream` and `/snapshot.jpg` show what the camera sees, so `cam_stream.py` isn't needed while the node runs. `--exposure`, `--wb` and `--gain` pin the camera through OpenCV's V4L2 controls; `/health` reports the values the camera actually took.
+
 ## 3. Lock the camera and check drift
 
 Turn off auto exposure, auto white balance and gain with `v4l2-ctl` (or the `nvarguscamerasrc` locks), as in the `node.py` docstring. Then run a 20-frame drift check on a mid-grey patch:

@@ -31,3 +31,20 @@ The full swarm: 3 proposers plus the DU-42 library, the sampled predictor, the r
 **What the scores say:**
 - The fold changes are exactly right (CCC 1.0 everywhere). The significant-gene sets differ, which points to the unresolved DESeq2 design and pre-filtering choices.
 - The two shared-gene lists score 0. Their definition question was unresolved and the fallback prompt doesn't define them. The official prompt, or a designer that can test definitions, is the fix.
+
+## Paired clean-case trial (DU-22)
+
+Both arms used the same published Tag-Seq count matrix from the 2024 REST-knockout study. It contains 60,708 gene rows and 16 samples, with 10 from T98G and six from HEK293. The clean case preserves the original sample assignments. The staged input bundle also included the sample sheet and a GENCODE v43 gene-symbol map. [Study](https://doi.org/10.1186/s12915-024-01879-0) · [NCBI GEO GSE234912](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE234912)
+
+| Run | Mean | Artifacts ≥ 0.80 | Logged wall time | Model calls |
+| --- | ---: | ---: | ---: | ---: |
+| `baseline-clean-v2` | 0.862 | 8/9 | 7m 02s | 17 |
+| `swarm-clean-v2-budgeted` | 0.727 | 3/9 | 5m 55s | 19 |
+
+Both arms used the fallback prompt and ran with search disabled, a $2 model cap and a 40-call limit per run. The single agent used GPT-5.5. The swarm used GPT-4.1 mini for proposing and prediction, with up to 10 prediction calls, and GPT-5.5 for merging, delivery and review. Each completed run incurred about $0.96 in model usage at uncached rates. Three earlier swarm starts ended during proposal merging, delivery-plan generation or before delivery at the call cap.
+
+A local Mac launched the runs and graded the raw exports. The real-data analysis executed in Modal sandboxes. The baseline timer starts after the sandbox opens. The swarm timer includes startup and profiling. Both times exclude grading and earlier attempts. The local synthetic tests use scripted model roles.
+
+The largest gap was C10 versus control. The baseline fit one model across all T98G conditions and recovered all 1,232 reference significant genes. The swarm refit a model per treatment/control pair and recovered 427. Both CSVs passed the format checks, and both had fold-change concordance approximately 1.0 on overlapping genes.
+
+The shared fallback now specifies one fit per cell line with all retained conditions and biological replicates. Each treatment-versus-control contrast comes from that fit. A new scored pair and evaluation on the held-out fault variants are pending.
