@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { extractClaimsAction } from "@/app/app/actions";
+import { ClaimSources } from "@/components/app/claim-sources";
 import { DeletePaperButton } from "@/components/app/paper-actions";
 import { ProcessingPanel } from "@/components/app/processing-panel";
 import { StartAuditButton } from "@/components/app/start-audit-button";
@@ -22,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 const KINDS = { symbolic: "Mathematical", statistical: "Statistical", empirical: "Reported finding" };
 
-function SourcePassage({ claim }: { claim: PaperClaim }) {
+function SourcePassage({ claim, paperId, exaReady }: { claim: PaperClaim; paperId: string; exaReady: boolean }) {
   const method = libraryClaim(claim.libraryId);
   return (
     <div className="space-y-6 p-5 sm:p-6">
@@ -34,12 +35,13 @@ function SourcePassage({ claim }: { claim: PaperClaim }) {
         {claim.quote || "No supporting quotation was returned for this claim."}
       </blockquote>
       <p className="text-xs leading-relaxed text-muted-foreground">A matching quotation links a claim to its source. It does not establish that the claim is correct.</p>
+      <ClaimSources key={claim.id} paperId={paperId} claimId={claim.id} enabled={exaReady} />
       {method && <div className="rounded-xl border bg-background p-4"><p className="eyebrow">Available audit method</p><p className="mt-2 text-sm leading-relaxed">{method.check}</p></div>}
     </div>
   );
 }
 
-export function PaperWorkspace({ paper, claims, keyReady }: { paper: PaperSummary; claims: PaperClaim[]; keyReady: boolean }) {
+export function PaperWorkspace({ paper, claims, keyReady, exaReady }: { paper: PaperSummary; claims: PaperClaim[]; keyReady: boolean; exaReady: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [selectedId, select] = useState<string | null>(claims[0]?.id ?? null);
@@ -118,12 +120,12 @@ export function PaperWorkspace({ paper, claims, keyReady }: { paper: PaperSummar
                         <p className="text-[1.025rem] leading-relaxed text-pretty">{claim.claim}</p>
                         <span className="mt-3 inline-flex items-center gap-1 text-xs text-brand">Source passage <ArrowUpRightIcon className="size-3" aria-hidden="true" /></span>
                       </button>
-                      {selected?.id === claim.id && <div className="border-t lg:hidden"><SourcePassage claim={claim} /></div>}
+                      {selected?.id === claim.id && <div className="border-t lg:hidden"><SourcePassage claim={claim} paperId={paper.id} exaReady={exaReady} /></div>}
                     </li>
                   ))}
                 </ol>
               </Panel>
-              {selected && <div className="sticky top-24 hidden lg:block"><Panel title="Source evidence" hint={<QuoteIcon className="size-4" aria-hidden="true" />}><div className="border-b px-6 py-4"><p className="font-mono text-xs text-muted-foreground">CLAIM {String(claims.indexOf(selected) + 1).padStart(2, "0")}</p><p className="mt-2 text-sm font-medium leading-relaxed">{selected.claim}</p></div><SourcePassage claim={selected} /></Panel></div>}
+              {selected && <div className="sticky top-24 hidden lg:block"><Panel title="Source evidence" hint={<QuoteIcon className="size-4" aria-hidden="true" />}><div className="border-b px-6 py-4"><p className="font-mono text-xs text-muted-foreground">CLAIM {String(claims.indexOf(selected) + 1).padStart(2, "0")}</p><p className="mt-2 text-sm font-medium leading-relaxed">{selected.claim}</p></div><SourcePassage claim={selected} paperId={paper.id} exaReady={exaReady} /></Panel></div>}
             </div>
           )}
           <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Extraction details</summary><div className="mt-3 space-y-2 leading-relaxed"><p className="break-all"><FileTextIcon className="mr-1 inline size-3" aria-hidden="true" />{paper.filename}</p><p>{paper.model ? `Read by ${paper.model}. ` : ""}Extracted statements are not audit verdicts; review their source context before drawing conclusions.</p>{paper.truncated && <p>This extraction read part of the paper&apos;s text.</p>}</div></details>

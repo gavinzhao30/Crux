@@ -12,6 +12,10 @@
     "title": "Failed run (sandbox out of memory)"
   },
   {
+    "name": "demo_oneletter_live",
+    "title": "One Letter: live Jetson run (recorded)"
+  },
+  {
     "name": "demo_oneletter",
     "title": "One Letter: HBB codon 6 (fake reader)"
   },

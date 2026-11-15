@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Domains } from "@/components/landing/domains";
 import { Loop } from "@/components/landing/loop";
 import { Plate } from "@/components/landing/plate";
+import { Sponsors } from "@/components/landing/sponsors";
+import { GrowthChart } from "@/components/growth-chart";
 import { Scoreboard } from "@/components/scoreboard";
 import { SiteFooter } from "@/components/site-footer";
 import { AnnouncementBar, SiteHeader } from "@/components/site-header";
 import { REPO_URL, repoFile } from "@/lib/site";
 
 const BATCH04 = "eval/results/task9_batch04.md";
+const BATCH05 = "eval/results/task9_batch05.md";
 const BATCH03 = "eval/results/task9_batch03.md";
 
 /**
@@ -68,7 +71,13 @@ const EXPLORE_CARDS = [
 const REPORTS = [
   {
     date: "November 15, 2026",
-    title: "Batch-04: a fresh held-out suite",
+    title: "Batch-05: 52 fresh cases in four suites",
+    body: "Three more pre-registered suites in parallel. Swarm 0.817, single agent 0.671; +0.146 (+0.084 to +0.215); 48 of 48 faults against 14.",
+    path: BATCH05,
+  },
+  {
+    date: "November 15, 2026",
+    title: "Batch-04: the first fresh held-out suite",
     body: "13 pre-registered cases nobody had run. Swarm 0.811, single agent 0.608; 12 of 12 planted faults against 3.",
     path: BATCH04,
   },
@@ -86,18 +95,76 @@ const REPORTS = [
   },
 ];
 
-const CAVEATS = [
+const RUN1 = "runs/demo/task9_real_swarm_run1.jsonl";
+
+/** Run 1's rejections (the first graded run) and one from tools-run-02, as in docs/SUBMISSION.md. */
+const REJECTED = [
+  { question: "Were two samples swapped?", option: "Two libraries carry each other's labels", by: "labels_swap_search: as given", posterior: "0.0021" },
+  { question: "Is a library duplicated?", option: "One library appears under two names", by: "duplicates_identical: none", posterior: "0.0085" },
+  { question: "Is a library degraded?", option: "At least one library is degraded", by: "quality_depth: all usable", posterior: "0.0085" },
+  { question: "Is the cell-line column wrong?", option: "Some libraries carry the wrong cell line", by: "cell_line_centroid: as given", posterior: "0.0085" },
+  { question: "Are gene-ID versions mixed?", option: "Versioned and unversioned IDs are mixed", by: "gene_strip_check: uniform", posterior: "0.0046" },
+  { question: "Filter low-count genes before DESeq2?", option: "Use internal independent filtering only", by: "Exa search of the DESeq2 docs: both", posterior: "0.0172" },
+];
+
+/** Where it fell short, what its own logs showed, and what changed (README, "Where it fell short"). */
+const FELL_SHORT = [
+  { from: "0.586", to: "0.727", short: "Two artifacts scored 0", logs: "Every run's methods said the inputs had no gene annotation.", change: "Added a gene symbol map to the inputs." },
+  { from: "0.727", to: "0.833", short: "Behind the single agent's 0.862", logs: "Per-pair refits recovered 427 of 1,232 reference genes.", change: "One DESeq2 fit per cell line (PR #30)." },
+  { from: "0.833", to: "0.862", short: "Clean runs from 0.790 to 0.861", logs: "An untested question was applied three different ways.", change: "Untested questions keep the method's defaults (PR #47)." },
+  { from: "3", to: "0", short: "Crashed swarm runs, then 0 in 52", logs: "The merge step raised on a malformed plan.", change: "A bad merge plan keeps the proposals (PR #54)." },
+];
+
+const LOOPS = [
   {
-    title: "A focused pilot.",
-    body: "One task, 13 cases, one run per approach, using published counts and checks designed for six known fault types. Both zero-score single-agent runs remain included; sensitivity analyses are in the report.",
-    path: BATCH04,
+    title: "Inside a run, with no human",
+    stat: "7 tables blocked, repaired",
+    body: "The critic checks every deliverable. In run 1 it blocked versioned gene IDs in 7 tables, and the one repair round fixed them, except one ID in 4.",
+    path: "eval/results/task9_runs.md",
   },
   {
-    title: "The selection advantage is still open.",
-    body: "Earlier Task 9 comparisons were inconclusive, and random diagnostic selection matched information gain. BoxingGym also showed no EIG advantage. These results do not establish general-purpose auditing or detection of unknown faults.",
+    title: "From its own diagnostic outcomes",
+    stat: "Log loss 0.600 → 0.472",
+    body: "The outcome predictor, fine-tuned on 20,640 of the lab's own diagnostic results, beat its base model and the library rows in distribution. The edge went away under shift and on real data, so it stays off.",
+    path: "eval/results/predictor_calibration.md",
+  },
+  {
+    title: "From its own runs",
+    stat: "+0.010, no effect",
+    body: "Six lessons drafted from its dev-case runs, reviewed and frozen, made no measurable difference on 9 held-out cases.",
     path: BATCH03,
   },
 ];
+
+const CAVEATS = [
+  {
+    title: "A focused pilot.",
+    body: "One task, 52 cases across four suites, one run per approach, and checks for six known fault types. All three zero-score single-agent runs count; one suite is inconclusive on its own. Published-count results are not comparable to the full raw-read benchmark.",
+    path: BATCH05,
+  },
+  {
+    title: "The selection advantage is still open.",
+    body: "Earlier Task 9 comparisons were inconclusive, and random diagnostic selection matched information gain. BoxingGym also showed no EIG advantage. General-purpose auditing and detection of unknown fault types remain unproven.",
+    path: BATCH03,
+  },
+];
+
+function Source({ path, className }: { path: string; className?: string }) {
+  return (
+    <a
+      href={repoFile(path)}
+      target="_blank"
+      rel="noreferrer"
+      className={
+        "inline-flex items-center gap-1 font-mono text-xs text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground " +
+        (className ?? "")
+      }
+    >
+      {path}
+      <ArrowUpRightIcon className="size-3" aria-hidden="true" />
+    </a>
+  );
+}
 
 function CircleArrow() {
   return (
@@ -116,18 +183,18 @@ export default function Home() {
       <SiteHeader />
       <main id="main" className="flex-1">
         {/* Hero */}
-        <section className={`${WRAP} grid items-center gap-12 pt-14 pb-20 sm:pt-20 lg:min-h-[calc(100svh-7rem)] lg:grid-cols-[0.92fr_1.08fr] lg:gap-14 lg:pb-24`}>
+        <section className={`${WRAP} grid items-center gap-12 pt-12 pb-20 sm:pt-14 lg:min-h-[calc(100svh-7rem)] lg:grid-cols-[0.92fr_1.08fr] lg:gap-14 lg:pb-20`}>
           <div>
-            <h1 className="font-display text-[3.4rem] leading-[0.98] sm:text-[5.2rem] lg:text-[5.6rem] xl:text-[6.4rem]">
+            <h1 className="font-display text-[3.4rem] leading-[0.98] sm:text-[5rem] lg:text-[5rem] xl:text-[5.6rem]">
               <span className="block animate-rise">Settled by experiment,</span>
               <span className="block animate-rise text-subtle [animation-delay:80ms]">not by vote.</span>
             </h1>
-            <p className="mt-8 max-w-xl animate-rise text-lg leading-relaxed text-muted-foreground [animation-delay:140ms] sm:text-xl">
+            <p className="mt-6 max-w-xl animate-rise text-lg leading-relaxed text-muted-foreground [animation-delay:140ms] sm:text-xl">
               Crux is a team of AI scientists. When they disagree about an analysis, a formula or a statistical
               method, they run the experiment expected to tell them the most per dollar, and change their minds only
               on what it shows.
             </p>
-            <div className="mt-10 flex animate-rise flex-wrap items-center gap-x-6 gap-y-4 [animation-delay:200ms]">
+            <div className="mt-8 flex animate-rise flex-wrap items-center gap-x-6 gap-y-4 [animation-delay:200ms]">
               <Link href="/signup" className="pill">
                 Audit a paper
                 <CircleArrow />
@@ -140,8 +207,92 @@ export default function Home() {
                 <ArrowRightIcon className="size-4" aria-hidden="true" />
               </Link>
             </div>
+            <dl className="mt-10 grid max-w-xl animate-rise gap-x-8 gap-y-6 border-t pt-6 [animation-delay:260ms] sm:grid-cols-[1.4fr_1fr_1fr]">
+              <div className="flex flex-col-reverse">
+                <dt className="mt-1.5 text-sm leading-snug text-muted-foreground">Clean case, first run to now</dt>
+                <dd className="font-display text-[2.1rem] leading-none whitespace-nowrap tabular-nums">
+                  0.586<span className="text-subtle"> → </span>0.864
+                </dd>
+              </div>
+              <div className="flex flex-col-reverse">
+                <dt className="mt-1.5 text-sm leading-snug text-muted-foreground">Over a single gpt-5.5 agent, 52 fresh cases</dt>
+                <dd className="font-display text-[2.1rem] leading-none text-brand tabular-nums">+0.146</dd>
+              </div>
+              <div className="flex flex-col-reverse">
+                <dt className="mt-1.5 text-sm leading-snug text-muted-foreground">Planted faults caught (single agent: 14)</dt>
+                <dd className="font-display text-[2.1rem] leading-none tabular-nums">48/48</dd>
+              </div>
+            </dl>
+            <Link
+              href="#improves"
+              className="mt-5 inline-flex animate-rise items-center gap-1.5 text-sm text-muted-foreground underline decoration-border underline-offset-4 [animation-delay:300ms] hover:text-foreground"
+            >
+              How it got there
+              <ArrowRightIcon className="size-3.5" aria-hidden="true" />
+            </Link>
           </div>
           <Plate {...PLATES.hero} priority sizes="(min-width: 1024px) 55vw, 100vw" className="w-full" />
+        </section>
+
+        {/* How far it came (self-improvement) */}
+        <section id="improves" className="scroll-mt-24 border-t bg-card">
+          <div className={`${WRAP} py-24 sm:py-32`}>
+            <div className="grid items-center gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+              <div>
+                <p className="eyebrow">How far it came</p>
+                <h2 className="mt-5 font-display text-5xl leading-[1.02] sm:text-6xl">
+                  From 0.586 to 0.864, then ahead on cases it had never seen
+                </h2>
+                <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+                  On its first graded run the swarm scored 0.586 on the clean case, well behind a single frontier agent.
+                  Each fix below came from a failure in its own logs, and each batch after it was pre-registered. It now
+                  matches the single agent on the clean case, and on 52 fresh cases with planted faults it scores 0.817
+                  against 0.671 and catches all 48 faults.
+                </p>
+              </div>
+              <div className="rounded-3xl border bg-background p-5 sm:p-8">
+                <GrowthChart />
+              </div>
+            </div>
+
+            <ol className="mt-12 grid gap-3 lg:grid-cols-4">
+              {FELL_SHORT.map((s, i) => (
+                <li key={s.from} className="flex flex-col rounded-2xl border bg-background p-6">
+                  <p className="text-sm text-muted-foreground">Step {i + 1} · {s.short}</p>
+                  <p className="mt-4 font-display text-4xl leading-none tabular-nums">
+                    <span className="text-subtle">{s.from}</span> <span className="text-subtle">→</span>{" "}
+                    <span className="text-foreground">{s.to}</span>
+                  </p>
+                  <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">The logs: </span>
+                    {s.logs}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">The change: </span>
+                    {s.change}
+                  </p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              We made these four fixes; the system did not change its own code. Inputs and the prompt changed along the way,
+              so this is not a learning curve. Now, on 52 fresh cases: +0.146, with 48 of 48 faults caught.
+            </p>
+
+            <h3 className="mt-16 font-display text-3xl">Loops that run on their own</h3>
+            <ul className="mt-6 grid gap-3 md:grid-cols-3">
+              {LOOPS.map((l) => (
+                <li key={l.title} className="flex flex-col rounded-2xl border bg-background p-6">
+                  <p className="text-sm text-muted-foreground">{l.title}</p>
+                  <p className="mt-3 font-display text-3xl leading-tight">{l.stat}</p>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{l.body}</p>
+                  <p className="mt-4">
+                    <Source path={l.path} />
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         {/* What it tests */}
@@ -247,6 +398,53 @@ export default function Home() {
           </div>
         </section>
 
+        {/* What it rejected (Track 3 asks for it) */}
+        <section id="rejected" className="scroll-mt-24 border-t">
+          <div className={`${WRAP} py-24 sm:py-32`}>
+            <div className="max-w-3xl">
+              <p className="eyebrow">What it rejected</p>
+              <h2 className="mt-5 font-display text-5xl leading-[1.02] sm:text-6xl">Every rejection keeps the evidence behind it</h2>
+              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+                What the swarm ruled out matters as much as what it found. The first five options fell below posterior 0.02
+                in the first graded run; the last one fell in a run with documentation search on. Thirteen questions in the
+                first run ended unresolved and were reported that way, not guessed.
+              </p>
+            </div>
+            <div className="mt-12 overflow-x-auto rounded-2xl border bg-card">
+              <table className="w-full min-w-[40rem] text-left text-[0.95rem]">
+                <thead>
+                  <tr className="border-b text-sm text-muted-foreground">
+                    <th className="px-6 py-4 font-normal">Question</th>
+                    <th className="px-6 py-4 font-normal">Rejected option</th>
+                    <th className="px-6 py-4 font-normal">Rejected by</th>
+                    <th className="px-6 py-4 text-right font-normal">Posterior</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {REJECTED.map((r) => (
+                    <tr key={r.question} className="border-b last:border-0">
+                      <td className="px-6 py-4 font-medium">{r.question}</td>
+                      <td className="px-6 py-4 text-muted-foreground line-through decoration-v-refuted/60">{r.option}</td>
+                      <td className="px-6 py-4 font-mono text-sm">{r.by}</td>
+                      <td className="px-6 py-4 text-right font-mono text-sm text-v-refuted tabular-nums">{r.posterior}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link
+                href="/runs"
+                className="inline-flex items-center gap-1.5 text-[0.95rem] font-medium underline decoration-border underline-offset-[6px] transition-colors hover:decoration-foreground"
+              >
+                Replay the run and its rejected ledger
+                <ArrowRightIcon className="size-4" aria-hidden="true" />
+              </Link>
+              <Source path={RUN1} />
+            </div>
+          </div>
+        </section>
+
         {/* Explore, on ink */}
         <section className="bg-ink text-ink-foreground">
           <div className={`${WRAP} py-24 sm:py-32`}>
@@ -303,6 +501,20 @@ export default function Home() {
                 <CircleArrow />
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Sponsors */}
+        <section id="sponsors" className={`${WRAP} scroll-mt-24 pt-24 sm:pt-32`}>
+          <div className="max-w-3xl">
+            <p className="eyebrow">Built with</p>
+            <h2 className="mt-5 font-display text-5xl leading-[1.02] sm:text-6xl">What each sponsor does in Crux</h2>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+              Every tool below runs in the product, and each card links to the evidence.
+            </p>
+          </div>
+          <div className="mt-14">
+            <Sponsors />
           </div>
         </section>
 
