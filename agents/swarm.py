@@ -5,8 +5,10 @@
   proposer runs with a silent bus and ``null_hypothesis`` off; question ids it assigns are
   kept by the orchestrator.
 * ``design``: stand-in until DU-10's designer lands. It returns the library diagnostics
-  the proposer attached to the question. A question with no library diagnostic gets none
-  and ends unresolved.
+  the proposer attached to the question, plus the pre-registered search diagnostics
+  (``search.task9.search_diagnostics``) for questions that documentation can decide, such
+  as DESeq2 defaults. The orchestrator drops the search ones when search is off. A
+  question with no diagnostic gets none and ends unresolved.
 * ``referee``/``critic``/``report``: DU-11 (``agents.referee``, ``agents.critic``,
   ``agents.reporter``), imported when first used so this module loads before they exist.
 * ``regenerate``: stand-in, no new options (a surprise is still logged and the question is
@@ -71,11 +73,14 @@ class SwarmRoles:
         report_fn: Callable | None = None,
         counts_path: Path | None = None,
         run_dir: Callable[[], Path | None] | None = None,
+        search_library: Callable[[list[Question]], dict[str, list[Experiment]]]
+        | None = None,
     ) -> None:
         self.llm = llm
         self.config = config
         self.memory = memory or NullMemory()
         self.library = library
+        self.search_library = search_library
         self.propose_fn = propose_fn
         self.referee_fn = referee_fn
         self.critic_fn = critic_fn
@@ -154,7 +159,19 @@ class SwarmRoles:
                         update={"id": f"{qid}-d{i}", "question_ids": [qid]}, deep=True
                     )
                 )
+        self._attach_search(questions)
         return questions, hypotheses
+
+    def _attach_search(self, questions: list[Question]) -> None:
+        """Pre-registered search diagnostics for the questions documentation can decide."""
+        search_library = self.search_library
+        if search_library is None:
+            from search.task9 import search_diagnostics as search_library
+        for qid, experiments in search_library(list(questions)).items():
+            known = {e.id for e in self.diagnostics.get(qid, [])}
+            for exp in experiments:
+                if exp.id not in known:
+                    self.diagnostics.setdefault(qid, []).append(exp)
 
     async def regenerate(
         self, question: Question, hypotheses: list[Hypothesis], history: list[Trial]

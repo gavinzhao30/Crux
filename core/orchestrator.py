@@ -1179,7 +1179,26 @@ class _Run:
         search = self.deps.search
         assert search is not None and exp.query
         t0 = self.clock()
-        results = list(await search.find(exp.query, k=5))
+        try:
+            results = list(await search.find(exp.query, k=5))
+        except Exception as exc:  # a refused query or a provider outage, not a crashed run
+            logger.exception("search experiment %s failed", exp.id)
+            note = _SECRET.sub("[redacted]", f"search failed: {type(exc).__name__}: {exc}")
+            await self._emit(
+                E.SEARCH_DONE,
+                experiment_id=exp.id,
+                query=exp.query,
+                urls=[],
+                blocked=[],
+                bin_id=None,
+            )
+            return Observation(
+                experiment_id=exp.id,
+                valid=False,
+                seconds=round(max(self.clock() - t0, 0.0), 6),
+                cost_usd=float(getattr(exc, "cost_reservation_usd", 0.0) or 0.0),
+                referee_note=note[:500],
+            )
         blocked = [str(u) for u in (getattr(search, "last_blocked", None) or [])]
         found = [self._register_evidence(e) for e in results]
         urls = [e.url for e in found if e.url]
@@ -1209,7 +1228,8 @@ class _Run:
         return Observation(
             experiment_id=exp.id,
             valid=bin_id is not None,
-            value={"n_results": len(found), "urls": urls},
+            # what the bins were computed on, so the referee can check the rules' inputs
+            value=value,
             bin_id=bin_id,
             seconds=round(max(self.clock() - t0, 0.0), 6),
             cost_usd=exp.est_cost_usd,
