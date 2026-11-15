@@ -17,6 +17,12 @@
 4. ``lab.deliver``, the critic and up to ``cfg.max_critic_rounds`` delivery rounds, lessons, and
    ``agents.report``. ``run.finished`` is always the last event of a run that did not crash.
 
+Memory (``Deps.memory``): the lab's profile, valid observations and rejections (as the
+referee's objections), the critic's findings and lessons are written; the designer recalls
+before each design and the critic before each review (``contract["recalled_evidence"]``).
+Recalled records only reach prompts. They never update a belief, and a record the run
+already holds is never counted twice.
+
 Events go through ``core.events.EventBus`` (its async ``emit``), one line each in
 ``<cfg.runs_dir>/<run_id>/events.jsonl``; payloads are made JSON-safe with ``jsonable`` and the
 type is checked against ``core.events.EVENT_TYPES``. The bus stamps ``ts`` with ``Deps.clock``,
@@ -1574,6 +1580,7 @@ class _Run:
             for f in findings:
                 self.state.findings.append(f)
                 await self._emit(E.CRITIC_FINDING, finding=f)
+            await self._memory_write(self._critic_records(findings, round_no))
             for a in artifacts:
                 mine = [f for f in findings if f.artifact == a.name]
                 a.findings = [f.message for f in mine]
@@ -1597,6 +1604,28 @@ class _Run:
                     reopened = True
             if reopened:
                 await self._categorical_loop()
+
+    def _critic_records(self, findings: list[CriticFinding], round_no: int) -> list[Evidence]:
+        """The critic's findings as its own memory records (only when memory is on).
+
+        A ``block`` is an objection, which memory keeps in every later recall; a ``warn`` is
+        an ordinary observation. Like every record they inform prompts, never beliefs.
+        """
+        if not self._memory_on():
+            return []
+        return [
+            self._register_evidence(
+                Evidence(
+                    id=self._new_evidence_id(),
+                    kind="objection" if f.severity == "block" else "observation",
+                    claim=f"Critic {f.severity} on {f.artifact} ({f.rule}): {f.message}"[:2000],
+                    author_role="critic",
+                    source_ref=f.id,
+                    conditions={"severity": f.severity, "delivery_round": round_no},
+                )
+            )
+            for f in findings
+        ]
 
     def _register_finding(self, f: CriticFinding) -> CriticFinding:
         f = f.model_copy(deep=True)
