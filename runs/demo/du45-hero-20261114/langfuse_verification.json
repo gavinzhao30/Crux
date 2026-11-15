@@ -1,0 +1,170 @@
+[
+  {
+    "trace_id": "cdf6275cdb334671bfc832ebd3a9fd9c",
+    "run_id": "du45-hero-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "a194a7fd3ff140b8b45e06014885dc66",
+    "run_id": "du45-hero-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "c10c4c32c2dc4ee8888d1e5a080a255a",
+    "run_id": "du45-hero-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "4ffc2ad27b76494e81b637676b28cc16",
+    "run_id": "du45-hero-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "3c702ac590c04c508044af4dbb949882",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-sample_labels-d1",
+    "verified": true
+  },
+  {
+    "trace_id": "f378eebc259349e38db614144c418676",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-duplicates-d0",
+    "verified": true
+  },
+  {
+    "trace_id": "df9b02fffe07453abf6ddcd5cda48aa7",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-sample_quality-d0",
+    "verified": true
+  },
+  {
+    "trace_id": "c2aca03d2e584224a605c5d5b3ec310f",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-cell_line-d0",
+    "verified": true
+  },
+  {
+    "trace_id": "bef8db3fe887407aab3f1f05bfd5f8e3",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-gene_ids-d1",
+    "verified": true
+  },
+  {
+    "trace_id": "9a830097dfcc4b77b6fec1573e0f65d0",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-group_direction-d0",
+    "verified": true
+  },
+  {
+    "trace_id": "f4bc2c354eed4d9e9507d92d7bd19391",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-sample_labels-d0",
+    "verified": true
+  },
+  {
+    "trace_id": "b41bea79f9914a098f306d11d55a8186",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-group_direction-d1",
+    "verified": true
+  },
+  {
+    "trace_id": "550c5d84bed942a4bb614e85db95f9d6",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-duplicates-d1",
+    "verified": true
+  },
+  {
+    "trace_id": "00a00525705a4cf2a3997664e6cfd4f1",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-sample_quality-d1",
+    "verified": true
+  },
+  {
+    "trace_id": "6b99b0ac4934453fb212441a190eb4e1",
+    "run_id": "du45-hero-20261114",
+    "role": "referee",
+    "step": "referee:library-cell_line-d1",
+    "verified": true
+  },
+  {
+    "trace_id": "49aeb71056534788a99182f64907e6a0",
+    "run_id": "du45-hero-20261114",
+    "role": "deliverer",
+    "step": "deliver",
+    "verified": true
+  },
+  {
+    "trace_id": "9fdf30ee14d341409c50423fdb14163d",
+    "run_id": "du45-hero-20261114",
+    "role": "critic",
+    "step": "critic",
+    "verified": true
+  },
+  {
+    "trace_id": "16c1f1acd48546ea95609cc3b94b2141",
+    "run_id": "du45-hero-20261114",
+    "role": "deliverer",
+    "step": "deliver",
+    "verified": true
+  },
+  {
+    "trace_id": "aad8b4b7b77347f093bf01d8a0a0f3c3",
+    "run_id": "du45-hero-20261114",
+    "role": "critic",
+    "step": "critic",
+    "verified": true
+  },
+  {
+    "trace_id": "f6af8e0b3ee449c69091a3dd3a3edf64",
+    "run_id": "du45-hero-20261114",
+    "role": "reporter",
+    "step": "report",
+    "verified": true
+  },
+  {
+    "trace_id": "05c340b891f84974b070f1e0034c2d88",
+    "run_id": "du45-proposers-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "e19b0f7b27cc4d2db78a3244adfc4320",
+    "run_id": "du45-proposers-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "e8f25b0198da489f898b85756daa708f",
+    "run_id": "du45-proposers-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  },
+  {
+    "trace_id": "537d93f561994e479a5f736f547b39bd",
+    "run_id": "du45-proposers-20261114",
+    "role": "proposer",
+    "step": "propose",
+    "verified": true
+  }
+]

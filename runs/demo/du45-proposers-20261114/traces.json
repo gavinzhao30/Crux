@@ -1,0 +1,49 @@
+{
+  "traces": [
+    {
+      "trace_id": "05c340b891f84974b070f1e0034c2d88",
+      "run_id": "du45-proposers-20261114",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "33a932aa3c402e399337bdc70d54073fbf8a2a39b2e342e7310c931164e83230",
+      "model": "gpt-4.1-mini",
+      "cached": true,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/05c340b891f84974b070f1e0034c2d88"
+    },
+    {
+      "trace_id": "e19b0f7b27cc4d2db78a3244adfc4320",
+      "run_id": "du45-proposers-20261114",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "cc9bda9510d943db14de575e9b01426273c1f67330a85de85154580d41b5db5c",
+      "model": "gpt-4.1-mini",
+      "cached": true,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/e19b0f7b27cc4d2db78a3244adfc4320"
+    },
+    {
+      "trace_id": "e8f25b0198da489f898b85756daa708f",
+      "run_id": "du45-proposers-20261114",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "ecf0ad490cea343da8c3df366d926fe00db1634988ec2b95279ed3ad11c4eba4",
+      "model": "gpt-4.1-mini",
+      "cached": true,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/e8f25b0198da489f898b85756daa708f"
+    },
+    {
+      "trace_id": "537d93f561994e479a5f736f547b39bd",
+      "run_id": "du45-proposers-20261114",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "06b421d6614f64f103d1af66e2c2bec59af091d021a3e93ab4f57c11d643d45f",
+      "model": "gpt-4.1-mini",
+      "cached": true,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/537d93f561994e479a5f736f547b39bd"
+    }
+  ],
+  "tracing": {
+    "errors": [],
+    "dropped": 0,
+    "pending": 0
+  }
+}

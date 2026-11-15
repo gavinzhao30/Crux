@@ -4,9 +4,31 @@ from types import SimpleNamespace
 
 import pytest
 
+from core.config import load_config
 from core.events import EventBus
+from core.manifest import RunManifest
 from core.tracing import TraceSession, current_run
 from scripts import run_proposers
+
+
+def test_late_open_records_resolved_execution_provenance(tmp_path):
+    cfg = load_config()
+    executor = SimpleNamespace(inputs=SimpleNamespace(files={"counts": "a" * 64}, bundle_id="bundle"),
+                               image_ids={})
+    lab = SimpleNamespace(name="bixbench3", executor=executor, sandbox_id=None)
+    deps = SimpleNamespace(executor=None, llm=None, clock=lambda: 1000)
+    manifest = RunManifest(tmp_path / "run", "run", cfg, lab, deps)
+    manifest.start()
+    lab.sandbox_id = "sandbox-1"
+    executor.image_ids["sandbox-1"] = "image-1"
+    manifest.refresh_execution(lab, deps)
+    recorded = json.loads(manifest.path.read_text())
+    assert recorded["sandbox_image_id"] == "image-1"
+    assert recorded["sandbox_id"] == "sandbox-1"
+    assert recorded["input_hashes"] == {"counts": "a" * 64}
+    from eval.grade_bixbench3 import GRADER_COMMIT
+
+    assert recorded["grader_commit"] == GRADER_COMMIT
 
 
 @pytest.mark.parametrize("failure", [None, RuntimeError, asyncio.CancelledError])

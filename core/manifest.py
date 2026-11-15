@@ -24,6 +24,7 @@ class ManifestData(TypedDict):
     git_commit: str | None
     git_dirty: bool
     grader_commit: str | None
+    grader_integration_commit: NotRequired[str | None]
     model_ids: dict[str, str]
     observed_model_ids: NotRequired[dict[str, str]]
     prompt_hashes: dict[str, str]
@@ -109,6 +110,11 @@ class RunManifest:
             "traces": [],
             "tracing": {},
         }
+        if self.data["lab"] == "bixbench3":
+            from eval.grade_bixbench3 import GRADER_COMMIT
+
+            self.data["grader_integration_commit"] = self.data["grader_commit"]
+            self.data["grader_commit"] = GRADER_COMMIT
 
     def now(self):
         return datetime.fromtimestamp(self.clock(), tz=UTC).isoformat()
