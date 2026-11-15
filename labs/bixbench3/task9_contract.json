@@ -1,0 +1,419 @@
+{
+  "t98g_c10_vs_control_degs": {
+    "path": "t98g_c10_vs_control_degs.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "de",
+    "required_columns": [
+      "gene_id",
+      "gene_symbol",
+      "base_mean",
+      "log2_fold_change",
+      "lfc_se",
+      "stat",
+      "p_value",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "log2_fold_change"
+    ]
+  },
+  "t98g_f7_vs_control_degs": {
+    "path": "t98g_f7_vs_control_degs.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "de",
+    "required_columns": [
+      "gene_id",
+      "gene_symbol",
+      "base_mean",
+      "log2_fold_change",
+      "lfc_se",
+      "stat",
+      "p_value",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "log2_fold_change"
+    ]
+  },
+  "t98g_g2_vs_control_degs": {
+    "path": "t98g_g2_vs_control_degs.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "de",
+    "required_columns": [
+      "gene_id",
+      "gene_symbol",
+      "base_mean",
+      "log2_fold_change",
+      "lfc_se",
+      "stat",
+      "p_value",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "log2_fold_change"
+    ]
+  },
+  "t98g_slow_shared_degs": {
+    "path": "t98g_slow_shared_degs.csv",
+    "format": "csv",
+    "row_key": "gene_symbol",
+    "kind": "gene_list",
+    "required_columns": [
+      "gene_symbol",
+      "regulation"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows"
+      },
+      {
+        "metric": "label_f1",
+        "scope": {
+          "label_column": "regulation",
+          "average": "macro"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": []
+  },
+  "t98g_slow_upregulated_go": {
+    "path": "t98g_slow_upregulated_go.csv",
+    "format": "csv",
+    "row_key": "go_id",
+    "kind": "go",
+    "required_columns": [
+      "go_id",
+      "gene_count",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "gene_count"
+    ]
+  },
+  "t98g_slow_downregulated_go": {
+    "path": "t98g_slow_downregulated_go.csv",
+    "format": "csv",
+    "row_key": "go_id",
+    "kind": "go",
+    "required_columns": [
+      "go_id",
+      "gene_count",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "gene_count"
+    ]
+  },
+  "hek293_d10_vs_control_degs": {
+    "path": "hek293_d10_vs_control_degs.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "de",
+    "required_columns": [
+      "gene_id",
+      "gene_symbol",
+      "base_mean",
+      "log2_fold_change",
+      "lfc_se",
+      "stat",
+      "p_value",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "log2_fold_change"
+    ]
+  },
+  "hek293_e6_vs_control_degs": {
+    "path": "hek293_e6_vs_control_degs.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "de",
+    "required_columns": [
+      "gene_id",
+      "gene_symbol",
+      "base_mean",
+      "log2_fold_change",
+      "lfc_se",
+      "stat",
+      "p_value",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "log2_fold_change"
+    ]
+  },
+  "hek293_shared_degs": {
+    "path": "hek293_shared_degs.csv",
+    "format": "csv",
+    "row_key": "gene_symbol",
+    "kind": "gene_list",
+    "required_columns": [
+      "gene_symbol",
+      "regulation"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows"
+      },
+      {
+        "metric": "label_f1",
+        "scope": {
+          "label_column": "regulation",
+          "average": "macro"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": []
+  },
+  "hek293_upregulated_go": {
+    "path": "hek293_upregulated_go.csv",
+    "format": "csv",
+    "row_key": "go_id",
+    "kind": "go",
+    "required_columns": [
+      "go_id",
+      "gene_count",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "gene_count"
+    ]
+  },
+  "t98g_d4_vs_control_degs": {
+    "path": "t98g_d4_vs_control_degs.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "de",
+    "required_columns": [
+      "gene_id",
+      "gene_symbol",
+      "base_mean",
+      "log2_fold_change",
+      "lfc_se",
+      "stat",
+      "p_value",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "log2_fold_change"
+    ]
+  },
+  "t98g_d4_specific_upregulated_genes": {
+    "path": "t98g_d4_specific_upregulated_genes.csv",
+    "format": "csv",
+    "row_key": "gene_id",
+    "kind": "gene_list",
+    "required_columns": [
+      "gene_id"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows"
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": []
+  },
+  "t98g_d4_vs_slow_upregulated_go": {
+    "path": "t98g_d4_vs_slow_upregulated_go.csv",
+    "format": "csv",
+    "row_key": "go_id",
+    "kind": "go",
+    "required_columns": [
+      "go_id",
+      "gene_count",
+      "padj"
+    ],
+    "checks": [
+      {
+        "metric": "f1",
+        "axis": "rows",
+        "scope": {
+          "row_filter": "padj < 0.05"
+        }
+      },
+      {
+        "metric": "ccc",
+        "axis": "columns",
+        "scope": {
+          "columns": "value_columns",
+          "row_filter": "padj < 0.05"
+        }
+      }
+    ],
+    "score_combination": "product",
+    "value_columns": [
+      "gene_count"
+    ]
+  }
+}
