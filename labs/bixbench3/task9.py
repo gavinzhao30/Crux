@@ -137,6 +137,7 @@ class Task9Lab:
                     exp.language,
                     exp.code,
                     experiment_id=exp.id,
+                    timeout_s=self.executor.diagnostic_timeout_s,
                 )
                 log_ref = executed["log_ref"]
                 if not executed["valid"]:
