@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from agents.llm import LLMOutputError
 from agents.predictor import SampledPredictor, exact_row
 from agents.proposer import Proposals
 from agents.swarm import SwarmRoles
@@ -31,8 +32,8 @@ from core.schemas import (
 )
 from execution.local import LocalExecutor, rewrite_paths
 from execution.staging import COUNTS, SAMPLES
-from labs.bixbench3.swarm_lab import SwarmTask9Lab, discover_cases
-from labs.bixbench3.task9_contract import load_contract
+from labs.bixbench3.swarm_lab import SwarmTask9Lab, build_task9_run, discover_cases
+from labs.bixbench3.task9_contract import load_contract, load_prompt
 
 GROUPS = {"T98G": ("Ctrl", "C10", "F7", "G2", "D4"), "HEK293": ("Ctrl", "D10", "E6")}
 
@@ -223,7 +224,7 @@ out.mkdir(parents=True, exist_ok=True)
 {"raise RuntimeError('first attempt fails')" if fail else ""}
 for item in contract.values():
     cols = item['required_columns']
-    row = {{c: ('ENSG00000000001' if c == 'gene_id' else 'up' if c == 'regulation'
+    row = {{c: ('ENSG00000000001' if c == 'gene_id' else 'up_vs_control' if c == 'regulation'
             else 'GENE1' if c == 'gene_symbol' else 0.01) for c in cols}}
     pd.DataFrame([row], columns=cols).to_csv(out / item['path'], index=False)
 (out / 'METHODS.md').write_text('# Methods')
@@ -236,7 +237,11 @@ class Planner:
 
     async def __call__(self, llm, state, *, last_error=None, profile=None):
         self.errors.append(last_error)
-        return [("python", writer_code(fail=len(self.errors) == 1))]
+        if len(self.errors) == 1:
+            raise LLMOutputError(
+                "truncated output", role="deliverer", model="test-model", sample_index=0
+            )
+        return [("python", writer_code(fail=len(self.errors) == 2))]
 
 
 class FakeLLM:
@@ -312,6 +317,15 @@ def test_predictor_uses_exact_rows_and_samples_the_rest():
     assert llm.calls == ["predictor"]  # one batched call for the sampled option only
 
 
+def test_task9_run_uses_configured_prediction_samples(tmp_path):
+    case = make_case(tmp_path / "case")
+    cfg = load_config("no_search", n_predictor_samples=1, eps=0.2)
+    lab, deps = build_task9_run(cfg, case_dir=case, llm=FakeLLM(["none"]))
+    assert lab.brief()["goal"] == load_prompt()[0]
+    assert deps.predictor.n == 1
+    assert deps.predictor.eps == 0.2
+
+
 @pytest.mark.parametrize("duplicate", [False, True])
 def test_full_run_settles_and_delivers(tmp_path, duplicate):
     case = make_case(tmp_path / "case", duplicate=duplicate)
@@ -345,15 +359,14 @@ def test_full_run_settles_and_delivers(tmp_path, duplicate):
     ]
     logs = [e for e in events if e["type"] == "experiment.log"]
     assert logs and "RESULT" in logs[-1]["payload"]["line"]
-    # delivery: the first attempt fails, the retry gets the error and writes every file
-    assert planner.errors[0] is None and "first attempt fails" in (
-        planner.errors[1] or ""
-    )
+    assert planner.errors[0] is None
+    assert "previous plan was incomplete" in planner.errors[1]
+    assert "first attempt fails" in planner.errors[2]
     expected = {item["path"] for item in load_contract().values()} | {"METHODS.md"}
     assert {a.name for a in report.artifacts} == expected
     assert sorted(p.name for p in (run_dir / "delivery").iterdir()) == [
-        "round1-attempt1-step1.py",
         "round1-attempt2-step1.py",
+        "round1-attempt3-step1.py",
     ]
     assert lab.sandbox_id is None  # closed
 

@@ -82,10 +82,11 @@ async def propose(
     config: RunConfig,
     library: list[LibraryQuestion] | None = None,
 ) -> Proposals:
-    """Return merged questions after independent role calls and one merge call.
+    """Return merged questions after independent role calls and a validated merge.
 
     Local source IDs encode role and position. The merge model can group existing
     IDs, while code owns IDs, content, provenance, and prior normalization.
+    An invalid grouping gets one retry before the run reports the error.
     Call once per proposal round. Event IDs include the current event sequence.
     """
     roles = ROLES[: config.proposers]
@@ -139,48 +140,30 @@ async def propose(
         }
         for source, (role, question) in sources.items()
     }
-    [raw_plan] = await llm.structured(
-        "proposer",
-        MergePlan,
-        [
-            {
-                "role": "system",
-                "content": (PROMPTS / "merge.md").read_text(encoding="utf-8"),
-            },
-            {"role": "user", "content": json.dumps(data)},
-        ],
-    )
-    plan = MergePlan.model_validate(raw_plan)
-    used_questions, used_options = [], []
-    for group in plan.questions:
-        if any(source not in sources for source in group.source_ids):
-            raise ValueError("Merge references unknown question")
-        if len({sources[source][1].kind for source in group.source_ids}) != 1:
-            raise ValueError("Cannot merge categorical and model questions")
-        compatible = []
-        for cluster in group.options:
-            if any(
-                source not in options or options[source][0] not in group.source_ids
-                for source in cluster.source_ids
-            ):
-                raise ValueError("Merge option belongs to another question")
-            # Preserve distinct deliverables or implementations if the merge
-            # model groups them together. Never discard an original option.
-            partitions = {}
-            for source in cluster.source_ids:
-                option = options[source][2]
-                key = (option.answer_key, option.model_code)
-                partitions.setdefault(key, []).append(source)
-            compatible.extend(
-                OptionGroup(source_ids=ids) for ids in partitions.values()
+    merge_messages = [
+        {
+            "role": "system",
+            "content": (PROMPTS / "merge.md").read_text(encoding="utf-8"),
+        },
+        {"role": "user", "content": json.dumps(data)},
+    ]
+    for attempt in range(2):
+        [raw_plan] = await llm.structured("proposer", MergePlan, merge_messages)
+        try:
+            plan = MergePlan.model_validate(raw_plan)
+            _validate_merge(plan, sources, options)
+        except ValueError as exc:
+            if attempt:
+                raise
+            merge_messages.append(
+                {
+                    "role": "user",
+                    "content": f"The grouping was rejected: {exc}. Return a full corrected "
+                    "grouping using every supplied question and option ID exactly once.",
+                }
             )
-            used_options.extend(cluster.source_ids)
-        group.options = compatible
-        used_questions.extend(group.source_ids)
-    if sorted(used_questions) != sorted(sources) or sorted(used_options) != sorted(
-        options
-    ):
-        raise ValueError("Merge must include every source exactly once")
+        else:
+            break
 
     result = Proposals()
     # Build and validate the entire result before publishing any proposal events.
@@ -292,3 +275,41 @@ async def propose(
                     },
                 )
     return result
+
+
+def _validate_merge(
+    plan: MergePlan,
+    sources: dict[str, tuple[str, Proposal]],
+    options: dict[str, tuple[str, str, Option]],
+) -> None:
+    """Verify provenance and split clusters that grouped distinct implementations."""
+    used_questions, used_options = [], []
+    for group in plan.questions:
+        if any(source not in sources for source in group.source_ids):
+            raise ValueError("Merge references unknown question")
+        if len({sources[source][1].kind for source in group.source_ids}) != 1:
+            raise ValueError("Cannot merge categorical and model questions")
+        compatible = []
+        for cluster in group.options:
+            if any(
+                source not in options or options[source][0] not in group.source_ids
+                for source in cluster.source_ids
+            ):
+                raise ValueError("Merge option belongs to another question")
+            # Preserve distinct deliverables or implementations if the merge
+            # model groups them together. Never discard an original option.
+            partitions = {}
+            for source in cluster.source_ids:
+                option = options[source][2]
+                key = (option.answer_key, option.model_code)
+                partitions.setdefault(key, []).append(source)
+            compatible.extend(
+                OptionGroup(source_ids=ids) for ids in partitions.values()
+            )
+            used_options.extend(cluster.source_ids)
+        group.options = compatible
+        used_questions.extend(group.source_ids)
+    if sorted(used_questions) != sorted(sources) or sorted(used_options) != sorted(
+        options
+    ):
+        raise ValueError("Merge must include every source exactly once")

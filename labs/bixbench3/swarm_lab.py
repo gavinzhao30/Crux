@@ -7,9 +7,9 @@ Wraps ``Task9Lab`` (DU-13) without changing it:
 * ``ModalExecutor`` logs commands to ``execution.jsonl``; ``Observation.log_ref`` comes back
   as ``execution.jsonl#<command>``. That command's lines are copied to
   ``logs/<command>.txt`` so the orchestrator can stream them as ``experiment.log``.
-* ``deliver`` asks the delivery planner for code, runs it, and on an execution error asks
-  again with the error, up to ``max_attempts`` times per delivery round. Every attempt's
-  code is kept under ``delivery/`` in the run folder.
+* ``deliver`` asks the delivery planner for code, runs it, and retries invalid plans
+  or failed executions up to ``max_attempts`` times per delivery round. Generated code
+  is kept under ``delivery/`` in the run folder.
 """
 
 from __future__ import annotations
@@ -101,14 +101,24 @@ class SwarmTask9Lab:
         return obs
 
     async def deliver(self, state: EngineState) -> list[Artifact]:
+        from agents.llm import LLMOutputError
         from core.schemas import Artifact
 
         await self._open()
         error: str | None = None
         for attempt in range(1, self.max_attempts + 1):
-            steps = await self.planner(
-                self.llm, state, last_error=error, profile=self.profile_facts
-            )
+            try:
+                steps = await self.planner(
+                    self.llm, state, last_error=error, profile=self.profile_facts
+                )
+            except LLMOutputError:
+                if attempt == self.max_attempts:
+                    raise
+                error = (
+                    "The previous plan was incomplete or invalid. Return concise code, "
+                    "reuse existing scratch files, and return a complete plan."
+                )
+                continue
             error = None
             for i, (language, code) in enumerate(steps, start=1):
                 self._keep_code(state.delivery_round, attempt, i, language, code)
@@ -255,7 +265,7 @@ def build_task9_run(
     )
     deps = Deps(
         agents=roles,
-        predictor=SampledPredictor(llm),
+        predictor=SampledPredictor(llm, n=cfg.n_predictor_samples, eps=cfg.eps),
         memory=memory,
         search=search,
         llm=llm,

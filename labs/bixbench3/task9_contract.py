@@ -27,10 +27,18 @@ def load_prompt(path: Path | None = None) -> tuple[str, str]:
     return (
         (
             "Reproduce the downstream Task 9 analysis from the staged counts and sample sheet. "
-            "For each cell line, produce DESeq2 treatment-versus-Ctrl comparisons and the shared "
-            "and D4-specific gene sets requested by the artifact contract. Use biological "
-            "replicates and record analysis decisions, diagnostics and unresolved issues in "
-            "/outputs/METHODS.md. Use the supplied artifact names and column names."
+            "After checking sample labels and library quality, fit DESeq2 once per cell line "
+            "with design ~ condition using all retained conditions and biological replicates "
+            "for that cell line. Extract every treatment-versus-Ctrl contrast from that same "
+            "fitted model. Produce the shared and D4-specific gene sets requested by the "
+            "artifact contract. Record analysis decisions, diagnostics and unresolved issues in "
+            "/outputs/METHODS.md. Use the supplied artifact names and column names. "
+            "Follow each artifact's row-key requirements and allowed values exactly. Strip the "
+            "Ensembl version number from exported gene_id values while preserving _PAR_Y, "
+            "and check that row keys are unique before submitting. When "
+            "/data/inputs_metadata.json provides gene_symbol_by_gene_id, use that mapping for "
+            "gene symbols. If versions differ, match on the stable ID only when it maps "
+            "unambiguously. Record unresolved gene-symbol mappings in METHODS.md."
         ),
         "local fallback from public artifact contracts",
     )

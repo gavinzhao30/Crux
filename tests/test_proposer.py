@@ -53,12 +53,14 @@ def batch(fault=False):
 
 
 class Client:
-    def __init__(self, fault=False, expected=3, corrupt=False):
+    def __init__(self, fault=False, expected=3, corrupt=False, omit_first=False):
         self.batch = batch(fault)
         self.expected = expected
         self.calls = []
         self.ready = asyncio.Event()
         self.corrupt = corrupt
+        self.omit_first = omit_first
+        self.merge_calls = 0
 
     async def structured(self, role, schema, messages, n=1):
         if schema is ProposalBatch:
@@ -68,6 +70,7 @@ class Client:
             await asyncio.wait_for(self.ready.wait(), 2)
             return [self.batch.model_copy(deep=True)]
         data = json.loads(messages[1]["content"])
+        self.merge_calls += 1
         groups = []
         for index in range(2):
             sources = [source for source in data if source.endswith(f"q{index}")]
@@ -91,6 +94,8 @@ class Client:
                 )
         if self.corrupt:
             groups[0]["options"][0]["source_ids"].append("missing")
+        if self.omit_first and self.merge_calls == 1:
+            groups.pop()
         return [MergePlan.model_validate({"questions": groups})]
 
 
@@ -145,6 +150,26 @@ def test_invalid_merge_emits_no_partial_proposals(tmp_path):
                 config=RunConfig(),
             )
         assert len(bus.path.read_bytes().splitlines()) == 1
+
+    asyncio.run(scenario())
+
+
+def test_merge_retries_after_omitting_a_source(tmp_path):
+    async def scenario():
+        client = Client(omit_first=True)
+        bus = EventBus("retry", tmp_path)
+        await bus.emit("run.started", {})
+        result = await propose(
+            {},
+            [],
+            llm=client,
+            memory=FakeMemory(),
+            bus=bus,
+            config=RunConfig(),
+        )
+        assert client.merge_calls == 2
+        assert len(result.questions) == 2
+        assert sum(len(result.provenance[q.id]) for q in result.questions) == 6
 
     asyncio.run(scenario())
 

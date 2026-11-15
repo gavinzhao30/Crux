@@ -10,6 +10,8 @@ from unittest.mock import AsyncMock
 import numpy as np
 import pandas as pd
 
+from agents.critic import INVALID_LABELS, VERSIONED_IDS, check_contract
+from core.schemas import Artifact
 from eval.baseline_agent import Action, run_baseline
 from eval.suites.task9 import grade_suite
 from eval.suites.task9.make_cases import GROUPS, make_cases
@@ -25,8 +27,38 @@ def test_public_contract_and_fallback():
     assert all(
         "padj" in item["required_columns"] for item in contract.values() if item["kind"] == "de"
     )
-    assert "fallback" in load_prompt()[1]
+    prompt, source = load_prompt()
+    assert "fallback" in source
+    assert "fit DESeq2 once per cell line" in prompt
+    assert "Extract every treatment-versus-Ctrl contrast from that same fitted model" in prompt
     assert "tagseq_featurecounts_matrix" not in contract
+
+
+def test_task9_contract_rejects_the_clean_run_format_mismatches(tmp_path):
+    contract = load_contract()
+    files = {
+        "t98g_d4_specific_upregulated_genes": (
+            "gene_id\nENSG00000003989.12\n",
+            "gene_id\nENSG00000003989_PAR_Y\n",
+        ),
+        "t98g_slow_shared_degs": (
+            "gene_symbol,regulation\nSLC7A2,downregulated\n",
+            "gene_symbol,regulation\nSLC7A2,down_vs_control\n",
+        ),
+    }
+    selected = {key: contract[key] for key in files}
+    for version in range(2):
+        artifacts = []
+        for key, formats in files.items():
+            name = selected[key]["path"]
+            path = tmp_path / name
+            path.write_text(formats[version])
+            artifacts.append(Artifact(name=name, path=str(path), sha256=""))
+        rules = {finding.rule for finding in check_contract(artifacts, selected)}
+        if version == 0:
+            assert {VERSIONED_IDS, INVALID_LABELS} <= rules
+        else:
+            assert rules == set()
 
 
 def test_suite_is_deterministic_and_contains_only_the_declared_mutations(tmp_path):
@@ -123,14 +155,15 @@ def test_baseline_shares_executor_and_records_usage(tmp_path):
         ]
     )
     client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(parse=parse)))
+    prompt, prompt_source = load_prompt()
     report = asyncio.run(
         run_baseline(
             executor,
             client,
             model="test-model",
             run_id="run",
-            prompt="study",
-            prompt_source="test",
+            prompt=prompt,
+            prompt_source=prompt_source,
             input_usd_per_million=Decimal(1),
             output_usd_per_million=Decimal(1),
             contract=load_contract(),
@@ -138,6 +171,8 @@ def test_baseline_shares_executor_and_records_usage(tmp_path):
         )
     )
     assert report["status"] == "finished"
+    submitted = json.loads(parse.await_args_list[0].kwargs["messages"][1]["content"])
+    assert submitted["prompt"] == prompt
     assert report["calls"] == 2
     assert Decimal(report["usd_unadjusted_for_cache"]) == Decimal("0.000024")
     assert report["diagnostic_timeout_s"] == 90
