@@ -20,7 +20,6 @@ from agents.llm import CHEAP_MODEL, LLM, LLMConfig
 from core.config import load_config
 from core.eig_exec import ModelFamily, ParticleBelief
 from core.events import jsonable
-from core.model_sandbox import ModelError, SandboxedFamily
 from core.orchestrator import Deps, run
 from core.schemas import Hypothesis, Question, Report
 from core.tracing import TraceSession, current_run
@@ -130,13 +129,14 @@ def fingerprint(array):
 
 
 def belief_diagnostics(belief):
-    return {"effective_sample_sizes": belief.effective_sample_sizes(),
+    return {"moves": {name: dict(values) for name, values in belief.move_diagnostics.items()},
+            "effective_sample_sizes": belief.effective_sample_sizes(),
             "parameter_std": {name: belief.particles(name)[0].std(axis=0).tolist()
                               for name in belief.family_names}}
 
 
 async def run_episode(arm, seed, budgets, directory, llm, proposals=None, particles=256, simulations=16,
-                      defer_grading=False):
+                      defer_grading=False, move_steps=4):
     started = time.monotonic()
     env = LocationFinding(seed)
     rng = np.random.default_rng(np.random.SeedSequence([seed, 410]))
@@ -153,7 +153,7 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
             cfg = load_config(runs_dir=str(directory.parent), seed=seed, critic=False,
                               null_hypothesis=False, numeric_eig_goal="total",
                               numeric_stop_on_settle=False, numeric_particles=particles,
-                              numeric_simulations=simulations,
+                              numeric_simulations=simulations, numeric_move_steps=move_steps,
                               selection="random" if arm == "crux_random" else "eig")
             cfg.llm = llm.config
             await run(lab, cfg, Deps(agents=BoxingRoles(proposals), predictor=None, llm=llm),
@@ -176,9 +176,9 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
                 else:
                     scores[step] = env.score(predictions.values)
         else:
-            family = ModelFamily("sources", predict_sources, source_prior)
+            family = ModelFamily("sources", predict_sources, source_prior, log_prior=lambda p: -.5*(p*p).sum(axis=1))
             belief = ParticleBelief([family], .5, n_particles=particles, n_sim=simulations,
-                                    seed=seed, null_weight=0)
+                                    seed=seed, null_weight=0, move_steps=move_steps)
             sequence = GRID[np.linspace(0, len(GRID) - 1, max(budgets), dtype=int)]
             for step in range(1, max(budgets) + 1):
                 if arm == "random":
@@ -223,7 +223,7 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
               "seconds": time.monotonic() - started, "target_reached_at_checkpoint": target,
               "test_points_sha256": fingerprint(env.evaluation_points()),
               "sources_sha256": fingerprint(env._sources), "traces": session.refs,
-              "particles": particles, "simulations": simulations}
+              "particles": particles, "simulations": simulations, "move_steps": move_steps}
     record["belief_diagnostics"] = diagnostics
     if defer_grading:
         record["heldout_predictions"] = heldout_predictions
@@ -247,6 +247,8 @@ async def study(args):
         "failure_error": FAILURE_ERROR, "bootstrap_resamples": 2000,
         "oracle": "known structure; numerical total-information estimate; no hidden coordinates",
         "likelihood": "continuous Normal approximation to rounded observations",
+        "move_steps": args.move_steps, "repair_limit_per_family": 2,
+        "inference": "resample-move MH, full observation history; prior independence moves; reference local Normal-prior moves",
     }, indent=2))
     llm = LLM(LLMConfig(role_models={"default": args.model}, cache=False,
                         prices_per_mtok={args.model: (.4, 1.6)}, timeout_s=60, max_retries=1,
@@ -260,29 +262,17 @@ async def study(args):
             before = llm.usage_totals()
             session = TraceSession(f"{output.name}-proposals-{seed}", lambda: "propose")
             token = current_run.set(session)
-            batch = None
-            proposal_error = None
+            from eval.boxing_proposals import generate_proposals
+
             try:
-                batch = await ask(llm, Families, {"task": "Propose two distinct executable numpy models. "
-                    "Each code must define predict(designs, params), returning (n_particles,n_designs), "
-                    "and sample_prior(rng,n), returning (n,p). Only numpy is allowed; no I/O. "
-                    "Use plausible finite priors and vectorized functions."})
-                for i, proposal in enumerate(batch.families):
-                    family = SandboxedFamily.from_source(str(i), proposal.code)
-                    params = family.sample_prior(np.random.default_rng(seed), 4)
-                    assert np.isfinite(family.predict(GRID[:2], params)).all()
-                proposals = batch.families
-            except Exception as exc:  # noqa: BLE001 - preserve invalid proposal failures
-                proposal_error = str(exc)[:2000] if isinstance(exc, ModelError) else type(exc).__name__
-                proposals = []
+                proposal_record = await generate_proposals(llm, seed)
+                proposals = [FamilyProposal.model_validate(p) for p in proposal_record["families"]]
             finally:
                 await session.flush()
                 current_run.reset(token)
             proposal_usage = {k: llm.usage_totals()[k] - before[k] for k in before}
-            (output / f"proposals-{seed}.json").write_text(json.dumps({
-                "families": [p.model_dump() for p in proposals], "usage": proposal_usage,
-                "traces": session.refs, "validation_error": proposal_error,
-                "raw_proposals": batch.model_dump() if batch else None}, indent=2))
+            proposal_record.update(usage=proposal_usage, traces=session.refs)
+            (output / f"proposals-{seed}.json").write_text(json.dumps(proposal_record, indent=2))
         for arm in args.arms:
             if arm in {"single_agent", "crux_random", "crux_eig"} and llm.usage_totals()["cost_usd"] >= args.max_usd:
                 # No new paid calls after the study cap; still account for all jobs.
@@ -294,7 +284,7 @@ async def study(args):
                 (target / "episode.json").write_text(json.dumps(failed, indent=2))
                 continue
             result = await run_episode(arm, seed, args.budgets, output / f"{output.name}-{arm}-{seed:02d}",
-                                       llm, proposals, args.particles, args.simulations)
+                                       llm, proposals, args.particles, args.simulations, move_steps=args.move_steps)
             if arm.startswith("crux_"):
                 result["paired_proposal_usage"] = proposal_usage
                 (output / f"{output.name}-{arm}-{seed:02d}" / "episode.json").write_text(json.dumps(jsonable(result), indent=2))
@@ -365,6 +355,7 @@ def main():
     parser.add_argument("--seeds", type=int, default=20)
     parser.add_argument("--seed-start", type=int, default=0)
     parser.add_argument("--budgets", type=lambda s: [int(x) for x in s.split(",")], default=[5, 10, 20])
+    parser.add_argument("--move-steps", type=int, default=4)
     parser.add_argument("--particles", type=int, default=256)
     parser.add_argument("--simulations", type=int, default=16)
     parser.add_argument("--model", choices=[CHEAP_MODEL], default=CHEAP_MODEL)

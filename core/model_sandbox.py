@@ -323,6 +323,8 @@ def main():
     watchdog.start()
     exec(compile(header["source"], "<model>", "exec"), namespace)
     if mode == "predict":
+        designs.setflags(write=False)
+        params.setflags(write=False)
         result = namespace["predict"](designs, params)
     else:
         rng = np.random.default_rng(int(header["seed"]))

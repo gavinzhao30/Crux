@@ -1301,6 +1301,7 @@ class _Run:
         belief = await asyncio.to_thread(
             ParticleBelief, families, sigma, seed=self.cfg.seed, null_weight=null_weight,
             n_particles=self.cfg.numeric_particles, n_sim=self.cfg.numeric_simulations,
+            move_steps=self.cfg.numeric_move_steps,
         )
         names = {f.name: f.name for f in families}
         if null_id:

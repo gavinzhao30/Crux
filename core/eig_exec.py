@@ -86,6 +86,7 @@ class ModelFamily:
     prior_weight: float = 1.0  # relative prior mass, normalised together with the other families
     noise_scale: float = 1.0  # this family's noise sd is sigma * noise_scale
     is_null: bool = False  # True only for the built-in "none of these" family
+    log_prior: Callable[[np.ndarray], np.ndarray] | None = None
 
 
 @dataclass(frozen=True)
@@ -270,6 +271,7 @@ class ParticleBelief:
         null_mean: float = 0.0,
         null_scale: float | None = None,
         null_in_eig: bool | None = None,
+        move_steps: int = 0,
     ) -> None:
         user = list(families)
         if not user:
@@ -304,6 +306,9 @@ class ParticleBelief:
         self._sigma = sigma
         self._n_particles = int(n_particles)
         self._n_sim = int(n_sim)
+        self._move_steps = int(move_steps)
+        self._measurements = []
+        self.move_diagnostics = {}
 
         weights = np.array([fam.prior_weight for fam in user], dtype=float)
         log_pi = list(np.log1p(-null_weight) + np.log(weights / weights.sum()))
@@ -498,6 +503,7 @@ class ParticleBelief:
     def update(self, design: Any, y: float) -> UpdateResult:
         """Condition the belief on observing ``y`` at ``design``."""
         a = self._assess(design, y)
+        self._measurements.append((design, y))
         self._log_pi = a.new_log_pi
         for k in range(len(self._families)):
             if not math.isfinite(a.log_evidence[k]):
@@ -603,6 +609,7 @@ class ParticleBelief:
         n = self._n_particles
         w = np.exp(self._log_w[k])
         w = w / w.sum()
+        self.move_diagnostics[self._families[k].name] = {"ess_before": float(1 / np.sum(w*w)), "accepted": 0, "proposed": 0}
         if 1.0 / np.sum(w * w) >= n / 2.0:
             return
         params = self._params[k]
@@ -613,6 +620,45 @@ class ParticleBelief:
         params = params[_systematic_resample(w, self._rng)]
         self._params[k] = params + self._rng.standard_normal(params.shape) * scale
         self._log_w[k] = np.full(n, -math.log(n))
+        if self._move_steps:
+            # Resampling followed by MH moves targeting all observations. No arbitrary jitter.
+            self._params[k] = params.copy()
+            fam = self._families[k]
+            designs = np.asarray([np.atleast_1d(d) for d, _ in self._measurements])
+            ys = np.asarray([y for _, y in self._measurements])
+
+            def likelihood(p):
+                means = np.asarray(fam.predict(designs, p))
+                if means.shape != (len(p), len(ys)):
+                    raise ValueError(f"Invalid move prediction shape {means.shape}")
+                return _log_normal(ys[None, :], means, self._sigmas[k]).sum(axis=1)
+
+            cloud = targets = None
+            if fam.log_prior is None:
+                # Batch independent-prior candidates: sandbox calls are expensive.
+                cloud = self._draw_prior(fam, n*self._move_steps).reshape(self._move_steps, n, -1)
+                scores = likelihood(np.concatenate([self._params[k], cloud.reshape(-1, cloud.shape[-1])]))
+                current, targets = scores[:n], scores[n:].reshape(self._move_steps, n)
+            else:
+                current = likelihood(self._params[k])
+            accepted = 0
+            for step in range(self._move_steps):
+                local = fam.log_prior is not None and step % 2 == 0
+                if cloud is not None:
+                    proposal = cloud[step]
+                else:
+                    proposal = (self._params[k] + self._rng.normal(0, .15, self._params[k].shape)
+                                if local else self._draw_prior(fam, n))
+                proposed = targets[step] if targets is not None else likelihood(proposal)
+                ratio = proposed - current
+                if local:
+                    ratio += fam.log_prior(proposal) - fam.log_prior(self._params[k])
+                take = np.log(self._rng.random(n)) < np.minimum(ratio, 0)
+                self._params[k][take] = proposal[take]
+                current[take] = proposed[take]
+                accepted += int(take.sum())
+            self.move_diagnostics[fam.name].update(accepted=accepted, proposed=n*self._move_steps,
+                unique_particles=len(np.unique(self._params[k], axis=0)))
 
     def _sim_rng(self) -> np.random.Generator:
         seq = np.random.SeedSequence(

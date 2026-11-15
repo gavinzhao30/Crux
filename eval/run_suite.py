@@ -223,32 +223,15 @@ async def _boxing(job: dict, directory: Path) -> dict:
 @app.function(image=image, secrets=[secret], timeout=300, max_containers=8)
 def propose_boxing(seed: int, model: str) -> dict:
     """Generate one hypothesis set shared by every Crux arm on a paired seed."""
-    import numpy as np
-
     from agents.llm import LLM, LLMConfig
-    from core.model_sandbox import SandboxedFamily
-    from eval.boxing_study import GRID, Families, ask
+    from eval.boxing_proposals import generate_proposals
 
     llm = LLM(LLMConfig(role_models={"default": model}, cache=False,
-                        prices_per_mtok={model: (.4, 1.6)}, timeout_s=60,
-                        max_retries=1, max_output_tokens=2048))
-
-    async def make() -> dict:
-        batch = await ask(llm, Families, {"task": "Propose two distinct executable numpy models. "
-            "Each code must define predict(designs, params), returning (n_particles,n_designs), "
-            "and sample_prior(rng,n), returning (n,p). Only numpy is allowed; no I/O."})
-        for i, proposal in enumerate(batch.families):
-            family = SandboxedFamily.from_source(str(i), proposal.code)
-            params = family.sample_prior(np.random.default_rng(seed), 4)
-            family.predict(GRID[:2], params)
-        return {"proposals": [p.model_dump(mode="json") for p in batch.families],
-                "usage": llm.usage_totals()}
-
-    try:
-        return asyncio.run(make())
-    except Exception as exc:  # noqa: BLE001 - proposal failure is retained for all paired arms
-        return {"proposal_error": f"{type(exc).__name__}: {exc}"[:1000],
-                "usage": llm.usage_totals()}
+        prices_per_mtok={model: (.4, 1.6)}, timeout_s=60, max_retries=1, max_output_tokens=2048))
+    llm.study_cap = 2.0
+    result = asyncio.run(generate_proposals(llm, seed))
+    return {"proposals": result["families"], "proposal_error": result["validation_error"],
+            "proposal_attempts": result["attempts"], "usage": llm.usage_totals()}
 
 
 @app.function(image=image, secrets=[secret], volumes={"/checkpoints": volume},

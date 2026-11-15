@@ -64,6 +64,7 @@ class EngineConfig(RunConfig):
     numeric_stop_on_settle: bool = True
     numeric_particles: int = Field(500, ge=2)
     numeric_simulations: int = Field(64, ge=1)
+    numeric_move_steps: int = Field(0, ge=0, le=20)
     runs_dir: str = "runs"
 
 
