@@ -16,7 +16,9 @@ strip page:
   the window on screen, so only the letters change.
 * ``misreads`` makes the camera return wrong letters for one showing (a camera misread).
 * ``/verdict`` answers 503 by default (``verdict_mode="down"``), so runs fall back to the
-  template; ``"ok"`` returns a clearly fake sentence (tests only).
+  template; ``"ok"`` returns a clearly fake sentence built from the prompt's answer line
+  (tests only); ``"wrong"`` returns one with a wrong codon, which the engine's fact check
+  rejects.
 
 Use it in process (``create_app(fake)`` with ``httpx.ASGITransport``) or over HTTP
 (``serve(fake)`` runs uvicorn on a free port in a thread). ``python -m
@@ -92,8 +94,8 @@ class FakeReader:
         frozen: bool = False,
         clock: Callable[[], float] = time.time,
     ) -> None:
-        if verdict_mode not in ("down", "ok"):
-            raise ValueError("verdict_mode is 'down' or 'ok'")
+        if verdict_mode not in ("down", "ok", "wrong"):
+            raise ValueError("verdict_mode is 'down', 'ok' or 'wrong'")
         self._lock = threading.Lock()
         self._clock = clock
         self.sample = sample.lower()
@@ -234,9 +236,18 @@ class FakeReader:
             self.prompts.append(prompt)
             if self.verdict_mode == "down":
                 return None
+            answer = next(
+                (ln[len("- Answer: ") :] for ln in prompt.splitlines() if ln.startswith("- Answer: ")),
+                "",
+            )
+            text = (
+                f"Fake verdict for tests: {answer}"
+                if self.verdict_mode == "ok"
+                else f"Fake wrong verdict for tests: {answer} Codon 6 reads GAG (Val)."
+            )
             return {
                 "ok": True,
-                "text": "Fake verdict for tests: the reads match the settled hypothesis.",
+                "text": text,
                 "model": self.verdict_model,
                 "latency_ms": 1.0,
             }
@@ -352,7 +363,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--swap-delay", type=float, default=3.0)
     p.add_argument("--show-delay", type=float, default=1.0)
     p.add_argument("--misread", action="append", default=[], help="sample:window:showing:bases")
-    p.add_argument("--verdict", choices=["down", "ok"], default="down")
+    p.add_argument("--verdict", choices=["down", "ok", "wrong"], default="down")
     a = p.parse_args(argv)
     fake = FakeReader(
         a.sample,

@@ -63,6 +63,7 @@ from core.schemas import (
     bin_for,
 )
 from labs.oneletter import variants as V
+from labs.oneletter.verdict_check import check_verdict
 
 logger = logging.getLogger(__name__)
 
@@ -108,8 +109,9 @@ class OneLetterConfig:
     swap_confirm: int = 2  # stable reads of the new letters that confirm a swap
     lessons_path: str = DEFAULT_LESSONS.as_posix()
     fake_reader: bool = False
-    verdict_max_tokens: int = 80
+    verdict_max_tokens: int = 100
     verdict_timeout_s: float = 60.0
+    verdict_attempts: int = 2  # model sentences tried before the template; each is fact-checked
     progress_every_s: float = 5.0
 
     def __post_init__(self) -> None:
@@ -201,6 +203,37 @@ class HttpReader:
 
 
 # --- likelihoods ---------------------------------------------------------------------------
+
+
+def verdict_prompt(v: V.Variant, p: float, w: int, mine: list[str]) -> str:
+    """The facts the Jetson model gets for its one-sentence verdict (and nothing else)."""
+    agree = sum(b == v.window(w) for b in mine)
+    start, end = V.WINDOWS[w]
+    facts = [
+        (
+            f"A camera read window {w} (nucleotides {start}-{end} of the human HBB "
+            f"gene, RefSeq {V.REFSEQ}) on a demo strip shown on a screen "
+            f"{len(mine)} times: {', '.join(mine)}. {agree} of them match the "
+            "answer below."
+        ),
+        f"Codon 6 reads {v.codon} ({v.amino_acid}); the normal codon 6 is GAG (Glu).",
+    ]
+    if v.key == "hba":
+        facts.append("Answer: HbA, normal haemoglobin.")
+    elif v.known:
+        facts.append(f"Answer: {v.name}, {v.hgvs}, dbSNP {v.rsid}, legacy name {v.legacy}.")
+    else:
+        facts.append(
+            f"Answer: an unknown variant ({v.legacy}); no variant in the demo's library "
+            "(HbS, HbC) matches it."
+        )
+    facts.append(f"Posterior probability {p:.2f}. This is a demo strip, not a patient sample.")
+    return (
+        "Write one plain sentence of at most 30 words for a live science demo screen. "
+        "Use only these facts: copy every sequence, codon and code exactly as written, "
+        "and add no other facts and no medical claims or advice.\nFacts:\n"
+        + "\n".join(f"- {f}" for f in facts)
+    )
 
 
 def read_probability(observed: str, true: str, error: float) -> float:
@@ -722,55 +755,42 @@ class OneLetterEngine:
         )
 
     def _prompt(self, v: V.Variant, p: float) -> str:
-        mine, agree, w = self._facts(v, p)
-        start, end = V.WINDOWS[w]
-        facts = [
-            (
-                f"A camera read window {w} (nucleotides {start}-{end} of the human HBB "
-                f"gene, RefSeq {V.REFSEQ}) on a demo strip shown on a screen "
-                f"{len(mine)} times: {', '.join(mine)}. {agree} of them match the "
-                "answer below."
-            ),
-            (
-                f"Codon 6 reads {v.codon}, which codes for {v.amino_acid}; "
-                "the normal codon is GAG (Glu)."
-            ),
-        ]
-        if v.key == "hba":
-            facts.append("Answer: HbA, normal haemoglobin.")
-        elif v.known:
-            facts.append(f"Answer: {v.name}, {v.hgvs}, dbSNP {v.rsid}, legacy name {v.legacy}.")
-        else:
-            facts.append(
-                f"Answer: an unknown variant ({v.legacy}); no variant in the demo's library "
-                "(HbS, HbC) matches it."
-            )
-        facts.append(f"Posterior probability {p:.2f}. This is a demo strip, not a patient sample.")
-        return (
-            "Write one plain sentence of at most 30 words for a live science demo screen. "
-            "Use only these facts, and give no medical advice.\nFacts:\n"
-            + "\n".join(f"- {f}" for f in facts)
-        )
+        mine, _, w = self._facts(v, p)
+        return verdict_prompt(v, p, w, mine)
 
     async def _verdict(self, v: V.Variant, p: float) -> tuple[str, str, float | None]:
+        """The Jetson model's sentence if it passes the fact check, else the template.
+
+        The small model gets facts wrong about one time in four even with them in its prompt,
+        so each sentence goes through ``check_verdict``; a rejected one gets one more try.
+        """
         prompt = self._prompt(v, p)
-        try:
-            out = await self.reader.verdict(
-                prompt, self.cfg.verdict_max_tokens, self.cfg.verdict_timeout_s
+        mine, _, w = self._facts(v, p)
+        for attempt in range(1, max(1, self.cfg.verdict_attempts) + 1):
+            try:
+                out = await self.reader.verdict(
+                    prompt, self.cfg.verdict_max_tokens, self.cfg.verdict_timeout_s
+                )
+                text = " ".join(str(out.get("text") or "").split()).strip("\"'")
+                if out.get("ok") is False or not text:
+                    raise ReaderError("the model returned no text")
+                model = str(out.get("model") or "unknown")
+                latency = out.get("latency_ms")
+                latency = float(latency) if latency is not None else None
+            except (ReaderError, TypeError, ValueError) as exc:
+                await self.log("verdict", f"verdict from the template ({exc})")
+                return self._template(v, p), "template", None
+            problems = check_verdict(
+                text, variant=v, posterior=p, window=w, reads=mine, prompt=prompt
             )
-            text = " ".join(str(out.get("text") or "").split())[:300]
-            if out.get("ok") is False or not text:
-                raise ReaderError("the model returned no text")
-            model = str(out.get("model") or "unknown")
-            latency = out.get("latency_ms")
-            return (
-                text,
-                f"jetson/{model}",
-                float(latency) if latency is not None else None,
+            if not problems:
+                return text, f"jetson/{model}", latency
+            await self.log(
+                "verdict",
+                f"model sentence {attempt} rejected by the fact check: {'; '.join(problems[:3])}",
             )
-        except (ReaderError, TypeError, ValueError) as exc:
-            await self.log("verdict", f"verdict from the template ({exc})")
-            return self._template(v, p), "template", None
+        await self.log("verdict", "verdict from the template (no model sentence passed the check)")
+        return self._template(v, p), "template", None
 
     async def _settle(self, hid: str, p: float) -> StripResult:
         v = self._variant(hid)
