@@ -121,7 +121,7 @@ def task9_run(tmp_path: Path, monkeypatch, **cfg_values):
 
 
 def events(run_dir: Path) -> list[dict]:
-    return [json.loads(x) for x in (run_dir / "events.jsonl").read_text().splitlines()]
+    return [json.loads(x) for x in (run_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()]
 
 
 def saved_corpus(tmp_path: Path, **overrides) -> tuple[Path, FrozenLessons]:
@@ -146,7 +146,7 @@ def test_without_a_corpus_prompts_events_and_config_are_unchanged(tmp_path, monk
     assert not [e for e in log if e["type"] == "memory.recalled"]
     config = log[0]["payload"]["config"]
     assert "lessons_corpus" not in config and "lessons_case_id" not in config
-    assert "lessons_corpus" not in json.loads((run_dir / "manifest.json").read_text())["config"]
+    assert "lessons_corpus" not in json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))["config"]
     assert not (run_dir / "lessons").exists()
 
 
@@ -229,7 +229,7 @@ def test_a_corpus_that_does_not_load_raises(tmp_path, monkeypatch):
             lessons_case_id="case-01",
         )
     path, _ = saved_corpus(tmp_path)
-    raw = json.loads(path.read_text())
+    raw = json.loads(path.read_text(encoding="utf-8"))
     raw["manifest"]["lessons"][0]["repair"] = "Edited after the freeze"
     tampered = tmp_path / "tampered.json"
     tampered.write_text(json.dumps(raw), encoding="utf-8")
@@ -433,7 +433,7 @@ def test_freeze_keeps_approved_lessons_and_declares_the_nine_held_out_cases(tmp_
     )
     assert code == 0
     printed = capsys.readouterr().out
-    path = Path(printed.split("corpus:")[1].split()[0])
+    path = Path(printed.split("corpus:")[1].splitlines()[0].strip())
     frozen = FrozenLessons.load(path)
     assert f"sha256:   {frozen.digest}" in printed and "left out (not approved)" in printed
     assert [lesson.id for lesson in frozen.lessons] == [first]

@@ -204,7 +204,7 @@ async def _task9(job: dict, manifest: str, directory: Path) -> dict:
                 output_usd_per_million=Decimal(str(rate_out)), contract=load_contract(),
                 execution_seconds=job["timeout"],
             )
-        return {"status": report["status"], "cost_usd": report.get("usd_unadjusted_for_cache"),
+        return {"status": report["status"], "cost_usd": float(report["usd_unadjusted_for_cache"]),
                 "model_calls": report.get("calls"), "input_tokens": sum(u.get("prompt_tokens", 0) for u in report.get("usage", [])),
                 "output_tokens": sum(u.get("completion_tokens", 0) for u in report.get("usage", [])),
                 "experiments": len(report.get("execution_log", []))}
@@ -432,7 +432,8 @@ def recover(args: argparse.Namespace) -> None:
     rows = []
     for job in manifest["jobs"]:
         saved = args.output / "jobs" / f"{job['job_id']}.json"
-        if saved.is_file() and json.loads(saved.read_text()).get("grade_status") not in {"needs_evaluator", "grader_error"}:
+        if (saved.is_file() and json.loads(saved.read_text()).get("state") == "complete"
+                and json.loads(saved.read_text()).get("grade_status") not in {"needs_evaluator", "grader_error"}):
             row = json.loads(saved.read_text(encoding="utf-8"))
         else:
             try:

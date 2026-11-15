@@ -115,7 +115,7 @@ def test_recover_fetches_evidence_even_without_terminal_result(tmp_path, monkeyp
 
     def download(job, output):
         path = output / "evidence" / job["job_id"] / "artifacts"
-        path.mkdir(parents=True)
+        path.mkdir(parents=True, exist_ok=True)
         (path / "partial.txt").write_text("survived")
         fetched.append(job["job_id"])
 
@@ -125,6 +125,15 @@ def test_recover_fetches_evidence_even_without_terminal_result(tmp_path, monkeyp
     result = json.loads((tmp_path / "jobs/interrupted.json").read_text())
     assert result["score"] == 0 and fetched == ["interrupted"]
     assert result["shared_proposal_input_tokens"] == 100
+
+    class Completed:
+        def read_file(self, path):
+            yield json.dumps({"state": "complete", "status": "finished", "heldout_predictions": {"20": [1.0]*10}}).encode()
+
+    monkeypatch.setattr(suite, "volume", Completed())
+    suite.recover(SimpleNamespace(output=tmp_path, suite="boxing", suite_dir=None))
+    updated = json.loads((tmp_path / "jobs/interrupted.json").read_text())
+    assert updated["state"] == "complete" and updated["score"] > 0
 
 
 def test_fault_review_cache_prevents_duplicate_model_calls(tmp_path):
