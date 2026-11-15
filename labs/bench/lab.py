@@ -45,7 +45,9 @@ def linear_family() -> ModelFamily:
         return params[:, :1] * _x(designs) + params[:, 1:2]
 
     def sample_prior(rng, n):
-        return np.column_stack([rng.uniform(0.4, 1.6, n), rng.normal(0.0, OFFSET_SD, n)])
+        return np.column_stack(
+            [rng.uniform(0.4, 1.6, n), rng.normal(0.0, OFFSET_SD, n)]
+        )
 
     return ModelFamily("linear", predict, sample_prior)
 
@@ -57,7 +59,9 @@ def power_family() -> ModelFamily:
 
     def sample_prior(rng, n):
         a = np.clip(rng.normal(1.0, 0.15, n), 0.5, 1.5)
-        return np.column_stack([a, rng.uniform(0.3, 2.0, n), rng.normal(0.0, OFFSET_SD, n)])
+        return np.column_stack(
+            [a, rng.uniform(0.3, 2.0, n), rng.normal(0.0, OFFSET_SD, n)]
+        )
 
     return ModelFamily("power", predict, sample_prior)
 
@@ -79,7 +83,10 @@ def log_family() -> ModelFamily:
 
 def saturating_family() -> ModelFamily:
     def predict(designs, params):
-        return params[:, :1] * (1.0 - np.exp(-params[:, 1:2] * _x(designs))) + params[:, 2:3]
+        return (
+            params[:, :1] * (1.0 - np.exp(-params[:, 1:2] * _x(designs)))
+            + params[:, 2:3]
+        )
 
     def sample_prior(rng, n):
         k = _log_uniform(rng, 0.001, 0.03, n)
@@ -91,6 +98,28 @@ def saturating_family() -> ModelFamily:
 
 def bench_families() -> list:
     return [linear_family(), power_family(), log_family(), saturating_family()]
+
+
+def exposure_families() -> list:
+    """Same rival curve shapes with broader brightness/offset priors for a lit scene.
+
+    Input is a normalized exposure setting, not display brightness. The scene's gain
+    and black offset are unknown; a prior near full-scale screen output is inappropriate.
+    """
+    result = []
+    for family in bench_families():
+
+        def sample_prior(rng, n, base=family.sample_prior, name=family.name):
+            params = base(rng, n)
+            params[:, -1] = rng.normal(0.0, 25.0, n)
+            if name in ("linear", "power"):
+                params[:, 0] = rng.uniform(0.15, 1.5, n)
+            else:
+                params[:, 0] *= rng.uniform(0.25, 1.2, n)
+            return params
+
+        result.append(ModelFamily(family.name, family.predict, sample_prior))
+    return result
 
 
 class BenchClient:
@@ -127,9 +156,13 @@ class BenchClient:
 class BenchLab:
     """The numeric lab the orchestrator can drive: candidate designs, families, and ``run``."""
 
-    def __init__(self, client: BenchClient, levels=None, max_measurements: int = 10) -> None:
+    def __init__(
+        self, client: BenchClient, levels=None, max_measurements: int = 10
+    ) -> None:
         self.client = client
-        self.levels = [float(v) for v in (levels if levels is not None else range(0, 256, 17))]
+        self.levels = [
+            float(v) for v in (levels if levels is not None else range(0, 256, 17))
+        ]
         self.max_measurements = max_measurements
 
     def candidate_designs(self) -> list:
