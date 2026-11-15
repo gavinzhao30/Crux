@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "synthetic": true,
+  "frozen_at": "2026-11-14T21:00:00Z",
+  "held_out_case_ids": ["synthetic-heldout-a", "synthetic-heldout-b"],
+  "lessons": [
+    {
+      "id": "sample-order-preflight-v1",
+      "when": "Before differential expression from a count matrix and sample sheet.",
+      "mistake": "Assuming metadata rows and matrix columns are in the same order.",
+      "diagnostic": "Compare unique sample identifiers and reorder metadata by matrix columns.",
+      "repair": "Require a one-to-one sample match before fitting; stop on missing or duplicate identifiers.",
+      "exceptions": ["Matching identifiers alone does not establish correct biological labels."],
+      "requires": [{"key": "analysis", "value": "de_from_counts"}],
+      "sources": [{
+        "run_id": "synthetic-dev-run", "case_id": "synthetic-dev-a", "split": "dev",
+        "evidence_id": "synthetic-sample-order-observation", "kind": "observation",
+        "input_hash": "synthetic-input-v1", "code_hash": "synthetic-check-v1"
+      }],
+      "approved": true,
+      "reviewed_by": "synthetic-fixture-reviewer",
+      "reviewed_at": "2026-11-14T20:55:00Z"
+    }
+  ]
+}

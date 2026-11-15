@@ -1,0 +1,53 @@
+{
+  "name": "synthetic-subject-mapping-v1",
+  "synthetic": true,
+  "context": {"run_id": "frozen-demo", "task_id": "synthetic-subject-mapping"},
+  "records": [
+    {
+      "event_id": "profile-mapping", "run_id": "frozen-demo", "task_id": "synthetic-subject-mapping",
+      "occurred_at": "2026-11-14T20:00:00Z", "event_type": "observation",
+      "evidence": {
+        "id": "subject-mapping", "kind": "observation", "author_role": "experimenter",
+        "claim": "S1 and S2 are repeated measurements from the same subject.",
+        "conditions": {"input_hash": "synthetic-counts-v1", "next_action_by_role": {
+          "critic": "check_subject_independence", "experimenter": "inspect_subject_mapping"
+        }}
+      },
+      "current_status": "supported"
+    },
+    {
+      "event_id": "critic-review", "run_id": "frozen-demo", "task_id": "synthetic-subject-mapping",
+      "occurred_at": "2026-11-14T20:01:00Z", "event_type": "objection",
+      "parent_event_ids": ["profile-mapping"], "evidence_ids": ["subject-mapping"],
+      "evidence": {
+        "id": "independence-objection", "kind": "objection", "author_role": "critic",
+        "claim": "Check the subject mapping before fitting samples as independent.",
+        "source_ref": "subject-mapping",
+        "conditions": {"rejects_action": "fit_independent_model", "next_action_by_role": {
+          "designer": "inspect_subject_mapping"
+        }}
+      },
+      "mandatory": true
+    },
+    {
+      "event_id": "reporter-note", "run_id": "frozen-demo", "task_id": "synthetic-subject-mapping",
+      "occurred_at": "2026-11-14T20:02:00Z", "event_type": "profile",
+      "evidence": {"id": "reporting-style", "kind": "profile", "author_role": "reporter",
+        "claim": "Methods should cite evidence IDs and list unresolved choices."}
+    }
+  ],
+  "probes": [
+    {"id": "critic-reads-observation", "reader_role": "critic", "query": "Which samples share subjects?",
+      "history_count": 1, "default_action": "accept_independent_samples", "kind": "analysis",
+      "conditions_hash": "synthetic-counts-v1", "decisive_evidence_ids": ["subject-mapping"]},
+    {"id": "designer-reads-objection", "reader_role": "designer", "query": "Which check should precede the fit?",
+      "history_count": 2, "default_action": "fit_independent_model", "conditions_hash": "synthetic-counts-v1",
+      "decisive_evidence_ids": ["independence-objection"]},
+    {"id": "designer-repeats-query", "reader_role": "designer", "query": "Was the independent fit rejected?",
+      "history_count": 2, "default_action": "fit_independent_model", "conditions_hash": "synthetic-counts-v1",
+      "decisive_evidence_ids": ["independence-objection"]},
+    {"id": "experimenter-reads-own-history", "reader_role": "experimenter", "query": "What does my subject mapping imply?",
+      "history_count": 3, "default_action": "fit_independent_model", "conditions_hash": "synthetic-counts-v1",
+      "decisive_evidence_ids": ["subject-mapping"]}
+  ]
+}
