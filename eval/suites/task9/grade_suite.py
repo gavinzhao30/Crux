@@ -19,12 +19,18 @@ def main() -> None:
     parser.add_argument("--grader-repo", type=Path, required=True)
     parser.add_argument("--python", type=Path, required=True)
     parser.add_argument("--split", choices=["dev", "test", "all"], default="all")
+    parser.add_argument(
+        "--arms", nargs="+", help="Requested arm names, including arms with no submitted runs"
+    )
     args = parser.parse_args()
     cases = json.loads(args.truth.read_text(encoding="utf-8"))["cases"]
     runs = json.loads(args.runs.read_text(encoding="utf-8"))
     if set(runs) - cases.keys():
         raise ValueError("Run index contains unknown cases")
-    arms = sorted({arm for case in runs.values() for arm in case})
+    submitted_arms = {arm for case in runs.values() for arm in case}
+    arms = sorted(set(args.arms) if args.arms is not None else submitted_arms)
+    if submitted_arms - set(arms):
+        raise ValueError("Run index contains an arm absent from --arms")
     if not arms or any(not re.fullmatch(r"[a-zA-Z0-9_-]+", arm) for arm in arms):
         raise ValueError("Expected at least one simple arm name")
     rows = []
@@ -38,35 +44,46 @@ def main() -> None:
                 "arm": arm,
                 "split": truth["split"],
                 "fault": truth["fault"],
-                "mean": None,
-                "fraction_at_least_0_80": None,
+                "mean": 0.0,
+                "fraction_at_least_0_80": 0.0,
+                "status": "missing",
                 "review": None,
             }
             if run is not None:
-                result = grade_task9(
-                    artifacts_dir=Path(run["artifacts"]),
-                    references=args.references,
-                    output_dir=args.output_dir / case_id / arm,
-                    grader_repo=args.grader_repo,
-                    python=args.python,
-                )
-                row.update(
-                    mean=result["mean"],
-                    fraction_at_least_0_80=result["fraction_at_least_0_80"],
-                    review=run.get("review"),
-                )
+                row["review"] = run.get("review")
+                artifact_dir = Path(run["artifacts"]) if run.get("artifacts") else None
+                if (
+                    run.get("status") in {"failed", "error"}
+                    or artifact_dir is None
+                    or not artifact_dir.is_dir()
+                ):
+                    row["status"] = "failed"
+                else:
+                    result = grade_task9(
+                        artifacts_dir=artifact_dir,
+                        references=args.references,
+                        output_dir=args.output_dir / case_id / arm,
+                        grader_repo=args.grader_repo,
+                        python=args.python,
+                    )
+                    row.update(
+                        status="graded",
+                        mean=result["mean"],
+                        fraction_at_least_0_80=result["fraction_at_least_0_80"],
+                    )
             rows.append(row)
     coverage = {}
     for arm in arms:
         arm_rows = [row for row in rows if row["arm"] == arm]
-        scored = [row for row in arm_rows if row["mean"] is not None]
+        planted = [row["mean"] for row in arm_rows if row["fault"] != "clean"]
         coverage[arm] = {
             "requested": len(arm_rows),
-            "graded": len(scored),
-            "clean": [row for row in scored if row["fault"] == "clean"],
-            "planted_mean": mean([row["mean"] for row in scored if row["fault"] != "clean"])
-            if any(row["fault"] != "clean" for row in scored)
-            else None,
+            "graded": sum(row["status"] == "graded" for row in arm_rows),
+            "failed": sum(row["status"] == "failed" for row in arm_rows),
+            "missing": sum(row["status"] == "missing" for row in arm_rows),
+            "mean": mean(row["mean"] for row in arm_rows) if arm_rows else None,
+            "clean": [row for row in arm_rows if row["fault"] == "clean"],
+            "planted_mean": mean(planted) if planted else None,
         }
     args.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     (args.output_dir / "suite-grade.json").write_text(

@@ -69,7 +69,8 @@ python -m eval.baseline_agent --manifest /path/case-manifest.json --run-id clean
 
 The CLI runs with search disabled. For search-enabled paired runs, pass the same
 `GuardedSearch` policy and provider into `run_baseline` and the swarm. Match the model,
-rates, budgets, prompt, inputs, image, and enabled tools across the two arms.
+rates, budgets, prompt, inputs, image, and enabled tools across the two arms. Set the
+same `ModalExecutor.diagnostic_timeout_s` for both arms (default and maximum 120 seconds).
 
 ### Grade outside the agent run directory
 
@@ -89,6 +90,8 @@ The wrapper copies the selected output files into a temporary evaluator director
 Missing deliverables stay in the score denominator.
 
 For batch grading use `python -m eval.suites.task9.grade_suite --help`. Supply a run index
-keyed by opaque case ID, then arm name, with an `artifacts` path. An optional evaluator
+keyed by opaque case ID, then arm name, with an `artifacts` path. Specify all requested
+arms with `--arms`, including any with zero submissions. Set a failed run's `status` to
+`failed` or `error`. Missing and failed runs count as zero in the suite means. An optional evaluator
 `review` records detection, repair, diagnostic, and rejected explanations. Missing runs
 stay visible in coverage. The report displays the clean case separately.

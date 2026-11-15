@@ -1,6 +1,7 @@
 import ast
 import asyncio
 import json
+import sys
 from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from eval.baseline_agent import Action, run_baseline
+from eval.suites.task9 import grade_suite
 from eval.suites.task9.make_cases import GROUPS, make_cases
 from execution.staging import COUNTS, SAMPLES
 from labs.bixbench3.task9_contract import load_contract, load_prompt
@@ -94,6 +96,7 @@ def test_baseline_shares_executor_and_records_usage(tmp_path):
     run.mkdir()
     executor = SimpleNamespace(
         runs_dir=tmp_path,
+        diagnostic_timeout_s=90,
         open=AsyncMock(return_value="sandbox"),
         run_code=AsyncMock(
             return_value={
@@ -107,7 +110,10 @@ def test_baseline_shares_executor_and_records_usage(tmp_path):
         close=AsyncMock(),
     )
     usage = SimpleNamespace(prompt_tokens=10, completion_tokens=2, model_dump=lambda **_: {})
-    actions = [Action(action="python", content="print(1)"), Action(action="finish", content="done")]
+    actions = [
+        Action(action="python", content="print(1)", timeout_seconds=600),
+        Action(action="finish", content="done"),
+    ]
     parse = AsyncMock(
         side_effect=[
             SimpleNamespace(
@@ -134,6 +140,81 @@ def test_baseline_shares_executor_and_records_usage(tmp_path):
     assert report["status"] == "finished"
     assert report["calls"] == 2
     assert Decimal(report["usd_unadjusted_for_cache"]) == Decimal("0.000024")
+    assert report["diagnostic_timeout_s"] == 90
+    assert report["execution_log"][0]["timeout_s"] == 90
+    executor.run_code.assert_awaited_once_with(
+        "sandbox", "python", "print(1)", require_result=False, timeout_s=90
+    )
     executor.collect_outputs.assert_awaited_once_with("sandbox")
     executor.close.assert_awaited_once_with("sandbox")
     assert (run / "baseline.json").exists()
+
+
+def test_suite_counts_missing_and_failed_runs_in_the_mean(tmp_path, monkeypatch):
+    truth = tmp_path / "truth.json"
+    runs = tmp_path / "runs.json"
+    artifacts = tmp_path / "artifacts"
+    output = tmp_path / "scores"
+    artifacts.mkdir()
+    truth.write_text(
+        json.dumps(
+            {
+                "cases": {
+                    "case-01": {"split": "test", "fault": "duplicate_library"},
+                    "case-02": {"split": "test", "fault": "label_inversion"},
+                    "case-03": {"split": "test", "fault": "low_depth"},
+                }
+            }
+        )
+    )
+    runs.write_text(
+        json.dumps(
+            {
+                "case-01": {"baseline": {"artifacts": str(artifacts)}},
+                "case-02": {"baseline": {"status": "failed", "artifacts": str(artifacts)}},
+            }
+        )
+    )
+    graded = []
+
+    def grade(**kwargs):
+        graded.append(kwargs["artifacts_dir"])
+        return {"mean": 1.0, "fraction_at_least_0_80": 1.0}
+
+    monkeypatch.setattr(grade_suite, "grade_task9", grade)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "grade_suite",
+            "--truth",
+            str(truth),
+            "--runs",
+            str(runs),
+            "--output-dir",
+            str(output),
+            "--references",
+            str(tmp_path / "references"),
+            "--grader-repo",
+            str(tmp_path),
+            "--python",
+            sys.executable,
+            "--arms",
+            "baseline",
+            "swarm",
+        ],
+    )
+    grade_suite.main()
+    result = json.loads((output / "suite-grade.json").read_text())
+    assert graded == [artifacts]
+    assert result["coverage"]["baseline"] == {
+        "requested": 3,
+        "graded": 1,
+        "failed": 1,
+        "missing": 1,
+        "mean": 1 / 3,
+        "planted_mean": 1 / 3,
+        "clean": [],
+    }
+    assert result["coverage"]["swarm"]["missing"] == 3
+    assert result["coverage"]["swarm"]["planted_mean"] == 0
