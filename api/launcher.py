@@ -52,7 +52,10 @@ FAKE_LABS: dict[str, str] = {
 
 # Real labs: lab name -> builder. ``bixbench3`` runs one Task 9 case with the swarm's agents;
 # the request names it with ``overrides.case`` (a key from ``task9_cases()``).
-REAL_LABS = ("bixbench3",)
+# ``oneletter`` reads an HBB strip through the Jetson reader service (labs/oneletter): its
+# overrides are its own settings (``reader_url``, default ``$CRUX_ONELETTER_READER``), not a
+# core config preset, and ``overrides.fake`` runs it on the in-process fake reader.
+REAL_LABS = ("bixbench3", "oneletter")
 CASES_ENV = "CRUX_TASK9_CASES"
 
 
@@ -97,6 +100,8 @@ class DefaultLauncher:
     def _engine_coroutine(
         self, lab: str, config: str, seed: int, overrides: dict[str, Any], run_id: str
     ) -> Coroutine[Any, Any, Any]:
+        if lab == "oneletter":
+            return self._oneletter_coroutine(overrides, run_id)
         try:
             from core import config as core_config
             from core import fakes_engine, orchestrator
@@ -119,6 +124,19 @@ class DefaultLauncher:
         except (AttributeError, TypeError) as exc:
             raise LauncherUnavailable(f"engine API mismatch: {exc}") from exc
         return orchestrator.run(lab_obj, cfg, deps, run_id=run_id)
+
+    def _oneletter_coroutine(
+        self, overrides: dict[str, Any], run_id: str
+    ) -> Coroutine[Any, Any, Any]:
+        """The One Letter loop (``labs.oneletter.lab.launch``), outside the orchestrator."""
+        try:
+            from labs.oneletter.lab import launch
+        except ImportError as exc:
+            raise LauncherUnavailable(f"One Letter lab is not importable: {exc}") from exc
+        try:
+            return launch(overrides, run_id=run_id, runs_dir=self.runs_dir)
+        except ValueError as exc:  # unknown override, bad value or no reader_url
+            raise InvalidRunRequest(f"invalid oneletter request: {exc}") from exc
 
     def _task9_coroutine(self, cfg: Any, case: Any, run_id: str) -> Coroutine[Any, Any, Any]:
         from core import orchestrator

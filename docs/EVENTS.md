@@ -71,3 +71,57 @@ means negative infinity. Replay independently recomputes the family probability
 update with these sufficient statistics. It does not execute model code or
 regenerate particle clouds. Historical numeric logs without these statistics
 remain displayable but fail full replay verification.
+
+## One Letter (`lab = "oneletter"`): `dna.*` events
+
+Additive: the types above are unchanged. The One Letter engine (`labs/oneletter/lab.py`, contract in
+`tools/ONE_LETTER_CONTRACT.md`) asks one categorical question, `q-variant` ("Which HBB variant is on
+this strip?"), with options `h-hba`, `h-hbs`, `h0` (null), plus `h-hbc` when a lesson lists it and any
+option it regenerates after a surprise. It emits the standard types and these:
+
+These are lab events, not core ones (`core/events.py` does not list them), so they are listed here
+rather than in the core table above:
+
+* `dna.request` `{"window": int, "reason": str, "eig_bits": float, "replicate": bool}`: asks for a
+  window. The engine then calls the reader's `POST /show {"window": n}` (the strip page follows it) and
+  polls `GET /read` until that window is stable. Also carries `experiment_id` and `strip`.
+* `dna.read` `{"experiment_id": str, "window": int, "bases": str, "expected": {hypothesis_id: str},
+  "mismatch_positions": [int], "confidence": [float]}`: `expected` is each real option's predicted 9
+  letters; `mismatch_positions` (0-8) are where the read differs from the closest prediction, named in
+  `closest`. Also carries `bin_id`, `replicate` and `strip`.
+* `dna.variant` `{"hypothesis_id": str, "name": str, "hgvs": str, "legacy": str, "rsid": str, "codon":
+  str, "amino_acid": str}`: after every `hypothesis.proposed` of `q-variant`, `h0` included (empty
+  strings). It repeats for the same `hypothesis_id` when the question is reopened, so key it by
+  `hypothesis_id`. Also carries `source` (the citation).
+* `dna.verdict` `{"hypothesis_id": str, "name": str, "posterior": float, "reads": int, "text": str,
+  "author": str, "latency_ms": float | null, "pdb_id": str, "residue": 6}`: after `question.settled`.
+  `author` is `"jetson/<model>"` (the reader's `POST /verdict`, `qwen2.5:3b` on the Jetson) or
+  `"template"` when that fails. `pdb_id` is `2HBS` for HbS and `1A3N` (deoxy human haemoglobin)
+  otherwise. Also carries `legacy` and `strip`.
+* `dna.lesson` `{"added": [hypothesis_id], "lessons_total": int}`: a regenerated option settled and was
+  saved to `runs/oneletter_lessons.jsonl`; the next run starts with it.
+
+How the standard types are used in a `oneletter` run:
+
+* `run.started.config` holds `reader_url`, `annotated_url` (`reader_url + "/annotated_stream"`),
+  `fake_reader` (true for the fake reader: no camera, a recorded or test run), the engine settings and
+  `lessons_loaded`.
+* Experiment ids are `window-<n>` for the first read of window n, `window-<n>-r<k>` for its k-th read
+  (a replicate), with `-s<m>` appended on the m-th sample of a watch-mode run (m >= 2). Ranking rows
+  of `experiment.scored` also carry `window` and `replicate`.
+* `experiment.proposed` carries each design's table: the bins are the distinct 9-letter strings the
+  real options predict for that window, plus `other`. `hypothesis.merged` (`kept: ""`, `merged: []`)
+  carries the priors at the start, after a regeneration and when the question is reopened. Together
+  they let `core/replay.py` rebuild every `belief.updated`.
+* `experiment.log` lines (`experiment_id` = the requested design, or `watch-s<m>` while watching)
+  report progress while the engine waits for the camera, so a stuck read is visible.
+* `surprise.raised` follows a read in `other` (or a Crux surprise). It also carries `window`, `bases`,
+  `mismatch_positions`, `closest` and `predictive`. The next request is a replicate; if it reads the
+  same letters, the regenerated option follows (`hypothesis.proposed`, `dna.variant`,
+  `hypothesis.merged`, `experiment.proposed`), then the strip's reads are re-scored as
+  `belief.updated` events with `"replay": true`.
+* In watch mode, when the watched window's letters change (a new sample on the strip page),
+  `question.opened` repeats for `q-variant` with `"reopened": true`, `strip` and `reason`, followed by
+  `hypothesis.proposed` and `dna.variant` for every option and `hypothesis.merged`.
+* `question.unresolved` ends a sample that timed out, read letters too far from HBB to name, or did
+  not settle within the read budget. A timeout finishes the run with `status: "stopped"`.
