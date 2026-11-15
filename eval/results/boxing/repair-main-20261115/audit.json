@@ -1,0 +1,38 @@
+{
+  "episodes": 120,
+  "checkpoints": 360,
+  "paired_seed_count": 20,
+  "case_hashes_and_observation_replay": "pass",
+  "hypothesis_sources_paired": "pass",
+  "cost_reconciliation": "pass",
+  "replays": {
+    "crux_random": {
+      "ok": true,
+      "details": "ReplayResult(path='eval/results/boxing/repair-main-20261115/repair-main-20261115-crux_random-4000/events.jsonl', n_events=133, n_updates=20, n_checked=20, errors=[], final_beliefs={'signal': {'family-0': 3.7284574425743336e-14, 'family-1': 0.9999999999999627}}, status='ok')"
+    },
+    "crux_eig": {
+      "ok": true,
+      "details": "ReplayResult(path='eval/results/boxing/repair-main-20261115/repair-main-20261115-crux_eig-4000/events.jsonl', n_events=138, n_updates=20, n_checked=20, errors=[], final_beliefs={'signal': {'family-0': 2.270222831432821e-31, 'family-1': 1.0}}, status='ok')"
+    }
+  },
+  "actual_wrapper_usage": {
+    "calls": 491,
+    "cached_calls": 0,
+    "input_tokens": 149368,
+    "output_tokens": 28629,
+    "cost_usd": 0.1055536,
+    "unpriced_calls": 0
+  },
+  "failures_by_arm": {
+    "random": 0,
+    "grid": 0,
+    "single_agent": 0,
+    "crux_random": 6,
+    "crux_eig": 9,
+    "oracle": 0
+  },
+  "failure_reasons": {
+    "NoPrediction": 12,
+    "ModelError": 3
+  }
+}

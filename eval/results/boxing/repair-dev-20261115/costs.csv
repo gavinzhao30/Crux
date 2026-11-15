@@ -1,0 +1,9 @@
+arm,seed,calls,input_tokens,output_tokens,cost_usd,shared_proposal_calls,shared_proposal_input_tokens,shared_proposal_output_tokens,shared_proposal_cost_usd,seconds,measurements,failed_checkpoints,target_reached_at_checkpoint,target_censored
+random,3000,0,0,0,0.0,0,0,0,0,0.17199999978765845,5,0,,True
+oracle,3000,0,0,0,0.0,0,0,0,0,0.1869999999180436,5,0,,True
+crux_random,3000,0,0,0,0.0,1,239,497,0.0008908000000000001,19.155999999959022,5,0,,True
+crux_eig,3000,0,0,0,0.0,1,239,497,0.0008908000000000001,18.938000000081956,5,0,,True
+random,3001,0,0,0,0.0,0,0,0,0,0.06199999991804361,5,0,,True
+oracle,3001,0,0,0,0.0,0,0,0,0,0.20300000021234155,5,0,,True
+crux_random,3001,0,0,0,0.0,1,239,785,0.0013515999999999997,25.5,5,0,,True
+crux_eig,3001,0,0,0,0.0,1,239,785,0.0013515999999999997,34.625,5,0,,True

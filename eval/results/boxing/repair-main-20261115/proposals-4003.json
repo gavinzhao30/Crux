@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1 assumes three sources with parameters as x,y coordinates (6 params total). The predict function computes the sum over sources of inverse squared distance contributions with a fixed strength. The sample_prior samples source positions uniformly in [-2,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    strengths = 1.0\n    designs_exp = designs[np.newaxis, :, :]\n    params_exp = params[:, np.newaxis, :]\n    xys = params_exp.reshape(n_particles, 1, n_sources, 2)\n    dists = np.linalg.norm(designs_exp[:, :, np.newaxis, :] - xys, axis=-1)\n    dists = np.maximum(dists, 1e-6)\n    contributions = strengths / (dists**2)\n    predictions = contributions.sum(axis=2)\n    return predictions\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2 assumes three sources with parameters as x,y coordinates and individual strengths (9 params total). Predict sums the sources' strengths divided by squared distances. Sample prior uniform in [-2,2] for positions and strengths in [0.5, 1.5].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    designs_exp = designs[np.newaxis, :, :]\n    params_exp = params[:, np.newaxis, :]\n    xys = params_exp[:, :, :6].reshape(n_particles, 1, n_sources, 2)\n    strengths = params_exp[:, :, 6:].reshape(n_particles, 1, n_sources)\n    dists = np.linalg.norm(designs_exp[:, :, np.newaxis, :] - xys, axis=-1)\n    dists = np.maximum(dists, 1e-6)\n    contributions = strengths / (dists**2)\n    predictions = contributions.sum(axis=2)\n    return predictions\n\ndef sample_prior(rng, n):\n    positions = rng.uniform(-2, 2, size=(n, 6))\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.concatenate([positions, strengths], axis=1)"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1 assumes three sources with parameters as x,y coordinates (6 params total). The predict function computes the sum over sources of inverse squared distance contributions with a fixed strength. The sample_prior samples source positions uniformly in [-2,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    strengths = 1.0\n    designs_exp = designs[np.newaxis, :, :]\n    params_exp = params[:, np.newaxis, :]\n    xys = params_exp.reshape(n_particles, 1, n_sources, 2)\n    dists = np.linalg.norm(designs_exp[:, :, np.newaxis, :] - xys, axis=-1)\n    dists = np.maximum(dists, 1e-6)\n    contributions = strengths / (dists**2)\n    predictions = contributions.sum(axis=2)\n    return predictions\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2 assumes three sources with parameters as x,y coordinates and individual strengths (9 params total). Predict sums the sources' strengths divided by squared distances. Sample prior uniform in [-2,2] for positions and strengths in [0.5, 1.5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    n_sources = 3\n    designs_exp = designs[np.newaxis, :, :]\n    params_exp = params[:, np.newaxis, :]\n    xys = params_exp[:, :, :6].reshape(n_particles, 1, n_sources, 2)\n    strengths = params_exp[:, :, 6:].reshape(n_particles, 1, n_sources)\n    dists = np.linalg.norm(designs_exp[:, :, np.newaxis, :] - xys, axis=-1)\n    dists = np.maximum(dists, 1e-6)\n    contributions = strengths / (dists**2)\n    predictions = contributions.sum(axis=2)\n    return predictions\n\ndef sample_prior(rng, n):\n    positions = rng.uniform(-2, 2, size=(n, 6))\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.concatenate([positions, strengths], axis=1)"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 566,
+    "cost_usd": 0.0010012000000000007,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "d5a0bc5e12144b8f93895f1a450a2977",
+      "run_id": "repair-main-20261115-proposals-4003",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/d5a0bc5e12144b8f93895f1a450a2977"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each of the three sources is parametrized by a 2D location within [-2,2]^2. The strength is fixed (equal). The predict function sums three Gaussian kernels centered at each source location with fixed bandwidth, evaluated at the design points. The sample_prior samples source locations uniformly in [-2,2]^2 for each source, returning a parameter vector of length 6 (x1,y1,x2,y2,x3,y3).",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources with (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # fixed bandwidth for Gaussian kernel\n    bandwidth = 0.3\n    # reshape for broadcasting\n    sources = params.reshape((n_particles, 3, 2))  # (n_particles, 3, 2)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    sources_exp = sources[:, :, None, :]  # (n_particles,3,1,2)\n    diff = designs_exp - sources_exp  # (n_particles,3,n_designs,2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,3,n_designs)\n    # Gaussian kernel contributions\n    contributions = np.exp(-dist_sq / (2*bandwidth**2))\n    # sum over 3 sources\n    predictions = np.sum(contributions, axis=1)  # (n_particles,n_designs)\n    return predictions\n\ndef sample_prior(rng, n):\n    # sample 3 source locations uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2: Each of the three sources is parametrized by a 2D location and a fixed isotropic Laplace kernel contribution. Predict sums three Laplace kernels evaluated at design points. The sample_prior samples locations uniformly in [-2,2]^2 for each source, returning parameters of length 6 (x,y for each source).",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources with (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    b = 0.3  # scale for Laplace kernel\n    sources = params.reshape((n_particles, 3, 2))  # (n_particles,3,2)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    sources_exp = sources[:, :, None, :]  # (n_particles,3,1,2)\n    diff = designs_exp - sources_exp  # (n_particles,3,n_designs,2)\n    dist = np.sum(np.abs(diff), axis=-1)  # L1 distance (n_particles,3,n_designs)\n    contributions = np.exp(-dist / b)\n    predictions = np.sum(contributions, axis=1)  # sum over 3 sources\n    return predictions\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each of the three sources is parametrized by a 2D location within [-2,2]^2. The strength is fixed (equal). The predict function sums three Gaussian kernels centered at each source location with fixed bandwidth, evaluated at the design points. The sample_prior samples source locations uniformly in [-2,2]^2 for each source, returning a parameter vector of length 6 (x1,y1,x2,y2,x3,y3).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources with (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    # fixed bandwidth for Gaussian kernel\n    bandwidth = 0.3\n    # reshape for broadcasting\n    sources = params.reshape((n_particles, 3, 2))  # (n_particles, 3, 2)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    sources_exp = sources[:, :, None, :]  # (n_particles,3,1,2)\n    diff = designs_exp - sources_exp  # (n_particles,3,n_designs,2)\n    dist_sq = np.sum(diff**2, axis=-1)  # (n_particles,3,n_designs)\n    # Gaussian kernel contributions\n    contributions = np.exp(-dist_sq / (2*bandwidth**2))\n    # sum over 3 sources\n    predictions = np.sum(contributions, axis=1)  # (n_particles,n_designs)\n    return predictions\n\ndef sample_prior(rng, n):\n    # sample 3 source locations uniformly in [-2,2]^2\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each of the three sources is parametrized by a 2D location and a fixed isotropic Laplace kernel contribution. Predict sums three Laplace kernels evaluated at design points. The sample_prior samples locations uniformly in [-2,2]^2 for each source, returning parameters of length 6 (x,y for each source).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources with (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    b = 0.3  # scale for Laplace kernel\n    sources = params.reshape((n_particles, 3, 2))  # (n_particles,3,2)\n    designs_exp = designs[None, None, :, :]  # (1,1,n_designs,2)\n    sources_exp = sources[:, :, None, :]  # (n_particles,3,1,2)\n    diff = designs_exp - sources_exp  # (n_particles,3,n_designs,2)\n    dist = np.sum(np.abs(diff), axis=-1)  # L1 distance (n_particles,3,n_designs)\n    contributions = np.exp(-dist / b)\n    predictions = np.sum(contributions, axis=1)  # sum over 3 sources\n    return predictions\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 750,
+    "cost_usd": 0.001295599999999994,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "c17ac8d8508b46139be4510655ff8225",
+      "run_id": "repair-main-20261115-proposals-4012",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/c17ac8d8508b46139be4510655ff8225"
+    }
+  ]
+}

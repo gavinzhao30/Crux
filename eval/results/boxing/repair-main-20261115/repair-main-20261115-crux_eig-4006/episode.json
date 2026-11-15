@@ -1,0 +1,56 @@
+{
+  "rows": [
+    {
+      "arm": "crux_eig",
+      "seed": 4006,
+      "budget": 5,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "NoPrediction"
+    },
+    {
+      "arm": "crux_eig",
+      "seed": 4006,
+      "budget": 10,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "NoPrediction"
+    },
+    {
+      "arm": "crux_eig",
+      "seed": 4006,
+      "budget": 20,
+      "status": "failed",
+      "mse": 1000000000000.0,
+      "failure": "NoPrediction"
+    }
+  ],
+  "seed": 4006,
+  "arm": "crux_eig",
+  "history": [],
+  "usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "seconds": 0.20399999991059303,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "2a4b2a42db78954a5b9595a05e2fc47f64ba4a4acf5dbf651b8c6b21f8d9b4da",
+  "sources_sha256": "7c09c18b33a2444b446fa4a5cf6dd9919e87716eb2ef86ccd35cde40f8acbc19",
+  "traces": [],
+  "particles": 512,
+  "simulations": 64,
+  "move_steps": 4,
+  "belief_diagnostics": {},
+  "paired_proposal_usage": {
+    "calls": 3,
+    "cached_calls": 0,
+    "input_tokens": 1536,
+    "output_tokens": 1622,
+    "cost_usd": 0.0032096,
+    "unpriced_calls": 0
+  }
+}

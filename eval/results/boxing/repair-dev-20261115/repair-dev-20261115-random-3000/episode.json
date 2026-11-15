@@ -1,0 +1,187 @@
+{
+  "rows": [
+    {
+      "arm": "random",
+      "seed": 3000,
+      "budget": 3,
+      "status": "ok",
+      "mse": 12.232158153344923,
+      "failure": null
+    },
+    {
+      "arm": "random",
+      "seed": 3000,
+      "budget": 5,
+      "status": "ok",
+      "mse": 9.949836592227266,
+      "failure": null
+    }
+  ],
+  "seed": 3000,
+  "arm": "random",
+  "history": [
+    [
+      [
+        -0.9812953244249716,
+        0.404759119492172
+      ],
+      0.26
+    ],
+    [
+      [
+        0.10170844958395309,
+        1.886700830891193
+      ],
+      2.07
+    ],
+    [
+      [
+        0.6256245063619792,
+        0.8350916737416441
+      ],
+      2.01
+    ],
+    [
+      [
+        -0.7485658648081119,
+        0.6461577309075826
+      ],
+      2.47
+    ],
+    [
+      [
+        1.6977510021264726,
+        -1.3521780875405018
+      ],
+      0.32
+    ]
+  ],
+  "usage": {
+    "calls": 0,
+    "cached_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "unpriced_calls": 0
+  },
+  "seconds": 0.17199999978765845,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "0b9c90d518858f3d3465fa4eeb59b513c03b8c87646a68f8cf2842c8f26d7792",
+  "sources_sha256": "5524030ffcb6a2a34b65e1389c3efcedfbf747f1daeafe59c0b00cb5d9aa7c63",
+  "traces": [],
+  "particles": 512,
+  "simulations": 64,
+  "move_steps": 4,
+  "belief_diagnostics": {
+    "1": {
+      "moves": {
+        "sources": {
+          "ess_before": 306.62317765359325,
+          "accepted": 0,
+          "proposed": 0
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          1.1724233868045526,
+          1.2282432069800369,
+          0.9079205208440865,
+          1.2200797443675677,
+          1.08259992054596,
+          1.2110741674817127
+        ]
+      }
+    },
+    "2": {
+      "moves": {
+        "sources": {
+          "ess_before": 306.62317765359325,
+          "accepted": 0,
+          "proposed": 0
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          1.0491849122230092,
+          1.3809152532914233,
+          0.7624004890481096,
+          1.30333852605894,
+          1.0327577693909598,
+          1.21474051959175
+        ]
+      }
+    },
+    "3": {
+      "moves": {
+        "sources": {
+          "ess_before": 306.62317765359325,
+          "accepted": 0,
+          "proposed": 0
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          1.0882542899498182,
+          1.4700702221290478,
+          0.7659398589706361,
+          1.5384145400997764,
+          1.085156345259397,
+          1.2337660240647086
+        ]
+      }
+    },
+    "4": {
+      "moves": {
+        "sources": {
+          "ess_before": 306.62317765359325,
+          "accepted": 0,
+          "proposed": 0
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 512.0
+      },
+      "parameter_std": {
+        "sources": [
+          1.011760703696145,
+          1.0802538314856687,
+          0.7812118779408302,
+          1.0591086196562367,
+          1.53978817729541,
+          0.9039222554680286
+        ]
+      }
+    },
+    "5": {
+      "moves": {
+        "sources": {
+          "ess_before": 306.62317765359325,
+          "accepted": 0,
+          "proposed": 0
+        }
+      },
+      "effective_sample_sizes": {
+        "sources": 306.623177653593
+      },
+      "parameter_std": {
+        "sources": [
+          1.011760703696145,
+          1.0802538314856687,
+          0.7812118779408302,
+          1.0591086196562367,
+          1.53978817729541,
+          0.9039222554680286
+        ]
+      }
+    }
+  }
+}

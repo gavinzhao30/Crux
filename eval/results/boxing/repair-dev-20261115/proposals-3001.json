@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Three Gaussian sources with equal amplitude. Parameters: [x1,y1,x2,y2,x3,y3,amplitude,sigma]. predict sums three Gaussian blobs at each source location. sample_prior samples uniform locations in [-2,2], amplitude in [1,5], sigma in [0.1,0.5].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    x = designs[:,0][None,:]  # shape (1,n_designs)\n    y = designs[:,1][None,:]  # shape (1,n_designs)\n\n    x1, y1 = params[:,0][:,None], params[:,1][:,None]\n    x2, y2 = params[:,2][:,None], params[:,3][:,None]\n    x3, y3 = params[:,4][:,None], params[:,5][:,None]\n    amplitude = params[:,6][:,None]\n    sigma = params[:,7][:,None]\n\n    def gauss(xc, yc):\n        return amplitude * np.exp(-((x - xc)**2 + (y - yc)**2)/(2*sigma**2))\n\n    pred = gauss(x1,y1) + gauss(x2,y2) + gauss(x3,y3)\n    return pred\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2,2,(n,6))  # x1,y1,x2,y2,x3,y3\n    amplitude = rng.uniform(1,5,(n,1))\n    sigma = rng.uniform(0.1,0.5,(n,1))\n    return np.hstack([locs, amplitude, sigma])"
+    },
+    {
+      "statement": "Model 2: Three inverse distance sources with equal amplitude. Parameters: [x1,y1,x2,y2,x3,y3,amplitude]. predict sums 1/(distance + 0.1) from each source scaled by amplitude. sample_prior samples uniform locations in [-2,2], amplitude in [1,5].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    x = designs[:,0][None,:]  # shape (1,n_designs)\n    y = designs[:,1][None,:]  # shape (1,n_designs)\n\n    x1, y1 = params[:,0][:,None], params[:,1][:,None]\n    x2, y2 = params[:,2][:,None], params[:,3][:,None]\n    x3, y3 = params[:,4][:,None], params[:,5][:,None]\n    amplitude = params[:,6][:,None]\n\n    def inv_dist(xc, yc):\n        dist = np.sqrt((x - xc)**2 + (y - yc)**2)\n        return amplitude / (dist + 0.1)\n\n    pred = inv_dist(x1,y1) + inv_dist(x2,y2) + inv_dist(x3,y3)\n    return pred\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2,2,(n,6))  # x1,y1,x2,y2,x3,y3\n    amplitude = rng.uniform(1,5,(n,1))\n    return np.hstack([locs, amplitude])"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Three Gaussian sources with equal amplitude. Parameters: [x1,y1,x2,y2,x3,y3,amplitude,sigma]. predict sums three Gaussian blobs at each source location. sample_prior samples uniform locations in [-2,2], amplitude in [1,5], sigma in [0.1,0.5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    x = designs[:,0][None,:]  # shape (1,n_designs)\n    y = designs[:,1][None,:]  # shape (1,n_designs)\n\n    x1, y1 = params[:,0][:,None], params[:,1][:,None]\n    x2, y2 = params[:,2][:,None], params[:,3][:,None]\n    x3, y3 = params[:,4][:,None], params[:,5][:,None]\n    amplitude = params[:,6][:,None]\n    sigma = params[:,7][:,None]\n\n    def gauss(xc, yc):\n        return amplitude * np.exp(-((x - xc)**2 + (y - yc)**2)/(2*sigma**2))\n\n    pred = gauss(x1,y1) + gauss(x2,y2) + gauss(x3,y3)\n    return pred\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2,2,(n,6))  # x1,y1,x2,y2,x3,y3\n    amplitude = rng.uniform(1,5,(n,1))\n    sigma = rng.uniform(0.1,0.5,(n,1))\n    return np.hstack([locs, amplitude, sigma])"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Three inverse distance sources with equal amplitude. Parameters: [x1,y1,x2,y2,x3,y3,amplitude]. predict sums 1/(distance + 0.1) from each source scaled by amplitude. sample_prior samples uniform locations in [-2,2], amplitude in [1,5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    x = designs[:,0][None,:]  # shape (1,n_designs)\n    y = designs[:,1][None,:]  # shape (1,n_designs)\n\n    x1, y1 = params[:,0][:,None], params[:,1][:,None]\n    x2, y2 = params[:,2][:,None], params[:,3][:,None]\n    x3, y3 = params[:,4][:,None], params[:,5][:,None]\n    amplitude = params[:,6][:,None]\n\n    def inv_dist(xc, yc):\n        dist = np.sqrt((x - xc)**2 + (y - yc)**2)\n        return amplitude / (dist + 0.1)\n\n    pred = inv_dist(x1,y1) + inv_dist(x2,y2) + inv_dist(x3,y3)\n    return pred\n\ndef sample_prior(rng, n):\n    locs = rng.uniform(-2,2,(n,6))  # x1,y1,x2,y2,x3,y3\n    amplitude = rng.uniform(1,5,(n,1))\n    return np.hstack([locs, amplitude])"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 785,
+    "cost_usd": 0.0013515999999999997,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "c23c3569352542a69025693ec3abb44c",
+      "run_id": "repair-dev-20261115-proposals-3001",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/c23c3569352542a69025693ec3abb44c"
+    }
+  ]
+}

@@ -56,12 +56,19 @@ def _load_local_credentials() -> None:
 
 _load_local_credentials()
 
+def exclude_runtime_data(path: Path) -> bool:
+    return ("results" in path.parts or "__pycache__" in path.parts
+            or path.suffix not in {"", ".py"})
+
+
 image = (modal.Image.debian_slim(python_version="3.12")
          .pip_install_from_pyproject(str(ROOT / "pyproject.toml"))
-         .add_local_python_source("agents", "core", "eval", "execution", "labs")
+         .add_local_python_source("agents", "core", "eval", "execution", "labs", "memory", "search", "diagnostics",
+                                  ignore=exclude_runtime_data)
+         .add_local_dir(str(ROOT / "agents" / "prompts"), remote_path="/root/agents/prompts")
          .add_local_file(str(ROOT / "labs" / "bixbench3" / "task9_contract.json"),
                          remote_path="/root/labs/bixbench3/task9_contract.json"))
-app = modal.App("crux-eval-suite")
+app = modal.App("crux-eval-suite", include_source=False)
 volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 secret = (modal.Secret.from_name(os.environ["CRUX_EVAL_SECRET"])
           if os.environ.get("CRUX_EVAL_SECRET")

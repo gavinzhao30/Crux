@@ -1,119 +1,63 @@
-# DU-41: Location Finding study
+# DU-41 repaired model and EIG study — November 15, 2026
 
-This run does **not establish an EIG advantage**. The paired EIG-minus-random
-log10-error confidence intervals include zero at all three checkpoints.
-Generated-model failures dominate the Crux aggregates; one additional EIG
-episode failed because Windows denied an atomic manifest replacement.
-Failures remain in every primary aggregate with the preregistered MSE penalty
-of 1e12. The large Crux medians reflect failed predictions, not measured
-physical signal errors of that size. No successful-only comparison replaces
-these primary results.
+**This run does not establish an EIG advantage; the paired 95% confidence interval includes zero.**
 
-## Protocol and evidence
+The new study retains all 120 episodes and 360 checkpoints on fresh paired seeds 4000–4019.
+Failed checkpoints remain in every primary aggregate with MSE penalty 1e12. Lower error is better.
 
-The main study attempted all six arms on 20 paired seeds (100–119), with a
-single 20-measurement trajectory and held-out evaluations at 5/10/20. All 120
-episodes and 360 checkpoint rows are retained. Every seed has matching hidden
-source and held-out-point hashes across arms, and every saved measurement
-replays exactly from the seeded simulator. Both Crux arms received identical
-generated source hypotheses per seed. Model calls used gpt-4.1-mini.
+## Changes
 
-- [Frozen protocol](main-20261114/protocol.json), recording execution source
-  commit `5d543cceb14fe6ba91546334d4ebf7b63f326681`.
-- [Per-seed scores](main-20261114/per_seed.csv),
-  [summary and bootstrap intervals](main-20261114/summary.json),
-  [paired comparisons](main-20261114/paired_comparisons.json),
-  [cost/time/target table](main-20261114/costs.csv), and
-  [audit](main-20261114/audit.json).
-- [Implementation and full protocol](../../../docs/BOXING_STUDY.md).
-- Episode folders contain histories and diagnostics; Crux folders also contain
-  event streams and manifests. `proposals-SEED.json` preserves raw generated
-  code and validation failures. Representative random/EIG Crux trajectories
-  independently replay all 20 recorded belief updates.
+- Shared strict shape, finite-output, determinism and reproducibility checks for local and Modal runners; sandbox prediction inputs are read-only.
+- At most two AI repair attempts per hypothesis, retaining original and repaired code, errors and usage. Both Crux arms share the same final models per seed.
+- Four resample-and-move sweeps using the full observation history, replacing arbitrary jitter in this study. Generated models use prior-independence MH; the known-structure reference also uses local moves with its Normal prior.
+- 512 particles and 64 EIG simulations, frozen before the main run. Other labs retain legacy settings unless moves are enabled explicitly.
+- Modal source packaging excludes result/evaluator files and disables automatic source mounting.
 
-Gavin approved a **labeled numerical known-structure reference** in place of
-the original exact-oracle wording. It uses the true functional structure and
-prior, never the actual source coordinates. EIG and posterior inference are
-finite-particle approximations, with 256 particles and 16 simulated outcomes.
-The pilot and saved parameter-spread diagnostics expose particle collapse.
-This line is not an exact oracle or a proven performance upper bound.
-The Gaussian approximation to rounded observations is another limitation.
+[Frozen repair protocol](../../../docs/DU-41-REPAIR-PROTOCOL.md) and [execution protocol/revision](repair-main-20261115/protocol.json).
 
-## Results at 20 measurements
+## Primary results
 
-Intervals are seed-bootstrap 95% CIs (2,000 resamples). Log error means log10 MSE.
-
-| Arm | Median MSE [CI] | Mean log error [CI] | Failed episodes / 20 | Reached MSE ≤ 1 by checkpoint 20 |
+| Arm | Median MSE at 20 [95% CI] | Mean log10 MSE [95% CI] | Failed episodes / 20 | Reached MSE ≤ 1 |
 |---|---:|---:|---:|---:|
-| crux_eig | 1e+12 [9.301, 1e+12] | 7.034 [4.703, 9.345] | 11 | 0 |
-| crux_random | 5e+11 [10.39, 1e+12] | 6.529 [4.218, 8.964] | 10 | 0 |
-| grid | 7.768 [3.036, 151.1] | 1.283 [0.809, 1.753] | 0 | 1 |
-| oracle (numerical) | 11.7 [2.978, 58.07] | 1.068 [0.6564, 1.467] | 0 | 3 |
-| random | 18.94 [4.582, 71.79] | 1.372 [0.845, 1.924] | 0 | 1 |
-| single_agent | 7.127 [4.172, 20.1] | 1.38 [0.6979, 2.194] | 0 | 3 |
+| crux_eig | 27.18 [11.38, 210.5] | 2.946 [1.409, 4.684] | 3 | 2 |
+| crux_random | 26.75 [9.102, 125] | 2.392 [1.143, 4.051] | 2 | 3 |
+| grid | 52.07 [4.623, 121.8] | 1.262 [0.712, 1.833] | 0 | 5 |
+| oracle | 14.69 [7.232, 55.6] | 1.222 [0.8013, 1.624] | 0 | 3 |
+| random | 8.737 [4.143, 14.69] | 0.9843 [0.6393, 1.343] | 0 | 4 |
+| single_agent | 22.8 [5.342, 66.8] | 1.335 [0.9386, 1.749] | 0 | 2 |
 
-Target times in the cost table are checkpoint-resolved and right-censored when
-not reached; blank values are not successes. This does not estimate the exact
-first crossing between checkpoints.
+CIs use 2,000 whole-seed bootstrap resamples. Target times are checkpoint-resolved and censored when not reached.
 
-| Measurements | Paired mean log10 MSE difference: EIG minus random | 95% CI |
+| Measurements | Paired mean log10 MSE: EIG minus random | 95% CI |
 |---:|---:|---:|
-| 5 | 0.4841 | [-0.0703, 1.5407] |
-| 10 | 0.4926 | [-0.0534, 1.5517] |
-| 20 | 0.5056 | [-0.0378, 1.5562] |
+| 5 | 0.4607 | [-0.1261, 1.5264] |
+| 10 | 0.4865 | [-0.1021, 1.5509] |
+| 20 | 0.5542 | [-0.0298, 1.6071] |
 
-Negative differences favor EIG. These intervals include zero, so neither EIG
-superiority nor random superiority is established by this run.
+Negative favors EIG. These results compare the two current Crux arms, not EIG in general.
 
-![Median error with confidence intervals](main-20261114/median.png)
+![Median error](repair-main-20261115/median.png)
 
-![Mean log error with confidence intervals](main-20261114/mean_log10.png)
+![Mean log error](repair-main-20261115/mean_log10.png)
 
-## Costs and failures
+## Reliability, cost and limitations
 
-| Arm | Direct calls | Input tokens | Output tokens | Direct USD | Shared proposal USD |
-|---|---:|---:|---:|---:|---:|
-| random | 0 | 0 | 0 | 0.000000 | 0.000000 |
-| grid | 0 | 0 | 0 | 0.000000 | 0.000000 |
-| oracle | 0 | 0 | 0 | 0.000000 | 0.000000 |
-| single_agent | 460 | 137261 | 8245 | 0.068096 | 0.000000 |
-| crux_random | 0 | 0 | 0 | 0.000000 | 0.028405 |
-| crux_eig | 0 | 0 | 0 | 0.000000 | 0.028405 |
+4/20 proposal sets were accepted after repair; 2/20 remained unusable. 11 repaired versions were validated. All terminal failures remain in the dataset.
 
-Shared hypotheses are generated once per seed and reused by both Crux arms.
-That cost is displayed with both arms but counted **once** in the actual study
-total: **$0.0965012**, 480 calls,
-141,601 input tokens and 24,913 output tokens.
-These are wrapper-accounted list-price estimates, not a provider invoice.
-Per-episode calls, tokens, shared costs, durations, failure counts and censored
-target checkpoints are available in the cost CSV. No spend cap was reached.
+Primary wrapper-accounted spend: **$0.1055536**, 491 calls, 149,368 input and 28,629 output tokens. Shared proposals/repairs count once in actual spend and are shown with each Crux arm. These are configured list-price estimates, not an invoice; unreturned billed usage cannot be fully reconciled. Development and Modal checks are separate.
 
-There were 21 failed episodes (63 failed checkpoints): 14 episodes with no
-prediction after generated-code validation failed, 6 episodes rejected by the
-production particle engine for unusable prior or prediction shapes, and 1 Windows manifest
-replacement failure (seed 102, EIG). The latter remains in the primary result.
-A bounded retry for transient Windows sharing/access errors was added after
-the run; it does not rewrite the archived failed episode.
+The additional EIG failure was a Windows NumPy DLL import failure at seed 4018, not an array-shape failure. It is retained with the declared penalty and materially affects the paired contrast. A narrowly scoped, two-retry startup guard was added and tested after the run; it does not change this archived outcome. There were no production array-contract failures among the accepted model sets.
 
-## Scope and reproducibility
+The reference knows the true formula and prior, never hidden coordinates. It remains numerical, with a Gaussian approximation to rounded observations. Moves are posterior-preserving kernels, but four sweeps do not guarantee mixing or posterior accuracy. Low acceptance and particle duplication persist: pooled move acceptance is about 6.5% for Crux random and 4.9% for Crux EIG; median post-move distinct particles are 51 and 11 out of 512, respectively. This remaining loss of diversity limits claims that inference is fully fixed. See per-episode diagnostics and [aggregated move diagnostics](repair-main-20261115/findings.json).
 
-The two Crux arms differ only in design selection, with shared generated models,
-inference settings, candidate grid and case seed. Their scalar forecast task
-uses the real numeric orchestrator, deterministic reporting and no artifact
-critic. The single agent reasons/predicts in text; its comparison with Crux is
-a system comparison with different representations. The numerical reference
-has additional structural knowledge. This is simulator evidence, not evidence
-of scientific discovery. Model generation itself is not seed-reproducible;
-raw generated source is retained for replay.
+[Ranking sensitivity](repair-numerics-20261115.json) on development seeds compared 512/64 with 2048/256 particles/simulations before data and after five fixed measurements. Rank correlations were about 0.92–0.98; the top design agreed in 3/6 comparisons. This does not establish convergence of the selected design.
 
-`pilot-20261114/` contains the separate 20-seed, three-arm pilot (60 episodes,
-180 valid checkpoint scores, zero model calls). It was delivered after the
-historical Saturday 6 PM milestone; that deadline is not claimed as met.
-`agent-preflight-*` folders preserve development checks, including failures;
-they are not pooled into the fresh-seed main study or its cost total.
-The second environment is an optional stretch item and was not implemented.
+The scalar Crux study disables artifact criticism. The single-agent comparison uses a different inference representation. Several fixes and numerical settings changed together, and cases differ from the original study, so before/after differences do not identify the effect of one fix. This is simulator evidence, not scientific discovery.
 
-The next reliability work suggested by these results is validating/repairing
-generated model shapes before larger studies and improving posterior sampling
-before treating the numerical reference as a strong comparator. Those changes
-would require a newly frozen study rather than rewriting these results.
+## Evidence
+
+- [Per-seed scores](repair-main-20261115/per_seed.csv), [summary](repair-main-20261115/summary.json), [paired comparisons](repair-main-20261115/paired_comparisons.json), [cost table](repair-main-20261115/costs.csv), [audit](repair-main-20261115/audit.json).
+- Proposal JSON files retain validation and repair attempts. Episode directories retain histories, diagnostics, and Crux events/manifests. The audit checks pairing, every saved observation, shared hypothesis sources, cost reconciliation and representative event replays.
+- **367 repository tests passed; Ruff passed.** Tests cover malformed arrays, repair exhaustion, analytic Gaussian posterior moments with both move types, EIG against analytic and independent quadrature references, noise sensitivity, simple-model resolution checks, reproducibility, scoring-query purity, source exclusions and narrowly bounded NumPy startup retries.
+- [Two-job Modal integration check](repair-modal-03-20261115/summary.csv): single-agent and Crux both executed, persisted evidence and graded. Two earlier packaging attempts failed before job dispatch; their manifests remain archived.
+- [Original study report](ORIGINAL_STUDY.md), [original results](main-20261114/summary.json), [archived original issue](../../../docs/DU-41-original-linear.md). Original failures and the missed historical deadline are not rewritten. The optional second environment remains deferred.

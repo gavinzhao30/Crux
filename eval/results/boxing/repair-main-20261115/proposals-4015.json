@@ -1,0 +1,91 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is parameterized by its (x, y) position within [-2,2]^2. The parameter vector is of length 6 (3 sources \u00d7 2 coordinates). The predict function computes the sum of inverse-distance contributions from each source to each design point, i.e., signal = sum_i strength / (distance_i + epsilon). Strength is fixed to 1. The sample_prior samples uniform source positions in [-2,2]^2 using the supplied RNG. predict is deterministic.",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources \u00d7 (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # shape: (1, n_designs, 2)\n    params_exp = params.reshape(n_particles, 3, 2)  # shape: (n_particles, 3, 2)\n    # Compute distances: (n_particles, 3, n_designs)\n    # Expand dims to broadcast: params_exp[:, :, np.newaxis, :] (n_particles, 3, 1, 2)\n    # designs_exp: (1, n_designs, 2) -> transpose to (1, 1, n_designs, 2)\n    designs_exp_t = designs_exp[:, np.newaxis, :, :]  # shape: (1, 1, n_designs, 2)\n    diffs = params_exp[:, :, np.newaxis, :] - designs_exp_t  # (n_particles, 3, n_designs, 2)\n    dists = np.linalg.norm(diffs, axis=-1)  # (n_particles, 3, n_designs)\n    epsilon = 1e-6\n    contrib = 1.0 / (dists + epsilon)  # (n_particles, 3, n_designs)\n    signal = contrib.sum(axis=1)  # sum over sources -> (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform samples in [-2,2]^2 for each of 3 sources (6 params)\n    samples = rng.uniform(-2, 2, size=(n, 6))\n    return samples\n"
+    },
+    {
+      "statement": "Model 2: Each of the three sources is parameterized by its (x, y) position and strength (>=0). The parameter vector length is 9 (3 sources \u00d7 3 parameters). The predict function computes the sum over sources of strength divided by (distance + epsilon) to each design point. The sample_prior function samples each source's position uniformly in [-2,2]^2 and strength uniformly in [0.5,1.5], using the supplied rng. Both functions satisfy exact input-output contracts and are deterministic (predict) or properly randomized (sample_prior).",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources \u00d7 (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    params_exp = params.reshape(n_particles, 3, 3)  # (n_particles, 3, 3)\n    positions = params_exp[:, :, :2]  # (n_particles, 3, 2)\n    strengths = params_exp[:, :, 2]  # (n_particles, 3)\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    # Compute distances (n_particles, 3, n_designs)\n    # positions: (n_particles, 3, 2), designs_exp: (1, n_designs, 2)\n    # We want pairwise distances between each source and each design point\n    # Reshape to broadcast:\n    pos_exp = positions[:, :, np.newaxis, :]  # (n_particles, 3, 1, 2)\n    des_exp = designs_exp[:, np.newaxis, :, :]  # (1, 1, n_designs, 2)\n    dists = np.linalg.norm(pos_exp - des_exp, axis=-1)  # (n_particles, 3, n_designs)\n    epsilon = 1e-6\n    contrib = strengths[:, :, np.newaxis] / (dists + epsilon)  # (n_particles, 3, n_designs)\n    signal = contrib.sum(axis=1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Positions uniform in [-2,2]^2, strengths uniform in [0.5,1.5]\n    positions = rng.uniform(-2, 2, size=(n, 3, 2))  # (n, 3 sources, 2 coords)\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3))  # (n, 3 sources)\n    samples = np.concatenate([positions, strengths[:, :, np.newaxis]], axis=2)  # (n,3,3)\n    samples = samples.reshape(n, 9)  # flatten per particle\n    return samples\n"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its (x, y) position within [-2,2]^2. The parameter vector is of length 6 (3 sources \u00d7 2 coordinates). The predict function computes the sum of inverse-distance contributions from each source to each design point, i.e., signal = sum_i strength / (distance_i + epsilon). Strength is fixed to 1. The sample_prior samples uniform source positions in [-2,2]^2.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources \u00d7 (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    params_exp = params.reshape(n_particles, 3, 2)  # (n_particles, 3, 2)\n    # Compute distances: (n_particles, 3, n_designs)\n    dists = np.linalg.norm(params_exp[:, :, np.newaxis, :] - designs_exp.T[np.newaxis, np.newaxis, :, :], axis=-1)\n    # Sum inverse distances with small epsilon to avoid div by zero\n    epsilon = 1e-6\n    contrib = 1.0 / (dists + epsilon)  # (n_particles, 3, n_designs)\n    signal = contrib.sum(axis=1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform samples in [-2,2]^2 for each of 3 sources\n    samples = rng.uniform(-2, 2, size=(n, 6))\n    return samples"
+      },
+      "error": "ModelError: model 'validation': predict failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 66, in main\r\n  File \"<model>\", line 10, in predict\r\nValueError: operands could not be broadcast together with shapes (4,3,1,2) (1,1,2,2,1)"
+    },
+    {
+      "family": 0,
+      "repair": 1,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its (x, y) position within [-2,2]^2. The parameter vector is of length 6 (3 sources \u00d7 2 coordinates). The predict function computes the sum of inverse-distance contributions from each source to each design point, i.e., signal = sum_i strength / (distance_i + epsilon). Strength is fixed to 1. The sample_prior samples uniform source positions in [-2,2]^2 using the supplied RNG. predict is deterministic.",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 6) -> 3 sources \u00d7 (x,y)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    designs_exp = designs[np.newaxis, :, :]  # shape: (1, n_designs, 2)\n    params_exp = params.reshape(n_particles, 3, 2)  # shape: (n_particles, 3, 2)\n    # Compute distances: (n_particles, 3, n_designs)\n    # Expand dims to broadcast: params_exp[:, :, np.newaxis, :] (n_particles, 3, 1, 2)\n    # designs_exp: (1, n_designs, 2) -> transpose to (1, 1, n_designs, 2)\n    designs_exp_t = designs_exp[:, np.newaxis, :, :]  # shape: (1, 1, n_designs, 2)\n    diffs = params_exp[:, :, np.newaxis, :] - designs_exp_t  # (n_particles, 3, n_designs, 2)\n    dists = np.linalg.norm(diffs, axis=-1)  # (n_particles, 3, n_designs)\n    epsilon = 1e-6\n    contrib = 1.0 / (dists + epsilon)  # (n_particles, 3, n_designs)\n    signal = contrib.sum(axis=1)  # sum over sources -> (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Uniform samples in [-2,2]^2 for each of 3 sources (6 params)\n    samples = rng.uniform(-2, 2, size=(n, 6))\n    return samples\n"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by its (x, y) position and a strength parameter (>=0). The parameter vector length is 9 (3 sources \u00d7 3 parameters). The predict function sums strength / (distance + epsilon) for each source to each design point. The sample_prior samples positions uniformly in [-2,2]^2 and strengths uniformly in [0.5,1.5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources \u00d7 (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    params_exp = params.reshape(n_particles, 3, 3)  # (n_particles, 3, 3)\n    positions = params_exp[:, :, :2]  # (n_particles, 3, 2)\n    strengths = params_exp[:, :, 2]  # (n_particles, 3)\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    # Compute distances (n_particles, 3, n_designs)\n    dists = np.linalg.norm(positions[:, :, np.newaxis, :] - designs_exp.T[np.newaxis, np.newaxis, :, :], axis=-1)\n    epsilon = 1e-6\n    contrib = strengths[:, :, np.newaxis] / (dists + epsilon)  # (n_particles, 3, n_designs)\n    signal = contrib.sum(axis=1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Positions uniform in [-2,2]^2, strengths uniform in [0.5,1.5]\n    positions = rng.uniform(-2, 2, size=(n, 6))\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3))\n    samples = np.hstack([positions[:, :2], strengths[:, 0],\n                         positions[:, 2:4], strengths[:, 1],\n                         positions[:, 4:6], strengths[:, 2]])\n    samples = samples.reshape(n, 9)\n    return samples"
+      },
+      "error": "ModelError: model 'validation': sample_prior failed with exit code 1; stderr: Traceback (most recent call last):\r\n  File \"<string>\", line 79, in <module>\r\n  File \"<string>\", line 69, in main\r\n  File \"<model>\", line 22, in sample_prior\r\n  File \"C:\\Users\\gavin\\OneDrive\\\ufffd\u0135\ufffd\\My Files\\Projects\\AI Research Hackathon\\Crux\\.venv\\Lib\\site-packages\\numpy\\_core\\shape_base.py\", line 365, in hstack\r\n    return _nx.concatenate(arrs, 1, dtype=dtype, casting=casting)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nValueError: all the input arrays must have same number of dimensions, but the array at index 0 has 2 dimension(s) and the array at index 1 has 1 dimension(s)"
+    },
+    {
+      "family": 1,
+      "repair": 1,
+      "proposal": {
+        "statement": "Model 2: Each of the three sources is parameterized by its (x, y) position and strength (>=0). The parameter vector length is 9 (3 sources \u00d7 3 parameters). The predict function computes the sum over sources of strength divided by (distance + epsilon) to each design point. The sample_prior function samples each source's position uniformly in [-2,2]^2 and strength uniformly in [0.5,1.5], using the supplied rng. Both functions satisfy exact input-output contracts and are deterministic (predict) or properly randomized (sample_prior).",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    # params shape: (n_particles, 9) -> 3 sources \u00d7 (x,y,strength)\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    params_exp = params.reshape(n_particles, 3, 3)  # (n_particles, 3, 3)\n    positions = params_exp[:, :, :2]  # (n_particles, 3, 2)\n    strengths = params_exp[:, :, 2]  # (n_particles, 3)\n    designs_exp = designs[np.newaxis, :, :]  # (1, n_designs, 2)\n    # Compute distances (n_particles, 3, n_designs)\n    # positions: (n_particles, 3, 2), designs_exp: (1, n_designs, 2)\n    # We want pairwise distances between each source and each design point\n    # Reshape to broadcast:\n    pos_exp = positions[:, :, np.newaxis, :]  # (n_particles, 3, 1, 2)\n    des_exp = designs_exp[:, np.newaxis, :, :]  # (1, 1, n_designs, 2)\n    dists = np.linalg.norm(pos_exp - des_exp, axis=-1)  # (n_particles, 3, n_designs)\n    epsilon = 1e-6\n    contrib = strengths[:, :, np.newaxis] / (dists + epsilon)  # (n_particles, 3, n_designs)\n    signal = contrib.sum(axis=1)  # (n_particles, n_designs)\n    return signal\n\ndef sample_prior(rng, n):\n    # Positions uniform in [-2,2]^2, strengths uniform in [0.5,1.5]\n    positions = rng.uniform(-2, 2, size=(n, 3, 2))  # (n, 3 sources, 2 coords)\n    strengths = rng.uniform(0.5, 1.5, size=(n, 3))  # (n, 3 sources)\n    samples = np.concatenate([positions, strengths[:, :, np.newaxis]], axis=2)  # (n,3,3)\n    samples = samples.reshape(n, 9)  # flatten per particle\n    return samples\n"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 3,
+    "cached_calls": 0,
+    "input_tokens": 1785,
+    "output_tokens": 2075,
+    "cost_usd": 0.00403400000000001,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "0aab6904bdec4da3ad80e2e5d896a398",
+      "run_id": "repair-main-20261115-proposals-4015",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/0aab6904bdec4da3ad80e2e5d896a398"
+    },
+    {
+      "trace_id": "e096103ded88496bb02c1aaa2ad3c680",
+      "run_id": "repair-main-20261115-proposals-4015",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "48b8686978e6e541d027061b59d4f80e8517dbbf0b9f86e5547d8352e4db22ec",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/e096103ded88496bb02c1aaa2ad3c680"
+    },
+    {
+      "trace_id": "cc5e33ac21794f80bfe3c415e7701a76",
+      "run_id": "repair-main-20261115-proposals-4015",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "6249ff348e0ad386fed8763b4d22d4d9af742528acc6b0ed37343be94fc21935",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/cc5e33ac21794f80bfe3c415e7701a76"
+    }
+  ]
+}

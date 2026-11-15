@@ -100,3 +100,50 @@ def test_rankings_noise_and_query_purity():
         noisy = ParticleBelief([family], 2, n_particles=n, n_sim=sims, null_weight=0)
         assert noisy.expected_information_gain([[2]], goal="total")[0] < gains[2]
     assert winners == [2, 2]
+
+
+def test_modal_source_packaging_excludes_runtime_results():
+    from pathlib import Path
+
+    from eval.run_suite import exclude_runtime_data
+
+    assert exclude_runtime_data(Path("eval/results/case/episode.json"))
+    assert exclude_runtime_data(Path("eval/results/case/generated.py"))
+    assert not exclude_runtime_data(Path("core/model_validation.py"))
+
+
+def test_startup_retry_is_bounded_and_does_not_retry_model_errors(monkeypatch):
+    import io
+    import subprocess
+
+    from core import model_sandbox as module
+
+    monkeypatch.setattr(module.sys, "platform", "win32")
+    monkeypatch.setattr(module.time, "sleep", lambda _: None)
+    stream = io.BytesIO()
+    np.save(stream, np.ones((4, 6)))
+    calls = []
+    startup = b"ImportError: DLL load failed while importing _multiarray_umath"
+
+    def run(*args, **kwargs):
+        calls.append(1)
+        return subprocess.CompletedProcess([], 1, b"", startup) if len(calls) < 3 else subprocess.CompletedProcess([], 0, stream.getvalue(), b"")
+
+    monkeypatch.setattr(module.subprocess, "run", run)
+    with pytest.warns(RuntimeWarning):
+        result = module.SandboxedFamily("test", GOOD).sample_prior(np.random.default_rng(1), 4)
+    assert result.shape == (4, 6) and len(calls) == 3
+    calls.clear()
+
+    def broken(*args, **kwargs):
+        calls.append(1)
+        return subprocess.CompletedProcess([], 1, b"", startup + b' File "<model>"')
+
+    monkeypatch.setattr(module.subprocess, "run", broken)
+    with pytest.raises(ModelError):
+        module.SandboxedFamily("test", GOOD).sample_prior(np.random.default_rng(1), 4)
+    assert len(calls) == 1
+
+    monkeypatch.setattr(module.subprocess, "run", lambda *a, **kw: subprocess.CompletedProcess([], 1, b"", startup))
+    with pytest.warns(RuntimeWarning), pytest.raises(ModelError):
+        module.SandboxedFamily("test", GOOD).sample_prior(np.random.default_rng(1), 4)

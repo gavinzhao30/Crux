@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is parameterized by (x,y,intensity). The parameter vector has length 9 (3 sources * 3 parameters). The predict function computes the sum of Gaussian radial basis functions from each source at each design point, i.e., intensity * exp(-((x - x_i)^2 + (y - y_i)^2)/sigma^2), with fixed sigma=0.5. The sample_prior samples x,y uniformly in [-2,2], and intensity uniformly in [0.5,1.5].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.5\n    means = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x_i = params[:, 3*i]\n        y_i = params[:, 3*i+1]\n        inten_i = params[:, 3*i+2]\n        dx = designs[:, 0][None, :] - x_i[:, None]\n        dy = designs[:, 1][None, :] - y_i[:, None]\n        dist2 = dx*dx + dy*dy\n        means += inten_i[:, None] * np.exp(-dist2/(sigma*sigma))\n    return means\n\ndef sample_prior(rng, n):\n    # x,y in [-2,2], intensity in [0.5,1.5]\n    xy = rng.uniform(-2, 2, size=(n, 6))\n    inten = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.hstack([xy[:,0:2], inten[:,0:1], xy[:,2:4], inten[:,1:2], xy[:,4:6], inten[:,2:3]])"
+    },
+    {
+      "statement": "Model 2: Each source is parameterized by (x,y) only, fixed intensity=1 and fixed Gaussian width sigma=0.3. The parameter vector length is 6 (3 sources * 2 parameters). The predict function sums exp(-((x - x_i)^2 + (y - y_i)^2)/sigma^2). The sample_prior samples x,y uniformly in [-2,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    means = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x_i = params[:, 2*i]\n        y_i = params[:, 2*i+1]\n        dx = designs[:, 0][None, :] - x_i[:, None]\n        dy = designs[:, 1][None, :] - y_i[:, None]\n        dist2 = dx*dx + dy*dy\n        means += np.exp(-dist2/(sigma*sigma))\n    return means\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by (x,y,intensity). The parameter vector has length 9 (3 sources * 3 parameters). The predict function computes the sum of Gaussian radial basis functions from each source at each design point, i.e., intensity * exp(-((x - x_i)^2 + (y - y_i)^2)/sigma^2), with fixed sigma=0.5. The sample_prior samples x,y uniformly in [-2,2], and intensity uniformly in [0.5,1.5].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.5\n    means = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x_i = params[:, 3*i]\n        y_i = params[:, 3*i+1]\n        inten_i = params[:, 3*i+2]\n        dx = designs[:, 0][None, :] - x_i[:, None]\n        dy = designs[:, 1][None, :] - y_i[:, None]\n        dist2 = dx*dx + dy*dy\n        means += inten_i[:, None] * np.exp(-dist2/(sigma*sigma))\n    return means\n\ndef sample_prior(rng, n):\n    # x,y in [-2,2], intensity in [0.5,1.5]\n    xy = rng.uniform(-2, 2, size=(n, 6))\n    inten = rng.uniform(0.5, 1.5, size=(n, 3))\n    return np.hstack([xy[:,0:2], inten[:,0:1], xy[:,2:4], inten[:,1:2], xy[:,4:6], inten[:,2:3]])"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by (x,y) only, fixed intensity=1 and fixed Gaussian width sigma=0.3. The parameter vector length is 6 (3 sources * 2 parameters). The predict function sums exp(-((x - x_i)^2 + (y - y_i)^2)/sigma^2). The sample_prior samples x,y uniformly in [-2,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    sigma = 0.3\n    means = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x_i = params[:, 2*i]\n        y_i = params[:, 2*i+1]\n        dx = designs[:, 0][None, :] - x_i[:, None]\n        dy = designs[:, 1][None, :] - y_i[:, None]\n        dist2 = dx*dx + dy*dy\n        means += np.exp(-dist2/(sigma*sigma))\n    return means\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 700,
+    "cost_usd": 0.0012155999999999998,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "3fd4d8da52094b3f8876c4bb976f5c9a",
+      "run_id": "repair-main-20261115-proposals-4001",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/3fd4d8da52094b3f8876c4bb976f5c9a"
+    }
+  ]
+}

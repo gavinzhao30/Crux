@@ -1,0 +1,420 @@
+{
+  "rows": [
+    {
+      "arm": "single_agent",
+      "seed": 4002,
+      "budget": 5,
+      "status": "ok",
+      "mse": 139.8937595973552,
+      "failure": null
+    },
+    {
+      "arm": "single_agent",
+      "seed": 4002,
+      "budget": 10,
+      "status": "ok",
+      "mse": 8.724021530845173,
+      "failure": null
+    },
+    {
+      "arm": "single_agent",
+      "seed": 4002,
+      "budget": 20,
+      "status": "ok",
+      "mse": 11.602694709280854,
+      "failure": null
+    }
+  ],
+  "seed": 4002,
+  "arm": "single_agent",
+  "history": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      2.36
+    ],
+    [
+      [
+        1.0,
+        0.0
+      ],
+      2.04
+    ],
+    [
+      [
+        0.5,
+        0.0
+      ],
+      0.61
+    ],
+    [
+      [
+        0.0,
+        1.0
+      ],
+      21.14
+    ],
+    [
+      [
+        0.0,
+        0.5
+      ],
+      2.42
+    ],
+    [
+      [
+        0.0,
+        0.75
+      ],
+      5.1
+    ],
+    [
+      [
+        0.0,
+        0.6
+      ],
+      3.43
+    ],
+    [
+      [
+        0.0,
+        0.65
+      ],
+      4.72
+    ],
+    [
+      [
+        0.0,
+        0.7
+      ],
+      5.53
+    ],
+    [
+      [
+        0.0,
+        0.68
+      ],
+      4.76
+    ],
+    [
+      [
+        0.0,
+        0.69
+      ],
+      5.32
+    ],
+    [
+      [
+        0.0,
+        0.66
+      ],
+      3.96
+    ],
+    [
+      [
+        0.0,
+        0.67
+      ],
+      4.52
+    ],
+    [
+      [
+        0.0,
+        0.72
+      ],
+      5.74
+    ],
+    [
+      [
+        0.0,
+        0.7
+      ],
+      4.57
+    ],
+    [
+      [
+        0.0,
+        0.71
+      ],
+      4.87
+    ],
+    [
+      [
+        0.0,
+        0.69
+      ],
+      4.84
+    ],
+    [
+      [
+        0.0,
+        0.73
+      ],
+      5.69
+    ],
+    [
+      [
+        0.0,
+        0.74
+      ],
+      4.78
+    ],
+    [
+      [
+        0.0,
+        0.55
+      ],
+      4.28
+    ]
+  ],
+  "usage": {
+    "calls": 23,
+    "cached_calls": 0,
+    "input_tokens": 6851,
+    "output_tokens": 408,
+    "cost_usd": 0.003393199999999999,
+    "unpriced_calls": 0
+  },
+  "seconds": 18.438000000081956,
+  "target_reached_at_checkpoint": null,
+  "test_points_sha256": "d5aba9853f80b7cb1351d3a313c87a0f0844b6d3b7f8e941c1ea84793accd7cf",
+  "sources_sha256": "6a08b2c161a9c19e440ebcf13ec6ff33309b39e9deacf1f9666dd874427200de",
+  "traces": [
+    {
+      "trace_id": "58ae75e625874e09a6b123e11d6d06c7",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "85deda1cc7e1f92c63020c8e768b68f38d0b559849c6b8103eff7c53313c5538",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/58ae75e625874e09a6b123e11d6d06c7"
+    },
+    {
+      "trace_id": "32bd865ad3ac437faa827f6f25d9b408",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "b5245c89d803530e12a9a4c199c9115b3b0313bbd723aaae91766375ffcc19a5",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/32bd865ad3ac437faa827f6f25d9b408"
+    },
+    {
+      "trace_id": "d33d7be20e0f438c88a579fcc092c8fb",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "03fa21501317a020746a46ccad5b47e6b00ca8b134020e6dc89a4d59bb2bd700",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/d33d7be20e0f438c88a579fcc092c8fb"
+    },
+    {
+      "trace_id": "c6fd67de5119449bb2ff97b0ba0933e9",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "f2e3d163eb57c11460dae7f98d4d753d51c4389d3a7cfea9a028e6974829207f",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/c6fd67de5119449bb2ff97b0ba0933e9"
+    },
+    {
+      "trace_id": "5a36e0d78dd3407b807c3f8779d8893e",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "b9f77bbbf666c4f7791fab37d93256d8d1eb7d3acef3ddf552b38fd3753f6052",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/5a36e0d78dd3407b807c3f8779d8893e"
+    },
+    {
+      "trace_id": "b7d57e3f875e40e6a20ef870127fdba5",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "43d9641813c644097091810f5887b6ad7a5e9e353e4c6fc91acaaacbff429107",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/b7d57e3f875e40e6a20ef870127fdba5"
+    },
+    {
+      "trace_id": "3788ec894d924707a9717d4355e027da",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "c7258f453cf19d66fc591ac276cc92be0963cc8107065a94a6cb6b41186d886f",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/3788ec894d924707a9717d4355e027da"
+    },
+    {
+      "trace_id": "0033ce3fd3b34222b9b453598d3906f1",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "3ee205fcac6118d78516dea802dace541df7dd54d5f7ba891ea938a304af2dfa",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/0033ce3fd3b34222b9b453598d3906f1"
+    },
+    {
+      "trace_id": "8d71f8b304044c7ab24a4dcb339b7c80",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "84f6c000f6bbd0c04683cc9a6c5407d7cdff5ac470f0f68cf316a916c5c15023",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/8d71f8b304044c7ab24a4dcb339b7c80"
+    },
+    {
+      "trace_id": "5b81398f8df144e9b15337b3fc9ecd6b",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "5b8f25b58363f873a61298558bd3786e8b862460d9afffc7c7616d3cdc981b4e",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/5b81398f8df144e9b15337b3fc9ecd6b"
+    },
+    {
+      "trace_id": "a8628ff087574c238356c2497e3482b9",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "0c87b536d29c63d869197665a11e050e41de3bff8a2351511d9e6a2819efec83",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/a8628ff087574c238356c2497e3482b9"
+    },
+    {
+      "trace_id": "3ffcb4bf49e041cbb123cd1e5f31e3ab",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "e7b38b44a5c3ca44447438e57856d0afa7e5a2406ea22de666c8a2496d4cd8c4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/3ffcb4bf49e041cbb123cd1e5f31e3ab"
+    },
+    {
+      "trace_id": "a3a4c40182b247719bb5aefd93e85c4f",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "f4bf4ac85fecb2865b787c18488afc512f92ebdfe2f9034b7625c96c94475202",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/a3a4c40182b247719bb5aefd93e85c4f"
+    },
+    {
+      "trace_id": "9c20021421a5466eb6539d51735bf812",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "d5df843d2f859065abb01bb6fba5a23934ad036b9467cd43b754a43589d6c837",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/9c20021421a5466eb6539d51735bf812"
+    },
+    {
+      "trace_id": "00c6fb1d19694102b5b1068a92b8e708",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "713d9c30eff11f29a38b40172032b94a3b6f3033d157eddd0156893e2bb4fb15",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/00c6fb1d19694102b5b1068a92b8e708"
+    },
+    {
+      "trace_id": "3e82dabd698949f9b083ce732b139cf4",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "7c779fe00f48da87fec477fa2b5846755080f854e3c7cc8c090f5e6737028bf3",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/3e82dabd698949f9b083ce732b139cf4"
+    },
+    {
+      "trace_id": "7ec7e638071745f198066f979954dc08",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "9b1203ee4f1c6868c30840f56ddca6e1b97c5ad3ba64d97d2b58ebe8282e69d0",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/7ec7e638071745f198066f979954dc08"
+    },
+    {
+      "trace_id": "b7400373a3264588ac1dc0a95927598e",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "e3465364e513422af7b5899aa8df1742cf6959c3df25acca840a68950ea40bc4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/b7400373a3264588ac1dc0a95927598e"
+    },
+    {
+      "trace_id": "b03d9f5acedc4761aba7d4c975c1d392",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "45687992cb0d4832a052fcc3e0bf3b1d07162f021a2d804e3e8d4b97327f8478",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/b03d9f5acedc4761aba7d4c975c1d392"
+    },
+    {
+      "trace_id": "b07a3cb747064f8c8c01dddd38d63afd",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "982b42adc392ab14aac0f6cc3f720e82062f02b5262eb02eb73a54f59202a0ef",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/b07a3cb747064f8c8c01dddd38d63afd"
+    },
+    {
+      "trace_id": "cdab5cbb84684aa8b3b432369db1c7f4",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "19f107eea493bf5785f08c6eba39545d21e21bb38aba25ef40d40a1767a4d7ad",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/cdab5cbb84684aa8b3b432369db1c7f4"
+    },
+    {
+      "trace_id": "a064f5a5d379470da09318c815c6f647",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "2ae10bcc9f484c5ae700988f27c58bea3d1b27d4be1ac2b698bf83785e97e21a",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/a064f5a5d379470da09318c815c6f647"
+    },
+    {
+      "trace_id": "2550a24cfc124564a868a4eeb11a6f17",
+      "run_id": "repair-main-20261115-single_agent-4002",
+      "role": "proposer",
+      "step": "single_agent",
+      "prompt_sha256": "9115aa73e95f7d50d423e70ed1a990711506ca08e051170b59272a035980eba4",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/2550a24cfc124564a868a4eeb11a6f17"
+    }
+  ],
+  "particles": 512,
+  "simulations": 64,
+  "move_steps": 4,
+  "belief_diagnostics": {}
+}

@@ -1,0 +1,53 @@
+{
+  "families": [
+    {
+      "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. The parameter vector concatenates three source locations as (x1,y1,x2,y2,x3,y3). The predict function computes the scalar intensity at each design point as the sum of inverse squared distances from each source, i.e., intensity = sum(1 / (distance^2 + 0.1)) to avoid singularities. The sample_prior function samples each source coordinate uniformly in [-2,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensities = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x = params[:, 2*i][:, None]\n        y = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        dist_sq = dx**2 + dy**2 + 0.1\n        intensities += 1 / dist_sq\n    return intensities\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    },
+    {
+      "statement": "Model 2: Each source is parameterized by its (x,y) location and a fixed equal strength of 1. The parameter vector is (x1,y1,x2,y2,x3,y3). The predict function models each source contribution as a Gaussian kernel: intensity = sum(exp(-distance^2 / (2*0.3^2))). The sample_prior samples uniformly in [-2,2].",
+      "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensities = np.zeros((n_particles, n_designs))\n    sigma = 0.3\n    for i in range(3):\n        x = params[:, 2*i][:, None]\n        y = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        dist_sq = dx**2 + dy**2\n        intensities += np.exp(-dist_sq / (2 * sigma**2))\n    return intensities\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+    }
+  ],
+  "attempts": [
+    {
+      "family": 0,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 1: Each source is parameterized by its (x,y) location within [-2,2]^2. The parameter vector concatenates three source locations as (x1,y1,x2,y2,x3,y3). The predict function computes the scalar intensity at each design point as the sum of inverse squared distances from each source, i.e., intensity = sum(1 / (distance^2 + 0.1)) to avoid singularities. The sample_prior function samples each source coordinate uniformly in [-2,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensities = np.zeros((n_particles, n_designs))\n    for i in range(3):\n        x = params[:, 2*i][:, None]\n        y = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        dist_sq = dx**2 + dy**2 + 0.1\n        intensities += 1 / dist_sq\n    return intensities\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    },
+    {
+      "family": 1,
+      "repair": 0,
+      "proposal": {
+        "statement": "Model 2: Each source is parameterized by its (x,y) location and a fixed equal strength of 1. The parameter vector is (x1,y1,x2,y2,x3,y3). The predict function models each source contribution as a Gaussian kernel: intensity = sum(exp(-distance^2 / (2*0.3^2))). The sample_prior samples uniformly in [-2,2].",
+        "code": "import numpy as np\n\ndef predict(designs, params):\n    n_particles = params.shape[0]\n    n_designs = designs.shape[0]\n    intensities = np.zeros((n_particles, n_designs))\n    sigma = 0.3\n    for i in range(3):\n        x = params[:, 2*i][:, None]\n        y = params[:, 2*i+1][:, None]\n        dx = designs[:, 0][None, :] - x\n        dy = designs[:, 1][None, :] - y\n        dist_sq = dx**2 + dy**2\n        intensities += np.exp(-dist_sq / (2 * sigma**2))\n    return intensities\n\ndef sample_prior(rng, n):\n    return rng.uniform(-2, 2, size=(n, 6))"
+      },
+      "error": null
+    }
+  ],
+  "validation_error": null,
+  "usage": {
+    "calls": 1,
+    "cached_calls": 0,
+    "input_tokens": 239,
+    "output_tokens": 579,
+    "cost_usd": 0.0010219999999999951,
+    "unpriced_calls": 0
+  },
+  "traces": [
+    {
+      "trace_id": "88ba320e38a54b399902746a3855fdf6",
+      "run_id": "repair-main-20261115-proposals-4013",
+      "role": "proposer",
+      "step": "propose",
+      "prompt_sha256": "9767e8b92b24c59ece4926d6ed827dfa61b01fd7e096ce2ba930fdc61cd68c1c",
+      "model": "gpt-4.1-mini",
+      "cached": false,
+      "url": "https://cloud.langfuse.com/project/cmwh590pl09u9ad0k9vyreiuk/traces/88ba320e38a54b399902746a3855fdf6"
+    }
+  ]
+}

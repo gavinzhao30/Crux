@@ -1,0 +1,384 @@
+{
+  "artifacts": [],
+  "budget": {
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "seconds": 13.987295,
+    "tokens_in": 0,
+    "tokens_out": 0
+  },
+  "config": {
+    "cost_lambda": 0.2,
+    "critic": false,
+    "eps": 0.1,
+    "lessons": false,
+    "llm": {
+      "cache": false,
+      "cache_dir": "runs/.cache/llm",
+      "max_concurrency": 8,
+      "max_output_tokens": 2048,
+      "max_retries": 1,
+      "prices_per_mtok": {
+        "gpt-4.1-mini": [
+          0.4,
+          1.6
+        ]
+      },
+      "role_models": {
+        "default": "gpt-4.1-mini"
+      },
+      "role_temperature": {
+        "default": 0.2,
+        "predictor": 0.8,
+        "proposer": 0.7
+      },
+      "timeout_s": 60.0
+    },
+    "max_critic_rounds": 2,
+    "max_experiments_per_question": 4,
+    "max_llm_calls": 40,
+    "max_regenerations": 2,
+    "max_seconds": 1800.0,
+    "max_usd": 2.0,
+    "memory": "pastdev",
+    "min_eig_bits": 0.05,
+    "n_predictor_samples": 8,
+    "name": "default",
+    "null_hypothesis": false,
+    "null_prior": 0.15,
+    "numeric_eig_goal": "total",
+    "numeric_move_steps": 4,
+    "numeric_particles": 256,
+    "numeric_simulations": 16,
+    "numeric_stop_on_settle": false,
+    "predictor": "sampled",
+    "proposers": 3,
+    "reject_below": 0.02,
+    "runs_dir": "/checkpoints/jobs",
+    "search": true,
+    "seed": 1000,
+    "selection": "eig",
+    "settle": 0.9
+  },
+  "diagnostics": [
+    {
+      "experiment_id": "m1:x=0.666667,y=0.666667",
+      "recorded_at": "2026-11-15T08:45:54.105523+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "3507e45a6db2590b14487dfa4c478ebb3be58956d1ce40b283b79e9bc2d73bfe"
+    },
+    {
+      "experiment_id": "m2:x=-0.666667,y=-1.33333",
+      "recorded_at": "2026-11-15T08:45:55.210468+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": -1.3333333333333335
+        },
+        "query": null
+      },
+      "spec_hash": "5e683193034773f4513528576f223a7a8d1975f2a2371c3ba9cf4079feefe592"
+    },
+    {
+      "experiment_id": "m3:x=0,y=1.33333",
+      "recorded_at": "2026-11-15T08:45:55.926191+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "216a3e0700ac3ad91fadb6a5f68ca8ecb2fa9a182e044f5930275c686c607354"
+    },
+    {
+      "experiment_id": "m4:x=0.666667,y=1.33333",
+      "recorded_at": "2026-11-15T08:45:56.657163+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "88ac0324ae419f42a43d282b2492b552cbfe73acd1bc4a2e73c91ba63c8b2ed1"
+    },
+    {
+      "experiment_id": "m5:x=-1.33333,y=0.666667",
+      "recorded_at": "2026-11-15T08:45:57.696859+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -1.3333333333333335,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "dc6a90455b0ef3021e788e32c2935e7102f09984e9694fdc51c09cc81de283c7"
+    },
+    {
+      "experiment_id": "m6:x=1.33333,y=0.666667",
+      "recorded_at": "2026-11-15T08:45:59.369378+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "4e6d70256aaf20c05f8ccc2f7423888f43574b77521752b2ee230da0c461ae78"
+    },
+    {
+      "experiment_id": "m7:x=-2,y=1.33333",
+      "recorded_at": "2026-11-15T08:46:00.019425+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -2.0,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "a3c27070f72d976525b4ac740fef4a953009cee00f332bb35ef2a1b8ef9aa999"
+    },
+    {
+      "experiment_id": "m8:x=-0.666667,y=-0.666667",
+      "recorded_at": "2026-11-15T08:46:00.498229+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "8c899cef6edf28ee435065e23c6dfb72840fe3aeeb888ba203c125cbca6f581b"
+    },
+    {
+      "experiment_id": "m9:x=-0.666667,y=-0.666667",
+      "recorded_at": "2026-11-15T08:46:00.968995+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "8c899cef6edf28ee435065e23c6dfb72840fe3aeeb888ba203c125cbca6f581b"
+    },
+    {
+      "experiment_id": "m10:x=0.666667,y=0",
+      "recorded_at": "2026-11-15T08:46:01.487030+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 0.0
+        },
+        "query": null
+      },
+      "spec_hash": "3f8e714edcc4431aa94725292e4178387ddcad075b9704c3ec59c0831585b2a0"
+    },
+    {
+      "experiment_id": "m11:x=0.666667,y=0.666667",
+      "recorded_at": "2026-11-15T08:46:02.343154+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "3507e45a6db2590b14487dfa4c478ebb3be58956d1ce40b283b79e9bc2d73bfe"
+    },
+    {
+      "experiment_id": "m12:x=-2,y=-2",
+      "recorded_at": "2026-11-15T08:46:02.819150+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -2.0,
+          "y": -2.0
+        },
+        "query": null
+      },
+      "spec_hash": "6fcf64e109859ef74530a30da77a23455595d5a83bbfb0606716b01e50026f66"
+    },
+    {
+      "experiment_id": "m13:x=0.666667,y=0.666667",
+      "recorded_at": "2026-11-15T08:46:03.285575+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "3507e45a6db2590b14487dfa4c478ebb3be58956d1ce40b283b79e9bc2d73bfe"
+    },
+    {
+      "experiment_id": "m14:x=-0.666667,y=-0.666667",
+      "recorded_at": "2026-11-15T08:46:03.769930+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "8c899cef6edf28ee435065e23c6dfb72840fe3aeeb888ba203c125cbca6f581b"
+    },
+    {
+      "experiment_id": "m15:x=0.666667,y=0.666667",
+      "recorded_at": "2026-11-15T08:46:04.258624+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.6666666666666665,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "3507e45a6db2590b14487dfa4c478ebb3be58956d1ce40b283b79e9bc2d73bfe"
+    },
+    {
+      "experiment_id": "m16:x=0,y=-0.666667",
+      "recorded_at": "2026-11-15T08:46:04.736576+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "6edafc8e9dbf6a3fe1da41f29aa9b1593f471a5308adb2ccdfe2378e61dfa81d"
+    },
+    {
+      "experiment_id": "m17:x=0,y=0.666667",
+      "recorded_at": "2026-11-15T08:46:05.223932+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 0.0,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "d9277f11bade98a6ae3d416b3173e240ab53f43e8e786a6363ea682ce673c3fd"
+    },
+    {
+      "experiment_id": "m18:x=1.33333,y=1.33333",
+      "recorded_at": "2026-11-15T08:46:05.701326+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 1.333333333333333
+        },
+        "query": null
+      },
+      "spec_hash": "0af6d42bca1417610a410a4d50056cbc712a7b61a1536fb3957186d5bc60bade"
+    },
+    {
+      "experiment_id": "m19:x=1.33333,y=0.666667",
+      "recorded_at": "2026-11-15T08:46:06.194355+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": 1.333333333333333,
+          "y": 0.6666666666666665
+        },
+        "query": null
+      },
+      "spec_hash": "4e6d70256aaf20c05f8ccc2f7423888f43574b77521752b2ee230da0c461ae78"
+    },
+    {
+      "experiment_id": "m20:x=-0.666667,y=-0.666667",
+      "recorded_at": "2026-11-15T08:46:06.816062+00:00",
+      "spec": {
+        "bins": [],
+        "code": null,
+        "design": {
+          "x": -0.6666666666666667,
+          "y": -0.6666666666666667
+        },
+        "query": null
+      },
+      "spec_hash": "8c899cef6edf28ee435065e23c6dfb72840fe3aeeb888ba203c125cbca6f581b"
+    }
+  ],
+  "ended_at": "2026-11-15T08:46:07.431404+00:00",
+  "execution_backend": "BoxingLab",
+  "git_commit": null,
+  "git_dirty": false,
+  "grader_commit": null,
+  "input_bundle_id": null,
+  "input_hashes": {},
+  "lab": "boxing",
+  "model_ids": {
+    "default": "gpt-4.1-mini"
+  },
+  "prompt_hashes": {},
+  "run_id": "7a68c62f-boxing-1000-crux-r00",
+  "sandbox_id": null,
+  "sandbox_image_id": null,
+  "sandbox_image_recipe_sha256": "a89dbe618631f5b9c0825d89dd20125fcbb404157ef654afe7080ac7dae2e3b4",
+  "schema_version": 1,
+  "seeds": {
+    "orchestrator": 1000,
+    "particles": 1000
+  },
+  "started_at": "2026-11-15T08:45:53.444192+00:00",
+  "status": "ok",
+  "total_cost_usd": 0.0,
+  "total_tokens": 0,
+  "traces": [],
+  "tracing": {
+    "dropped": 0,
+    "errors": [],
+    "pending": 0
+  },
+  "usage": {
+    "calls": 0,
+    "cost_usd": 0.0,
+    "input_tokens": 0,
+    "known_cost_usd": 0.0,
+    "output_tokens": 0,
+    "unpriced_calls": 0
+  }
+}

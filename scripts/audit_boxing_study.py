@@ -58,7 +58,7 @@ assert len(summary) == 18 and all(s['n'] == 20 for s in summary)
 assert len(list(csv.DictReader((root / 'costs.csv').open()))) == 120
 replays = {}
 for arm in ['crux_random', 'crux_eig']:
-    folder = root / f'{root.name}-{arm}-100'
+    folder = root / f'{root.name}-{arm}-{protocol["seeds"][0]:02d}'
     check = replay_check(folder)
     replays[arm] = {'ok': check.ok, 'details': str(check)}
     assert check.ok, check

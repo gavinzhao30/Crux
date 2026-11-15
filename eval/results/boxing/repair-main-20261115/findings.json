@@ -1,0 +1,48 @@
+{
+  "conclusion": "This run does not establish an EIG advantage; the paired 95% confidence interval includes zero.",
+  "paired_at_20": {
+    "budget": 20,
+    "n": 20,
+    "mean_log10_error_difference": 0.5542283127539623,
+    "low": -0.029750355899896525,
+    "high": 1.6070972028326402
+  },
+  "repaired_proposal_sets": 4,
+  "unusable_proposal_sets": 2,
+  "repair_versions_validated": 11,
+  "usage": {
+    "calls": 491,
+    "cached_calls": 0,
+    "input_tokens": 149368,
+    "output_tokens": 28629,
+    "cost_usd": 0.1055536,
+    "unpriced_calls": 0
+  },
+  "diagnostics": {
+    "random": {
+      "resampling_events": 171,
+      "pooled_move_acceptance": 0.13145901864035087,
+      "median_unique_particles_after_move": 169
+    },
+    "grid": {
+      "resampling_events": 152,
+      "pooled_move_acceptance": 0.13866545024671054,
+      "median_unique_particles_after_move": 186.5
+    },
+    "oracle": {
+      "resampling_events": 271,
+      "pooled_move_acceptance": 0.0563811692804428,
+      "median_unique_particles_after_move": 26
+    },
+    "crux_random": {
+      "resampling_events": 200,
+      "pooled_move_acceptance": 0.06489990234375,
+      "median_unique_particles_after_move": 51.0
+    },
+    "crux_eig": {
+      "resampling_events": 207,
+      "pooled_move_acceptance": 0.048854072312801936,
+      "median_unique_particles_after_move": 11
+    }
+  }
+}
