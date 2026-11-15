@@ -144,11 +144,15 @@ class Task9Lab:
                     raise ValueError(executed["error"])
                 result = executed["result"]
             elif exp.kind == "search" and exp.query and self.search is not None:
+                from search.task9 import search_value
+
                 evidence = await self.search.find(exp.query)
+                # Without an injected mapper the bins see the same code-computed fields as
+                # the orchestrator's search path: n_results, text (lower-cased) and urls.
                 result = (
                     await self.summarize_search(exp, evidence)
                     if self.summarize_search is not None
-                    else {"hit_count": len(evidence), "urls": [item.url for item in evidence]}
+                    else {"hit_count": len(evidence), **search_value(evidence)}
                 )
             else:
                 raise ValueError("Unsupported or incomplete Task 9 experiment")

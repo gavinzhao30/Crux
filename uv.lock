@@ -249,7 +249,7 @@ tinker = [
 [package.metadata]
 requires-dist = [
     { name = "arize-phoenix-otel" },
-    { name = "exa-py" },
+    { name = "exa-py", specifier = ">=2.28.0" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "langfuse", specifier = ">=5,<6" },

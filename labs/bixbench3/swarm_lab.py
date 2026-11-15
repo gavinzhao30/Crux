@@ -52,6 +52,7 @@ class SwarmTask9Lab:
         summarize_search: Any = None,
         max_attempts: int = 3,
         delivery_timeout_s: int = 600,
+        owns_search: bool = False,
     ) -> None:
         if planner is None:
             from agents.deliverer import plan_delivery
@@ -80,6 +81,8 @@ class SwarmTask9Lab:
         self.run_dir: Path | None = None
         self.sandbox_id: str | None = None
         self.profile_facts: list[dict] = []
+        # ``build_task9_run`` hands over the search it built; ``close`` releases it.
+        self.owns_search = owns_search
 
     # --- Lab -------------------------------------------------------------------------
 
@@ -160,9 +163,15 @@ class SwarmTask9Lab:
             self.executor = self.inner.executor = executor
 
     async def close(self) -> None:
-        if self.sandbox_id is not None and self.executor is not None:
-            sandbox, self.sandbox_id = self.sandbox_id, None
-            await self.executor.close(sandbox)
+        try:
+            if self.sandbox_id is not None and self.executor is not None:
+                sandbox, self.sandbox_id = self.sandbox_id, None
+                await self.executor.close(sandbox)
+        finally:
+            search = self.inner.search
+            if self.owns_search and search is not None and hasattr(search, "aclose"):
+                self.owns_search = False
+                await search.aclose()
 
     # --- helpers ---------------------------------------------------------------------
 
@@ -218,6 +227,7 @@ def build_task9_lab(
     case_dir: Path | None = None,
     manifest: Path | None = None,
     search: Any = None,
+    owns_search: bool = False,
 ) -> SwarmTask9Lab:
     """A Task 9 lab on Modal (``manifest`` from ``execution.staging``) or, for development,
     on this machine (``case_dir`` holding the counts and sample sheet)."""
@@ -232,7 +242,7 @@ def build_task9_lab(
         from execution.local import LocalExecutor
 
         executor = LocalExecutor(Path(case_dir), Path(runs_dir))
-    return SwarmTask9Lab(executor, llm=llm, search=search)
+    return SwarmTask9Lab(executor, llm=llm, search=search, owns_search=owns_search)
 
 
 def build_task9_run(
@@ -250,12 +260,26 @@ def build_task9_run(
     sampler path in env ``CRUX_TINKER_PREDICTOR``, reading the lab's parsed profile; the
     sampled predictor stays as its fallback. Library rows win as in the sampled predictor;
     ``CRUX_TINKER_OVERRIDE_STATED=1`` lets the model replace the stated rows too.
+
+    Search: with ``cfg.search`` on and ``EXA_API_KEY`` set, and no ``search`` passed, the
+    run gets the guarded Exa search (``search.task9.build_task9_search``) as ``Deps.search``
+    and in the lab, which closes it at the end of the run. With ``cfg.search`` off neither
+    gets a search, even one passed in.
     """
     from agents.llm import LLM, STRONG_MODEL, LLMConfig
     from agents.predictor import SampledPredictor
     from agents.swarm import SwarmRoles
     from core.orchestrator import Deps
     from execution.staging import COUNTS
+
+    owns_search = False
+    if not getattr(cfg, "search", False):
+        search = None
+    elif search is None:
+        from search.task9 import build_task9_search
+
+        search = build_task9_search(cfg)
+        owns_search = search is not None
 
     if llm is None:
         config = LLMConfig()
@@ -272,6 +296,7 @@ def build_task9_run(
         case_dir=case_dir,
         manifest=manifest,
         search=search,
+        owns_search=owns_search,
     )
     counts = Path(case_dir) / COUNTS if case_dir is not None else None
     # The referee reads log files relative to the run folder, which the lab learns in bind().

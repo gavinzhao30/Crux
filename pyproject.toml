@@ -5,7 +5,7 @@ description = "Experimental design and scientific artifact reproduction"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "arize-phoenix-otel",
-    "exa-py",
+    "exa-py>=2.28.0",
     "fastapi",
     "httpx",
     "langfuse>=5,<6",
