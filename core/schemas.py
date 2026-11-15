@@ -49,7 +49,7 @@ class Experiment(BaseModel):
     design: dict | None = None
     bins: list[OutcomeBin] = []
     likelihood: dict[str, dict[str, float]] = {}
-    likelihood_source: Literal["exact", "sampled", "jev", "stated"] = "sampled"
+    likelihood_source: Literal["exact", "sampled", "jev", "stated", "tinker"] = "sampled"
     est_cost_s: float = 30
     est_cost_usd: float = 0.0
     eig_bits: float | None = None

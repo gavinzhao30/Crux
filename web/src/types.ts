@@ -58,7 +58,7 @@ export interface Experiment {
   design: Record<string, unknown> | null;
   bins: OutcomeBin[];
   likelihood: Record<string, Record<string, number>>;
-  likelihood_source: 'exact' | 'sampled' | 'jev' | 'stated';
+  likelihood_source: 'exact' | 'sampled' | 'jev' | 'stated' | 'tinker';
   est_cost_s: number;
   est_cost_usd: number;
   eig_bits: number | null;
