@@ -136,7 +136,7 @@ def belief_diagnostics(belief):
 
 
 async def run_episode(arm, seed, budgets, directory, llm, proposals=None, particles=256, simulations=16,
-                      defer_grading=False, move_steps=4):
+                      defer_grading=False, move_steps=4, bus_factory=None):
     started = time.monotonic()
     env = LocationFinding(seed)
     rng = np.random.default_rng(np.random.SeedSequence([seed, 410]))
@@ -156,7 +156,10 @@ async def run_episode(arm, seed, budgets, directory, llm, proposals=None, partic
                               numeric_simulations=simulations, numeric_move_steps=move_steps,
                               selection="random" if arm == "crux_random" else "eig")
             cfg.llm = llm.config
-            await run(lab, cfg, Deps(agents=BoxingRoles(proposals), predictor=None, llm=llm),
+            deps = Deps(agents=BoxingRoles(proposals), predictor=None, llm=llm)
+            if bus_factory is not None:
+                deps.bus_factory = bus_factory
+            await run(lab, cfg, deps,
                       run_id=directory.name)
             scores, history = lab.scores, lab.env.history
         elif arm == "single_agent":

@@ -32,6 +32,7 @@ from modal.types import FileEntryType
 
 from agents.llm import CHEAP_MODEL, STRONG_MODEL
 from core.config import load_config
+from core.events import EventBus
 from execution.staging import COUNTS, SAMPLES, Task9Inputs, stage
 
 ARMS = ("single_agent", "crux", "crux_random_selection", "crux_no_critic", "crux_role_only_memory")
@@ -40,6 +41,23 @@ BOXING_SEEDS = {"dev": tuple(range(1000, 1005)), "test": tuple(range(2000, 2020)
 VOLUME_NAME = "crux-eval-checkpoints"
 ROOT = Path(__file__).resolve().parents[1]
 logger = logging.getLogger(__name__)
+_commit_lock = threading.Lock()
+
+
+def commit_checkpoint():
+    with _commit_lock:
+        volume.commit()
+
+
+async def checkpoint():
+    await asyncio.to_thread(commit_checkpoint)
+
+
+class DurableEventBus(EventBus):
+    async def emit(self, event_type, payload):
+        event = await super().emit(event_type, payload)
+        await checkpoint()
+        return event
 
 
 def _load_local_credentials() -> None:
@@ -143,6 +161,8 @@ def plan(args: argparse.Namespace) -> dict:
                              if arm != "single_agent" and args.suite == "task9" else None})
     return {"suite": args.suite, "cases": args.cases, "arms": arms, "batch_id": batch_id,
             "repeats": args.repeats, "seed": args.seed, "jobs": jobs,
+            "capabilities": {"task9": list(ARMS), "boxing": list(BOXING_ARMS)},
+            "unsupported_numeric_presets": ["crux_no_critic", "crux_role_only_memory"],
             "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "boxing_seed_splits": BOXING_SEEDS if args.suite == "boxing" else None}
 
@@ -150,7 +170,7 @@ def plan(args: argparse.Namespace) -> dict:
 def _checkpoint_loop(stop: threading.Event) -> None:
     while not stop.wait(10):
         try:
-            volume.commit()
+            commit_checkpoint()
         except Exception as exc:  # noqa: BLE001 - final commit retries after transient errors
             logger.warning("Periodic checkpoint failed: %s", exc)
 
@@ -175,6 +195,7 @@ async def _task9(job: dict, manifest: str, directory: Path) -> dict:
         model = job["model"]
         rate_in, rate_out = TASK9_PRICES[model]
         executor = ModalExecutor(inputs, Path("/checkpoints/jobs"))
+        executor.on_checkpoint = checkpoint
         prompt, source = load_prompt()
         async with AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=0) as client:
             report = await run_baseline(
@@ -184,13 +205,16 @@ async def _task9(job: dict, manifest: str, directory: Path) -> dict:
                 execution_seconds=job["timeout"],
             )
         return {"status": report["status"], "cost_usd": report.get("usd_unadjusted_for_cache"),
-                "model_calls": report.get("calls"), "input_tokens": report.get("input_tokens"),
-                "output_tokens": report.get("output_tokens")}
+                "model_calls": report.get("calls"), "input_tokens": sum(u.get("prompt_tokens", 0) for u in report.get("usage", [])),
+                "output_tokens": sum(u.get("completion_tokens", 0) for u in report.get("usage", [])),
+                "experiments": len(report.get("execution_log", []))}
     cfg = EngineConfig.model_validate(job["config"])
     cfg.llm = LLMConfig(role_models={"default": job["model"]},
                         prices_per_mtok=TASK9_PRICES, cache=False)
     llm = LLM(cfg.llm)
     lab, deps = build_task9_run(cfg, manifest=Path(manifest), llm=llm)
+    lab.executor.on_checkpoint = checkpoint
+    deps.bus_factory = DurableEventBus
     await run(lab, cfg, deps, run_id=run_id)
     usage = llm.usage_totals()
     return {"status": "finished", "cost_usd": usage.get("cost_usd"),
@@ -214,7 +238,7 @@ async def _boxing(job: dict, directory: Path) -> dict:
             raise ValueError(f"Paired proposal failed: {job['proposal_error']}")
         proposals = [FamilyProposal.model_validate(p) for p in job["proposals"]]
     record = await run_episode(arm, job["seed"], [5, 10, 20], directory, llm, proposals,
-                               defer_grading=True)
+                               defer_grading=True, bus_factory=DurableEventBus)
     final = record["rows"][-1]
     return {"status": "finished" if final["status"] == "pending_grade" else final["status"],
             "mse": final["mse"],
@@ -247,8 +271,10 @@ def worker(job: dict) -> dict:
     """One isolated Modal job. No evaluator truth or references enter this function."""
     directory = Path("/checkpoints/jobs") / job["job_id"]
     directory.mkdir(parents=True, exist_ok=True)
+    if (directory / "result.json").exists():
+        return json.loads((directory / "result.json").read_text())
     atomic_json(directory / "status.json", {"state": "running", "job": job})
-    volume.commit()
+    commit_checkpoint()
     stop = threading.Event()
     thread = threading.Thread(target=_checkpoint_loop, args=(stop,), daemon=True)
     thread.start()
@@ -267,10 +293,11 @@ def worker(job: dict) -> dict:
     finally:
         stop.set()
         thread.join(timeout=2)
+    result.update({k: v for k, v in evidence_metrics(directory).items() if result.get(k) is None})
     result.update(job_id=job["job_id"], seconds=time.monotonic() - started)
     atomic_json(directory / "result.json", result)
     atomic_json(directory / "status.json", {"state": result["state"], "job": job})
-    volume.commit()
+    commit_checkpoint()
     return result
 
 
@@ -304,10 +331,68 @@ def _grade_task9(job: dict, args: argparse.Namespace, evidence: Path) -> dict:
         return {"score": None, "grade_status": "grader_error", "grade_error": str(exc)[:1000]}
 
 
+def shared_proposal_fields(job):
+    usage = job.get("usage", {})
+    return {f"shared_proposal_{key}": usage.get(key) for key in ["cost_usd", "input_tokens", "output_tokens"]}
+
+
+def evidence_metrics(directory):
+    baseline = directory / "baseline.json"
+    if baseline.exists():
+        data = json.loads(baseline.read_text(encoding="utf-8"))
+        usage = data.get("usage", [])
+        return {"cost_usd": float(data["usd_unadjusted_for_cache"]),
+                "model_calls": data["calls"], "input_tokens": sum(u.get("prompt_tokens", 0) for u in usage),
+                "output_tokens": sum(u.get("completion_tokens", 0) for u in usage),
+                "experiments": len(data.get("execution_log", [])),
+                "usage_complete": len(usage) == data["calls"]}
+    manifest = directory / "manifest.json"
+    if manifest.exists():
+        usage = json.loads(manifest.read_text(encoding="utf-8"))["usage"]
+        events = directory / "events.jsonl"
+        count = sum(json.loads(line)["type"] == "experiment.finished"
+                    for line in events.read_text(encoding="utf-8").splitlines()) if events.exists() else 0
+        return {"cost_usd": usage.get("cost_usd"), "model_calls": usage.get("calls"),
+                "input_tokens": usage.get("input_tokens"), "output_tokens": usage.get("output_tokens"),
+                "experiments": count, "usage_complete": not usage.get("unpriced_calls")}
+    return {}
+
+
+def fault_metrics(job, truth, evidence, *, cache=None, allow_model_calls=True):
+    """Evaluator-only review. Never sends case truth to an execution worker."""
+    if cache is not None and cache.exists():
+        return json.loads(cache.read_text(encoding="utf-8"))
+    if truth["fault"] == "clean":
+        return {"fault_detected": None, "fault_handled": None, "fault_verdict": "not_applicable", "judge_cost_usd": 0}
+    methods = evidence / "artifacts" / "METHODS.md"
+    if not methods.exists():
+        return {"fault_detected": False, "fault_handled": False, "fault_verdict": "missed_no_methods", "judge_cost_usd": 0}
+    if not allow_model_calls:
+        return {"fault_detected": None, "fault_handled": None, "fault_verdict": "needs_fault_judge"}
+    from agents.llm import LLM, LLMConfig
+    from eval.suites.task9.score_faults import judge
+    from labs.bixbench3.swarm_lab import TASK9_PRICES
+
+    llm = LLM(LLMConfig(role_models={"default": job["model"]}, prices_per_mtok=TASK9_PRICES,
+                        cache=False, max_output_tokens=1024, max_retries=1))
+    try:
+        verdict = asyncio.run(judge(llm, truth["fault"], truth["affected_samples"], methods.read_text(encoding="utf-8")))
+        result = {"fault_detected": verdict.verdict in {"caught", "noticed"},
+                  "fault_handled": verdict.verdict == "caught", "fault_verdict": verdict.verdict,
+                  "fault_quote": verdict.quote, "fault_reason": verdict.reason,
+                  "judge_cost_usd": llm.usage_totals()["cost_usd"], "judge_usage": llm.usage_totals()}
+    except Exception as exc:  # noqa: BLE001
+        result = {"fault_detected": None, "fault_verdict": "judge_error", "judge_error": str(exc)[:1000],
+                  "judge_cost_usd": llm.usage_totals()["cost_usd"]}
+    if cache is not None:
+        atomic_json(cache, result)
+    return result
+
+
 def _grade_boxing(job: dict, result: dict) -> dict:
     from labs.boxing.location_finding import LocationFinding
 
-    predictions = result.get("heldout_predictions", {})
+    predictions = result.get("heldout_predictions", {}) if result.get("state", "complete") == "complete" else {}
     env = LocationFinding(job["seed"])
     checkpoints = []
     for budget in (5, 10, 20):
@@ -327,10 +412,10 @@ def _grade_boxing(job: dict, result: dict) -> dict:
 def _summary(rows: list[dict], output: Path) -> None:
     fields = ["job_id", "suite", "case_id", "arm", "repeat", "seed", "state", "status",
               "grade_status", "score", "raw_mse", "cost_usd", "model_calls",
-              "input_tokens", "output_tokens", "shared_proposal_cost_usd",
+              "input_tokens", "output_tokens", "usage_complete", "shared_proposal_cost_usd",
               "shared_proposal_input_tokens", "shared_proposal_output_tokens",
               "seconds", "experiments", "fault",
-              "fault_detected", "failure", "failure_detail", "artifact_ref"]
+              "fault_detected", "fault_handled", "fault_verdict", "judge_cost_usd", "failure", "failure_detail", "artifact_ref"]
     with (output / "summary.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
@@ -347,7 +432,7 @@ def recover(args: argparse.Namespace) -> None:
     rows = []
     for job in manifest["jobs"]:
         saved = args.output / "jobs" / f"{job['job_id']}.json"
-        if saved.is_file():
+        if saved.is_file() and json.loads(saved.read_text()).get("grade_status") not in {"needs_evaluator", "grader_error"}:
             row = json.loads(saved.read_text(encoding="utf-8"))
         else:
             try:
@@ -357,6 +442,10 @@ def recover(args: argparse.Namespace) -> None:
             except (OSError, ValueError, modal.exception.Error) as exc:
                 result = {"state": "missing", "status": "interrupted", "failure": "MissingCheckpoint",
                           "failure_detail": str(exc)[:1000]}
+            try:
+                _download_job(job, args.output)
+            except (OSError, ValueError, modal.exception.Error) as exc:
+                result["evidence_error"] = str(exc)[:1000]
             evidence = args.output / "evidence" / job["job_id"]
             if args.suite == "boxing":
                 graded = _grade_boxing(job, result)
@@ -368,9 +457,11 @@ def recover(args: argparse.Namespace) -> None:
                           "grade_status": "failed" if result.get("state") != "complete" else "needs_evaluator"}
             row = {**job, **result, **graded, "artifact_ref": str(evidence)}
             if job.get("usage"):
-                row["shared_proposal_cost_usd"] = job["usage"].get("cost_usd")
+                row.update(shared_proposal_fields(job))
             if job["case_id"] in truth:
                 row["fault"] = truth[job["case_id"]]["fault"]
+                row.update(fault_metrics(job, truth[job["case_id"]], evidence,
+                    cache=args.output / "grades" / job["job_id"] / "fault.json", allow_model_calls=False))
             atomic_json(saved, row)
         rows.append(row)
     _summary(rows, args.output)
@@ -396,6 +487,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--recover", action="store_true", help="reconcile saved jobs without launching new work")
     args = parser.parse_args(argv)
+    started = time.monotonic()
     if args.recover:
         if args.output is None:
             parser.error("--recover requires --output")
@@ -470,15 +562,17 @@ def main(argv: list[str] | None = None) -> None:
                   else {"score": 0.0, "grade_status": "failed"})
         row = {**job, **result, **graded, "artifact_ref": str(evidence)}
         if job.get("usage"):
-            row["shared_proposal_cost_usd"] = job["usage"].get("cost_usd")
-            row["shared_proposal_input_tokens"] = job["usage"].get("input_tokens")
-            row["shared_proposal_output_tokens"] = job["usage"].get("output_tokens")
+            row.update(shared_proposal_fields(job))
         if args.suite == "task9":
             row["fault"] = truth[job["case_id"]]["fault"]
-            row["fault_detected"] = None  # reviews are not uniformly machine-readable
+            row.update(fault_metrics(job, truth[job["case_id"]], evidence,
+                cache=args.output / "grades" / job["job_id"] / "fault.json"))
         atomic_json(args.output / "jobs" / f"{job['job_id']}.json", row)
         rows.append(row)
         _summary(rows, args.output)
+    atomic_json(args.output / "acceptance.json", {"expected": len(manifest["jobs"]), "recorded": len(rows),
+        "wall_seconds": time.monotonic()-started, "under_20_minutes": time.monotonic()-started < 1200,
+        "graded": sum(r.get("grade_status") == "graded" for r in rows)})
     print(f"Completed {len(rows)} jobs; summary: {args.output / 'summary.csv'}")
 
 

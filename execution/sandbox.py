@@ -114,6 +114,7 @@ class ModalExecutor:
         self.app_name = app_name
         self.minimal_image = minimal_image
         self.on_event = on_event
+        self.on_checkpoint = None
         self._runs: dict[str, _Run] = {}
         self._active_run_ids: set[str] = set()
         self.image_ids: dict[str, str] = {}
@@ -252,6 +253,9 @@ class ModalExecutor:
                         "error": error,
                     },
                 )
+        if self.on_checkpoint is not None:
+            await self.collect_outputs(sandbox_id)
+            await self.on_checkpoint()
         return {
             "valid": error is None,
             "result": stdout.result if error is None else None,
