@@ -23,7 +23,9 @@ from api.launcher import (
     InvalidRunRequest,
     LauncherUnavailable,
     RunLauncher,
+    known_labs,
     new_run_id,
+    task9_cases,
 )
 
 NAME_RE = re.compile(r"^[A-Za-z0-9._-]{1,80}$")
@@ -380,6 +382,25 @@ def create_app(
     @app.get("/health")
     async def health() -> dict:
         return {"ok": True}
+
+    @app.get("/tasks")
+    async def list_tasks() -> dict:
+        """Labs a run can start, and the Task 9 cases found under ``$CRUX_TASK9_CASES``.
+
+        Start a case with ``POST /runs {"lab": "bixbench3", "overrides": {"case": id}}``.
+        Case splits live with the evaluator's truth key, which the server never reads.
+        """
+        try:
+            cases = task9_cases()
+        except ImportError:
+            cases = {}
+        return {
+            "labs": known_labs(),
+            "cases": [
+                {"lab": "bixbench3", "case": case, "kind": info["kind"]}
+                for case, info in sorted(cases.items())
+            ],
+        }
 
     @app.post("/runs", status_code=202)
     async def start_run(body: RunRequest) -> dict:
