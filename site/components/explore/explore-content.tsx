@@ -269,7 +269,7 @@ export function ExploreContent({ shell }: { shell: Shell }) {
         </div>
 
         <Link
-          href="/runs#jetson"
+          href={app ? "/app/jetson" : "/runs#jetson"}
           className="group mt-14 flex flex-wrap items-center justify-between gap-4 rounded-lg border bg-card px-6 py-5 transition-colors hover:border-foreground/30"
         >
           <span>
