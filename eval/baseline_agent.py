@@ -48,7 +48,7 @@ async def run_baseline(
     contract: dict,
     search: "Search | None" = None,
     max_calls: int = 40,
-    usd_cap: Decimal = Decimal("2"),
+    usd_cap: Decimal = Decimal(2),
     execution_seconds: int = 3600,
     max_output_tokens: int = 4096,
 ) -> dict:

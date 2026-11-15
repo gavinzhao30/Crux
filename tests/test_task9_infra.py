@@ -17,7 +17,8 @@ from search.task9_policy import GuardedSearch, Task9SearchPolicy
 
 def test_stage_snapshots_only_declared_files(tmp_path):
     class Volume:
-        files = {}
+        def __init__(self):
+            self.files = {}
 
         @contextmanager
         def batch_upload(self, *, force):
@@ -117,3 +118,33 @@ def test_validate_de_output_rejects_versioned_gene_ids(tmp_path: Path):
     assert validate_de_table(path) == []
     path.write_text(header + "ENSG00000000001.2,TEST,4,1,0.1,5,0.01,0.02\n")
     assert validate_de_table(path) == ["DE table must have unique, unversioned gene IDs"]
+
+
+def test_export_replaces_previous_snapshot_even_when_remote_is_empty(tmp_path):
+    files = {COUNTS: "b" * 64, SAMPLES: "c" * 64}
+    bundle_id = sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
+    executor = ModalExecutor(Task9Inputs(bundle_id, files), tmp_path)
+    read = AsyncMock(return_value=b"test")
+    listing = AsyncMock(side_effect=['{"nested/a.csv": 4}', '{"broken.csv": 6}', "{}"])
+    process = SimpleNamespace(
+        stdout=SimpleNamespace(read=SimpleNamespace(aio=listing)),
+        wait=SimpleNamespace(aio=AsyncMock(return_value=0)),
+    )
+    remote = SimpleNamespace(
+        exec=SimpleNamespace(aio=AsyncMock(return_value=process)),
+        filesystem=SimpleNamespace(read_bytes=SimpleNamespace(aio=read)),
+    )
+    executor._runs["test"] = _Run(remote, tmp_path, "run")
+
+    async def collect():
+        first = await executor.collect_outputs("test")
+        assert [artifact["name"] for artifact in first] == ["nested/a.csv"]
+        previous = tmp_path / "artifacts/nested/a.csv"
+        assert previous.read_bytes() == b"test"
+        with pytest.raises(ValueError, match="changed during export"):
+            await executor.collect_outputs("test")
+        assert previous.read_bytes() == b"test"
+        assert await executor.collect_outputs("test") == []
+        assert list((tmp_path / "artifacts").iterdir()) == []
+
+    asyncio.run(collect())

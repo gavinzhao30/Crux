@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
+from tempfile import TemporaryDirectory
 from time import monotonic
 from uuid import uuid4
 
@@ -16,7 +17,14 @@ import modal
 from execution.image import task9_image
 from execution.staging import MANIFEST, VOLUME_NAME, Task9Inputs
 
-_COMMANDS = {"python": ("python", "-u"), "r": ("Rscript", "--vanilla"), "bash": ("bash",)}
+_CONDA_BIN = "/opt/conda/bin"
+_PYTHON = f"{_CONDA_BIN}/python"
+_EXEC_ENV = {"PATH": f"{_CONDA_BIN}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}
+_COMMANDS = {
+    "python": (_PYTHON, "-u"),
+    "r": (f"{_CONDA_BIN}/Rscript", "--vanilla"),
+    "bash": ("/bin/bash",),
+}
 _REFERENCE_PROBE = "https://storage.googleapis.com/bixbench3-ground-truth/"
 _VERIFY_INPUTS = """
 import hashlib, json, pathlib, sys
@@ -146,10 +154,11 @@ class ModalExecutor:
                 idle_timeout=600,
             )
             check = await sandbox.exec.aio(
-                "python", "-c", _VERIFY_INPUTS, json.dumps(self.inputs.files), timeout=120
+                _PYTHON, "-c", _VERIFY_INPUTS, json.dumps(self.inputs.files), timeout=120
             )
             if await check.wait.aio() != 0:
-                raise RuntimeError("Task 9 staged inputs failed verification")
+                details = (await check.stderr.read.aio()).strip()
+                raise RuntimeError(f"Task 9 staged inputs failed verification: {details}")
             (directory / MANIFEST).write_text(self.inputs.json(), encoding="utf-8")
             run = _Run(sandbox, directory, run_id)
             self._event(run, "sandbox.ready", {"startup_seconds": monotonic() - started})
@@ -207,7 +216,12 @@ class ModalExecutor:
             try:
                 await run.sandbox.filesystem.write_text.aio(code, filename)
                 process = await run.sandbox.exec.aio(
-                    *_COMMANDS[language], filename, timeout=timeout_s, workdir="/work", bufsize=1
+                    *_COMMANDS[language],
+                    filename,
+                    timeout=timeout_s,
+                    workdir="/work",
+                    bufsize=1,
+                    env=_EXEC_ENV,
                 )
                 async with asyncio.TaskGroup() as tasks:
                     tasks.create_task(drain(process.stdout, "stdout", stdout))
@@ -242,7 +256,7 @@ class ModalExecutor:
         }
 
     async def _copy_outputs(self, run: _Run) -> list[dict]:
-        process = await run.sandbox.exec.aio("python", "-c", _LIST_OUTPUTS, timeout=30)
+        process = await run.sandbox.exec.aio(_PYTHON, "-c", _LIST_OUTPUTS, timeout=30)
         raw = await process.stdout.read.aio()
         if await process.wait.aio() != 0:
             raise RuntimeError("Sandbox output listing failed")
@@ -251,26 +265,47 @@ class ModalExecutor:
             raise ValueError("Sandbox output exceeds the export limit")
         destination = run.directory / "artifacts"
         artifacts = []
-        for name, size in sorted(paths.items()):
-            relative = PurePosixPath(name)
-            if relative.is_absolute() or ".." in relative.parts or not relative.parts:
-                raise ValueError("Invalid sandbox output path")
-            if not 0 <= size <= 32 * 1024**2:
-                raise ValueError("Invalid sandbox output size")
-            data = await run.sandbox.filesystem.read_bytes.aio(f"/outputs/{relative}")
-            if len(data) != size:
-                raise ValueError("Sandbox output changed during export")
-            path = destination / relative
-            if not path.resolve().is_relative_to(destination.resolve()):
-                raise ValueError("Output destination escapes the artifact directory")
-            path.parent.mkdir(parents=True, exist_ok=True)
-            temp = path.with_name(f".{uuid4().hex}.tmp")
+        with TemporaryDirectory(dir=run.directory) as temporary:
+            snapshot = Path(temporary) / "snapshot"
+            snapshot.mkdir()
+            for name, size in sorted(paths.items()):
+                relative = PurePosixPath(name)
+                if (
+                    relative.is_absolute()
+                    or ".." in relative.parts
+                    or not relative.parts
+                    or relative.as_posix() != name
+                ):
+                    raise ValueError("Invalid sandbox output path")
+                if not 0 <= size <= 32 * 1024**2:
+                    raise ValueError("Invalid sandbox output size")
+                data = await run.sandbox.filesystem.read_bytes.aio(f"/outputs/{relative}")
+                if len(data) != size:
+                    raise ValueError("Sandbox output changed during export")
+                staged = snapshot / relative
+                staged.parent.mkdir(parents=True, exist_ok=True)
+                staged.write_bytes(data)
+                artifacts.append(
+                    {
+                        "name": name,
+                        "path": str(destination / relative),
+                        "sha256": sha256(data).hexdigest(),
+                    }
+                )
+
+            # Publish only a complete snapshot. Moving the previous directory aside
+            # also removes stale files when the remote output directory is empty.
+            previous = Path(temporary) / "previous"
+            if destination.is_symlink() or (destination.exists() and not destination.is_dir()):
+                raise ValueError("Artifact destination must be a directory")
+            if destination.exists():
+                destination.rename(previous)
             try:
-                temp.write_bytes(data)
-                temp.replace(path)
-            finally:
-                temp.unlink(missing_ok=True)
-            artifacts.append({"name": name, "path": str(path), "sha256": sha256(data).hexdigest()})
+                snapshot.rename(destination)
+            except OSError:
+                if previous.exists():
+                    previous.rename(destination)
+                raise
         return artifacts
 
     async def collect_outputs(self, sandbox_id: str) -> list[dict]:

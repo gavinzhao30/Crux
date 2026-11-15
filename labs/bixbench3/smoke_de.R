@@ -14,7 +14,7 @@ count_columns <- if ("count_column" %in% names(meta)) meta$count_column else met
 stopifnot(!anyDuplicated(count_columns), all(count_columns %in% names(counts)))
 matrix <- as.matrix(counts[, count_columns, drop = FALSE])
 stopifnot(is.numeric(matrix), all(is.finite(matrix)), all(matrix >= 0), all(matrix == floor(matrix)))
-rownames(matrix) <- sub("\\.[0-9]+$", "", counts[[gene_col]])
+rownames(matrix) <- sub("\\.[0-9]+(_PAR_Y)?$", "\\1", counts[[gene_col]])
 stopifnot(!anyDuplicated(rownames(matrix)))
 colnames(matrix) <- meta$sample_id
 rownames(meta) <- meta$sample_id
