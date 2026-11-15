@@ -84,3 +84,13 @@ def test_unsupported_faults_are_skipped_with_a_reason(tmp_path):
     truth = plant(case, tmp_path / "suite", seed=1)
     assert set(truth["skipped"]) == {"cell_line_swap"}
     assert "two or more cell lines" in truth["skipped"]["cell_line_swap"]
+
+
+def test_entrez_ids_skip_the_version_fault(tmp_path):
+    case = make_case(tmp_path / "case")
+    counts = pd.read_csv(case / COUNTS, sep="\t")
+    counts["Geneid"] = [str(1000 + i) for i in range(len(counts))]
+    counts.to_csv(case / COUNTS, sep="\t", index=False)
+    truth = plant(case, tmp_path / "suite", seed=2)
+    assert "gene_version" in truth["skipped"]
+    assert all(i["fault"] != "gene_version" for i in truth["cases"].values())

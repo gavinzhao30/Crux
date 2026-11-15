@@ -12,7 +12,8 @@ This works on any case folder (``tagseq_featurecounts_matrix.tsv`` + ``samples.t
 * ``duplicate_library``: copy one treated library over its replicate.
 * ``low_depth``: thin one treated library to 1/50 of its reads.
 * ``cell_line_swap``: exchange the cell_line labels of controls from two lines (2+ lines only).
-* ``gene_version``: on 5% of genes, strip version suffixes if the ids have them, else add one.
+* ``gene_version``: on 5% of genes, strip version suffixes if the ids have them, else add one
+  (skipped for numeric Entrez ids, which never carry versions).
 
 Faults the design can't support are skipped and listed in the truth file with the reason.
 Output, deterministic for a seed: ``cases/<case-NN>/`` with only counts and samples (sample
@@ -113,8 +114,10 @@ def plant_one(fault: str, counts: pd.DataFrame, sheet: pd.DataFrame, rng, contro
         sheet.loc[sheet["sample_id"] == b, "cell_line"] = first
         return counts, sheet, [a, b], None
     if fault == "gene_version":
-        rows = rng.permutation(len(counts))[: max(1, min(1000, len(counts) // 20))]
         ids = counts["gene_id"]
+        if ids.str.fullmatch(r"\d+").mean() > 0.5:
+            return "numeric (Entrez) gene ids never carry versions"
+        rows = rng.permutation(len(counts))[: max(1, min(1000, len(counts) // 20))]
         if ids.str.contains(_VERSIONED).mean() > 0.5:
             counts.loc[rows, "gene_id"] = ids.iloc[rows].str.replace(
                 _VERSIONED, "", regex=True
